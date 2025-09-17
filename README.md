@@ -1,11 +1,6 @@
 # 👷‍♂️ Smart Labor Hiring & Management System  
 *A Location-Based Mobile Application for the Textile Industry*  
 
-![GitHub repo size](https://img.shields.io/github/repo-size/Zaibten/Smart-Labor-Hiring-System?color=blue)  
-![GitHub contributors](https://img.shields.io/github/contributors/Zaibten/Smart-Labor-Hiring-System?color=green)  
-![GitHub stars](https://img.shields.io/github/stars/Zaibten/Smart-Labor-Hiring-System?color=yellow)  
-![GitHub forks](https://img.shields.io/github/forks/Zaibten/Smart-Labor-Hiring-System?color=orange)  
-
 ---
 
 ## 📖 Overview  
@@ -26,15 +21,15 @@ Instead of relying on **manual references, phone calls, and middlemen**, this ap
 
 ## 🎯 Key Features  
 
-✅ **Role-based accounts** – Mills, Contractors, Workers  
-✅ **Location-based worker matching** (powered by Google Maps API)  
-✅ **Job postings & applications**  
-✅ **Digital contracts & agreements**  
-✅ **Ratings & Reviews** for trust & transparency  
-✅ **Notifications & Alerts** for new opportunities  
-✅ **Advanced Filters** (skills, wages, job duration)  
-✅ **Scalable Database** (MongoDB)  
-✅ *(Optional)* Payment Integration  
+- Role-based accounts (Mills, Contractors, Workers)  
+- Location-based worker matching (powered by Google Maps API)  
+- Job postings & applications  
+- Digital contracts & agreements  
+- Ratings & Reviews for trust & transparency  
+- Notifications & Alerts for new opportunities  
+- Advanced Filters (skills, wages, job duration)  
+- Scalable Database (MongoDB)  
+- *(Optional)* Payment Integration  
 
 ---
 
@@ -112,17 +107,6 @@ Future roadmap includes:
 
 ---
 
-## 👨‍💻 Contributors (Team Zaibten)  
-
-| Name             | Role / Expertise                         |
-|------------------|------------------------------------------|
-| **Naeemullah**   | 📱 Mobile App Development (React Native) |
-| **Huzaifa Ahmed**| ⚙️ Backend Development (Node.js, APIs)   |
-| **Yasir Rathore**| 🗄️ Database Design (MongoDB)             |
-| **Amjad Ali**    | 🎨 UI/UX Design & Documentation          |
-
----
-
 ## 📜 License  
 This project is licensed under the **MIT License** – free to use, modify, and distribute.  
 
@@ -131,7 +115,7 @@ This project is licensed under the **MIT License** – free to use, modify, and 
 ## ⭐ Support & Feedback  
 If you find this project useful:  
 - ⭐ Star the repository on GitHub  
-- 🐛 Report issues via [GitHub Issues](https://github.com/zaibten/Smart-Labor-Hiring-System/issues)  
+- 🐛 Report issues via [GitHub Issues](https://github.com/Zaibten/Smart-Labor-Hiring-Management-System-for-Textile-Industry/issues)  
 - 💡 Suggest features via pull requests  
 
 👉 **Developed with passion by [Zaibten](https://github.com/zaibten)**  
