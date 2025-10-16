@@ -65,7 +65,7 @@ export default function ChatBot() {
     setInput("");
 
     try {
-      const response = await fetch("http://192.168.0.104:3000/api/chat", {
+      const response = await fetch("https://labourhubserver.vercel.app/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
@@ -85,54 +85,47 @@ export default function ChatBot() {
     }
   };
 
-  // Speech to Text
-  const startRecording = async () => {
-    try {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== "granted") {
-        alert("Microphone permission is required!");
-        return;
-      }
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const rec = new Audio.Recording();
-      await rec.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
-      await rec.startAsync();
-      setRecording(rec);
-    } catch (err) {
-      console.error("Recording error:", err);
+const startRecording = async () => {
+  try {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== "granted") {
+      alert("Microphone permission is required!");
+      return;
     }
-  };
+
+    const rec = new Audio.Recording();
+    await rec.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+    await rec.startAsync();
+    setRecording(rec);
+  } catch (err) {
+    console.error("Recording error:", err);
+  }
+};
 
 const stopRecording = async () => {
+  if (!recording) return;
   try {
     setLoading(true);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
     setRecording(null);
 
+    // Convert to FormData
     const formData = new FormData();
     formData.append("file", {
       uri,
-      name: "audio.mp3",
-      type: "audio/mpeg",
+      name: "audio.m4a", // use actual recorded extension
+      type: "audio/m4a",
     });
 
-    const response = await fetch("http://192.168.0.104:3000/transcribe", {
+    const response = await fetch("https://labourhubserver.vercel.app/transcribe", {
       method: "POST",
       body: formData,
     });
 
     const data = await response.json();
     const spokenText = data.text || "";
-
-    if (spokenText) {
-      handleSend(spokenText); // Send to chat API directly
-    }
+    if (spokenText) handleSend(spokenText);
 
     setLoading(false);
   } catch (err) {
@@ -140,6 +133,7 @@ const stopRecording = async () => {
     setLoading(false);
   }
 };
+
 
 
   const renderMessage = ({ item }) => (
