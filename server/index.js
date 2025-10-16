@@ -516,7 +516,7 @@ app.post("/api/transcribe", upload.single("file"), async (req, res) => {
 });
 
 // Root endpoint
-app.get("/", (req, res) => res.send("🚀 Labour Hub API is running!"));
+app.get("/", (req, res) => res.send("🚀 Transcription API is running!"));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () =>
