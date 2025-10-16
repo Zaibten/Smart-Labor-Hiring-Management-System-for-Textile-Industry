@@ -89,7 +89,7 @@ useEffect(() => {
     setInput("");
 
     try {
-      const response = await fetch("https://labourhubserver.vercel.app/api/chat", {
+      const response = await fetch("https://labour-server.vercel.app/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
@@ -146,7 +146,7 @@ const stopRecording = async () => {
       type: "audio/m4a",
     });
 
-    const response = await fetch("https://labourhubserver.vercel.app/api/transcribe", {
+    const response = await fetch("https://labour-server.vercel.app/api/transcribe", {
       method: "POST",
       body: formData,
     });
