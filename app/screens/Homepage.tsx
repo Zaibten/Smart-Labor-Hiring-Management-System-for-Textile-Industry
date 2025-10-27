@@ -1,24 +1,23 @@
 // app/index.tsx
 import React from "react";
-import { StyleSheet, View } from "react-native";
-import SplashScreen from "../screens/SplashScreen";
+import { StyleSheet, Text, View } from "react-native";
+import ChatBot from "../components/ChatBot"; // Adjust path if needed
 
 export default function HomePage() {
   return (
     <View style={styles.container}>
       {/* Page content */}
-      {/* <View style={styles.content}>
+      <View style={styles.content}>
         <Text style={styles.title}>Welcome to Home Page</Text>
         <Text style={styles.subtitle}>
           This is your simple React Native App using Expo
         </Text>
-      </View> */}
-      <SplashScreen/>
+      </View>
 
       {/* Floating Chatbot */}
-      {/* <View style={styles.chatbotWrapper}>
+      <View style={styles.chatbotWrapper}>
         <ChatBot />
-      </View> */}
+      </View>
     </View>
   );
 }
