@@ -1,24 +1,24 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
-    Animated,
-    Easing,
-    StyleSheet,
-    Text,
-    View
+  Animated,
+  Easing,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 
 export default function SplashScreen() {
   const router = useRouter();
 
-  // Animated values
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-  const titleAnim = useRef(new Animated.Value(50)).current; // for slide up
+  const titleAnim = useRef(new Animated.Value(50)).current;
   const subtitleOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Sequence animation for logo and text
+    // Run animation
     Animated.sequence([
       Animated.parallel([
         Animated.timing(scaleAnim, {
@@ -49,9 +49,21 @@ export default function SplashScreen() {
       ]),
     ]).start();
 
-    // Redirect to login after 3 seconds
-    const timer = setTimeout(() => {
-      router.replace("/screens/LoginScreen");
+    // Check login status after 3.5 seconds
+    const timer = setTimeout(async () => {
+      try {
+        const userData = await AsyncStorage.getItem("user");
+        const user = userData ? JSON.parse(userData) : null;
+
+        if (user && user.email && user.role) {
+          router.replace("/screens/Homepage");
+        } else {
+          router.replace("/screens/LoginScreen");
+        }
+      } catch (error) {
+        console.log("Error reading user data:", error);
+        router.replace("/screens/LoginScreen");
+      }
     }, 3500);
 
     return () => clearTimeout(timer);
@@ -59,7 +71,6 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Animated Logo */}
       <Animated.Image
         source={require("../../assets/images/logo.png")}
         style={[
@@ -79,7 +90,6 @@ export default function SplashScreen() {
         resizeMode="contain"
       />
 
-      {/* Animated Title */}
       <Animated.Text
         style={[
           styles.title,
@@ -92,16 +102,19 @@ export default function SplashScreen() {
         Welcome to <Text style={{ color: "#f97316" }}>SignBridge</Text>
       </Animated.Text>
 
-      {/* Animated Subtitle */}
       <Animated.Text
         style={[
           styles.subtitle,
           {
             opacity: subtitleOpacity,
-            transform: [{ translateY: subtitleOpacity.interpolate({
-              inputRange: [0, 1],
-              outputRange: [20, 0],
-            }) }],
+            transform: [
+              {
+                translateY: subtitleOpacity.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0],
+                }),
+              },
+            ],
           },
         ]}
       >

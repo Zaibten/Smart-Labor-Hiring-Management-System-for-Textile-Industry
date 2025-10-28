@@ -2,13 +2,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export const options = { headerShown: false };
@@ -22,171 +25,208 @@ export default function SignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState("Labour");
+  const [role, setRole] = useState<"Labour" | "Contractor">("Labour");
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Validation Function
+  const validateInputs = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!firstName.trim()) {
+      Alert.alert("Validation Error", "First name is required.");
+      return false;
+    }
+    if (!lastName.trim()) {
+      Alert.alert("Validation Error", "Last name is required.");
+      return false;
+    }
+    if (!/^\d{11}$/.test(phone)) {
+      Alert.alert("Validation Error", "Phone number must be exactly 11 digits.");
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address.");
+      return false;
+    }
+    if (!password || password.length > 8) {
+      Alert.alert("Validation Error", "Password must be max 8 characters.");
+      return false;
+    }
+    return true;
+  };
+
+  // ✅ Connect API
+  const handleSignup = async () => {
+    if (!validateInputs()) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch("https://labour-server.vercel.app/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          phone,
+          email,
+          password,
+          role,
+        }),
+      });
+
+      const data = await res.json();
+      setLoading(false);
+
+      if (!res.ok) {
+        Alert.alert("Signup Failed", data.error || data.errors?.join("\n") || "Unknown error");
+        return;
+      }
+
+      Alert.alert("Success", "Account created successfully!");
+      router.replace("/screens/LoginScreen");
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+      Alert.alert("Error", "Something went wrong. Please try again later.");
+    }
+  };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: "#fff" }}
-      contentContainerStyle={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
     >
-      <View style={styles.container}>
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-          {/* <Text style={styles.appName}>LABOUR HUB</Text> */}
-        </View>
-
-        {/* Title */}
-        <Text style={styles.welcomeTitle}>Create Account</Text>
-        <Text style={styles.subtitle}>
-          Join us by creating your account below.
-        </Text>
-
-        {/* Form */}
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="First Name"
-            placeholderTextColor="#aaa"
-            value={firstName}
-            onChangeText={setFirstName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Last Name"
-            placeholderTextColor="#aaa"
-            value={lastName}
-            onChangeText={setLastName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            placeholderTextColor="#aaa"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#aaa"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-
-          {/* Password */}
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[styles.input, { flex: 1, marginBottom: 0 }]}
-              placeholder="Password"
-              placeholderTextColor="#aaa"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../../assets/images/logo.png")}
+              style={styles.logoImage}
+              resizeMode="contain"
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.eyeButton}
-            >
-              <Text style={styles.eyeIcon}>
-                {showPassword ? "🙈" : "👁️"}
-              </Text>
-            </TouchableOpacity>
           </View>
 
-          {/* Role Selector */}
-          <View style={styles.roleContainer}>
-            <TouchableOpacity
-              style={[
-                styles.roleButton,
-                role === "Labour" && styles.activeRoleButton,
-              ]}
-              onPress={() => setRole("Labour")}
-            >
-              <Text
-                style={[
-                  styles.roleText,
-                  role === "Labour" && styles.activeRoleText,
-                ]}
+          {/* Title */}
+          <Text style={styles.welcomeTitle}>Create Account</Text>
+          <Text style={styles.subtitle}>Join us by creating your account below.</Text>
+
+          {/* Form */}
+          <View style={styles.form}>
+            <TextInput
+              style={styles.input}
+              placeholder="First Name"
+              placeholderTextColor="#aaa"
+              value={firstName}
+              onChangeText={setFirstName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Last Name"
+              placeholderTextColor="#aaa"
+              value={lastName}
+              onChangeText={setLastName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Phone Number"
+              placeholderTextColor="#aaa"
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+              maxLength={11}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#aaa"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+
+            {/* Password */}
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                placeholder="Password"
+                placeholderTextColor="#aaa"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                maxLength={8}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeButton}
               >
-                Labour
-              </Text>
-            </TouchableOpacity>
+                <Text style={styles.eyeIcon}>{showPassword ? "🙈" : "👁️"}</Text>
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              style={[
-                styles.roleButton,
-                role === "Contractor" && styles.activeRoleButton,
-              ]}
-              onPress={() => setRole("Contractor")}
-            >
-              <Text
-                style={[
-                  styles.roleText,
-                  role === "Contractor" && styles.activeRoleText,
-                ]}
+            {/* Role Selector */}
+            <View style={styles.roleContainer}>
+              <TouchableOpacity
+                style={[styles.roleButton, role === "Labour" && styles.activeRoleButton]}
+                onPress={() => setRole("Labour")}
               >
-                Contractor
+                <Text
+                  style={[styles.roleText, role === "Labour" && styles.activeRoleText]}
+                >
+                  Labour
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.roleButton, role === "Contractor" && styles.activeRoleButton]}
+                onPress={() => setRole("Contractor")}
+              >
+                <Text
+                  style={[styles.roleText, role === "Contractor" && styles.activeRoleText]}
+                >
+                  Contractor
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Signup Button */}
+            <TouchableOpacity onPress={handleSignup} disabled={loading}>
+              <LinearGradient
+                colors={["#f97316", "#fb923c"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.signInButton}
+              >
+                <Text style={styles.signInText}>
+                  {loading ? "Creating..." : "Sign Up"}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* OR Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Back to Login */}
+            <TouchableOpacity onPress={() => router.push("/screens/LoginScreen")}>
+              <Text style={styles.createAccount}>
+                Already have an account? Log in
               </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Signup Button */}
-          <TouchableOpacity
-            onPress={() => router.replace("/screens/LoginScreen")}
-          >
-            <LinearGradient
-              colors={["#f97316", "#fb923c"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.signInButton}
-            >
-              <Text style={styles.signInText}>Sign Up</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {/* OR Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-         {/* Social Buttons */}
-              {/* <View style={styles.socialContainer}>
-                <Pressable style={styles.socialButton}>
-                  <Image
-                    source={{ uri: "https://cdn-icons-png.flaticon.com/512/281/281764.png" }}
-                    style={styles.socialIcon}
-                  />
-                  <Text style={styles.socialText}>Continue with Google</Text>
-                </Pressable>
-        
-                <Pressable style={styles.socialButton}>
-                  <Image
-                    source={{ uri: "https://cdn-icons-png.flaticon.com/512/15/15476.png" }}
-                    style={styles.socialIcon}
-                  />
-                  <Text style={styles.socialText}>Continue with Apple</Text>
-                </Pressable>
-              </View> */}
-
-          {/* Back to Login */}
-          <TouchableOpacity onPress={() => router.push("/screens/LoginScreen")}>
-            <Text style={styles.createAccount}>
-              Already have an account? Log in
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -205,15 +245,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 30,
   },
-    logoImage: {
+  logoImage: {
     width: 100,
     height: 100,
-  },
-  appName: {
-    fontSize: 20,
-    color: "#0f172a",
-    marginTop: 8,
-    fontWeight: "600",
   },
   welcomeTitle: {
     fontSize: 24,
@@ -279,7 +313,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   signInText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -295,44 +328,10 @@ const styles = StyleSheet.create({
     color: "#64748b",
     fontWeight: "500",
   },
-
-  googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingVertical: 12,
-    marginBottom: 15,
-  },
-  googleIcon: {
-    width: 22,
-    height: 22,
-    marginRight: 8,
-  },
-  googleText: {
-    color: "#0f172a",
-    fontSize: 16,
-    fontWeight: "500",
-  },
   createAccount: {
     color: "#fb923c",
     textAlign: "center",
     marginTop: 5,
     fontSize: 15,
   },
-    socialContainer: { width: "100%" },
-  socialButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingVertical: 12,
-    marginBottom: 10,
-  },
-  socialIcon: { width: 22, height: 22, marginRight: 10 },
-  socialText: { fontSize: 15, fontWeight: "500", color: "#0f172a" },
 });
