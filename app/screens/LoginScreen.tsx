@@ -21,41 +21,50 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Validation Error", "Please fill in all fields.");
+const handleLogin = async () => {
+  if (!email || !password) {
+    Alert.alert("Validation Error", "Please fill in all fields.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const res = await fetch("http://192.168.100.37:3000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+      Alert.alert("Login Failed", data.error || "Invalid credentials");
       return;
     }
 
-    try {
-      setLoading(true);
+    // Save user info & token in AsyncStorage
+    await AsyncStorage.setItem("user", JSON.stringify(data.user));
+    await AsyncStorage.setItem("token", data.token);
 
-      const res = await fetch("https://labour-server.vercel.app/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    Alert.alert("Success", "Login successful!");
 
-      const data = await res.json();
-      setLoading(false);
-
-      if (!res.ok) {
-        Alert.alert("Login Failed", data.error || "Invalid credentials");
-        return;
-      }
-
-      // Save user info & token in AsyncStorage
-      await AsyncStorage.setItem("user", JSON.stringify(data.user));
-      await AsyncStorage.setItem("token", data.token);
-
-      Alert.alert("Success", "Login successful!");
+    // ✅ Check user role before redirecting
+    const role = data.user?.role?.toLowerCase();
+    if (role === "contractor") {
+      router.replace("/screens/ContractorHomepage");
+    } else {
       router.replace("/screens/Homepage");
-    } catch (error) {
-      setLoading(false);
-      console.error(error);
-      Alert.alert("Error", "Something went wrong. Please try again later.");
     }
-  };
+
+  } catch (error) {
+    setLoading(false);
+    console.error(error);
+    Alert.alert("Error", "Something went wrong. Please try again later.");
+  }
+};
+
 
   return (
     <View style={styles.container}>

@@ -1,13 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
-import {
-  Animated,
-  Easing,
-  StyleSheet,
-  Text,
-  View
-} from "react-native";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -18,7 +12,7 @@ export default function SplashScreen() {
   const subtitleOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Run animation
+    // Run splash animations
     Animated.sequence([
       Animated.parallel([
         Animated.timing(scaleAnim, {
@@ -56,7 +50,13 @@ export default function SplashScreen() {
         const user = userData ? JSON.parse(userData) : null;
 
         if (user && user.email && user.role) {
-          router.replace("/screens/Homepage");
+          const role = user.role.toLowerCase();
+
+          if (role === "contractor") {
+            router.replace("/screens/ContractorHomepage");
+          } else {
+            router.replace("/screens/Homepage");
+          }
         } else {
           router.replace("/screens/LoginScreen");
         }
