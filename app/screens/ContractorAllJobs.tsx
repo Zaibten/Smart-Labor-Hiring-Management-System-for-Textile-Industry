@@ -1,12 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useRef, useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
-    Animated,
+    Alert,
+    Platform,
+    Pressable,
     SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -47,6 +51,29 @@ export default function AllJobs() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"myJobs" | "allJobs">("allJobs");
 
+  const [filters, setFilters] = useState({
+    location: "",
+    skill: "",
+    startDate: "",
+    endDate: "",
+    minBudget: "",
+    maxBudget: "",
+  });
+// Inside your component, add this function to clear filters
+const clearFilters = () => {
+  setFilters({
+    location: "",
+    skill: "",
+    startDate: "",
+    endDate: "",
+    minBudget: "",
+    maxBudget: "",
+  });
+};
+
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
   const contractorTabs = [
     { label: "Home", icon: "home" },
     { label: "Create Jobs", icon: "add-circle" },
@@ -62,7 +89,6 @@ export default function AllJobs() {
         if (userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
-
           await AsyncStorage.setItem("userEmail", parsedUser.email);
 
           const resAll = await fetch("http://192.168.100.37:3000/api/alljobs");
@@ -70,8 +96,9 @@ export default function AllJobs() {
           setAllJobs(jobsAll);
 
           if (parsedUser.role === "Contractor") {
-            const email = parsedUser.email;
-            const resMine = await fetch(`http://192.168.100.37:3000/api/my-jobs-email/${email}`);
+            const resMine = await fetch(
+              `http://192.168.100.37:3000/api/my-jobs-email/${parsedUser.email}`
+            );
             const jobsMine = await resMine.json();
             setMyJobs(jobsMine);
           }
@@ -82,14 +109,49 @@ export default function AllJobs() {
         setLoading(false);
       }
     };
-
     fetchUserAndJobs();
   }, []);
+
+  const handleApply = (job: Job) => {
+    Alert.alert("Apply Job", `You have applied for "${job.title}"`, [{ text: "OK" }]);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleStartDateChange = (event: any, selectedDate?: Date) => {
+    setShowStartPicker(Platform.OS === "ios");
+    if (selectedDate) {
+      handleFilterChange("startDate", selectedDate.toISOString().split("T")[0]);
+    }
+  };
+
+  const handleEndDateChange = (event: any, selectedDate?: Date) => {
+    setShowEndPicker(Platform.OS === "ios");
+    if (selectedDate) {
+      handleFilterChange("endDate", selectedDate.toISOString().split("T")[0]);
+    }
+  };
+
+  const filteredJobs = (activeTab === "myJobs" ? myJobs : allJobs.filter(job => job.createdBy.email !== user.email))
+    .filter((job) => {
+      const { location, skill, startDate, endDate, minBudget, maxBudget } = filters;
+
+      return (
+        (!location || job.location.toLowerCase().includes(location.toLowerCase())) &&
+        (!skill || job.skill.toLowerCase().includes(skill.toLowerCase())) &&
+        (!startDate || new Date(job.startDate) >= new Date(startDate)) &&
+        (!endDate || new Date(job.endDate) <= new Date(endDate)) &&
+        (!minBudget || job.budget >= parseFloat(minBudget)) &&
+        (!maxBudget || job.budget <= parseFloat(maxBudget))
+      );
+    });
 
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <AppBar title="All Jobs" />
+        <AppBar title="Jobs" />
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#fb923c" />
         </View>
@@ -98,69 +160,164 @@ export default function AllJobs() {
     );
   }
 
-  // Job card with fade-in animation
-  const renderJob = (job: Job) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.8)).current;
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.spring(scaleAnim, { toValue: 1, friction: 6, useNativeDriver: true }),
-      ]).start();
-    }, []);
-
-    return (
-      <Animated.View key={job._id} style={[styles.jobCard, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-        {/* Role Tag */}
-        <View style={[styles.roleTag, job.createdBy.role === "Contractor" ? styles.contractorTag : styles.labourTag]}>
-          <Text style={styles.roleTagText}>{job.createdBy.role}</Text>
-        </View>
-
-        <Text style={styles.jobTitle}>{job.title}</Text>
-        <Text style={styles.jobText}>Description: {job.description}</Text>
-        <Text style={styles.jobText}>Location: {job.location}</Text>
-        <Text style={styles.jobText}>Skill: {job.skill}</Text>
-        <Text style={styles.jobText}>Workers: {job.workersRequired}</Text>
-        <Text style={styles.jobText}>Budget: ${job.budget}</Text>
-        <Text style={styles.jobText}>
-          Start: {new Date(job.startDate).toLocaleDateString()} | End: {new Date(job.endDate).toLocaleDateString()}
-        </Text>
-        <Text style={styles.jobText}>
-          Created By: {job.createdBy.firstName} {job.createdBy.lastName}
-        </Text>
-      </Animated.View>
-    );
-  };
-
-  const jobsToShow = activeTab === "myJobs" ? myJobs : allJobs;
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <AppBar title="Jobs" />
+
       <View style={styles.tabContainer}>
         {user.role === "Contractor" && (
           <TouchableOpacity
             style={[styles.tabButton, activeTab === "myJobs" && styles.activeTab]}
             onPress={() => setActiveTab("myJobs")}
           >
-            <Text style={[styles.tabText, activeTab === "myJobs" && styles.activeTabText]}>My Jobs</Text>
+            <Text style={styles.tabText}>My Jobs</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
           style={[styles.tabButton, activeTab === "allJobs" && styles.activeTab]}
           onPress={() => setActiveTab("allJobs")}
         >
-          <Text style={[styles.tabText, activeTab === "allJobs" && styles.activeTabText]}>All Jobs</Text>
+          <Text style={styles.tabText}>All Jobs</Text>
         </TouchableOpacity>
       </View>
+
+{/* Filters */}
+<View style={styles.filtersContainer}>
+  <View style={styles.row}>
+    <TextInput
+      placeholder="Location"
+      style={[styles.filterInput, { flex: 1, marginRight: 5 }]}
+      value={filters.location}
+      onChangeText={(text) => handleFilterChange("location", text)}
+    />
+    <TextInput
+      placeholder="Skill"
+      style={[styles.filterInput, { flex: 1, marginLeft: 5 }]}
+      value={filters.skill}
+      onChangeText={(text) => handleFilterChange("skill", text)}
+    />
+  </View>
+
+  <View style={styles.row}>
+    <TouchableOpacity style={styles.dateInput} onPress={() => setShowStartPicker(true)}>
+      <Text style={{ color: filters.startDate ? "#111827" : "#9ca3af" }}>
+        {filters.startDate || "Start Date"}
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.dateInput} onPress={() => setShowEndPicker(true)}>
+      <Text style={{ color: filters.endDate ? "#111827" : "#9ca3af" }}>
+        {filters.endDate || "End Date"}
+      </Text>
+    </TouchableOpacity>
+  </View>
+
+  {showStartPicker && (
+    <DateTimePicker
+      value={filters.startDate ? new Date(filters.startDate) : new Date()}
+      mode="date"
+      display="default"
+      onChange={handleStartDateChange}
+    />
+  )}
+  {showEndPicker && (
+    <DateTimePicker
+      value={filters.endDate ? new Date(filters.endDate) : new Date()}
+      mode="date"
+      display="default"
+      onChange={handleEndDateChange}
+    />
+  )}
+
+  <View style={styles.row}>
+    <TextInput
+      placeholder="Min Budget"
+      style={[styles.filterInput, { flex: 1, marginRight: 5 }]}
+      keyboardType="numeric"
+      value={filters.minBudget}
+      onChangeText={(text) => handleFilterChange("minBudget", text)}
+    />
+    <TextInput
+      placeholder="Max Budget"
+      style={[styles.filterInput, { flex: 1, marginLeft: 5 }]}
+      keyboardType="numeric"
+      value={filters.maxBudget}
+      onChangeText={(text) => handleFilterChange("maxBudget", text)}
+    />
+  </View>
+
+  {/* Buttons Row */}
+  <View style={styles.rowButtons}>
+    <TouchableOpacity style={styles.applyfilterButton} onPress={() => {}}>
+      <Text style={styles.applyButtonText}>Apply</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
+      <Text style={styles.clearButtonText}>Clear</Text>
+    </TouchableOpacity>
+  </View>
+</View>
+
+
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {jobsToShow.length > 0 ? jobsToShow.map(renderJob) : (
+        {filteredJobs.length > 0 ? (
+          filteredJobs.map((job) => (
+            <View key={job._id} style={styles.jobCard}>
+              <View
+                style={[
+                  styles.roleTag,
+                  job.createdBy.role === "Contractor" ? styles.contractorTag : styles.labourTag,
+                ]}
+              >
+                <Text style={styles.roleTagText}>{job.createdBy.role}</Text>
+              </View>
+
+              <Text style={styles.jobTitle}>{job.title}</Text>
+              <Text style={styles.jobText}>{job.description}</Text>
+
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Location:</Text>
+                <Text style={styles.infoValue}>{job.location}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Skill:</Text>
+                <Text style={styles.infoValue}>{job.skill}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Workers:</Text>
+                <Text style={styles.infoValue}>{job.workersRequired}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Budget:</Text>
+                <Text style={styles.infoValue}>Rs: {job.budget}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Duration:</Text>
+                <Text style={styles.infoValue}>
+                  {new Date(job.startDate).toLocaleDateString()} - {new Date(job.endDate).toLocaleDateString()}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Created By:</Text>
+                <Text style={styles.infoValue}>
+                  {job.createdBy.firstName} {job.createdBy.lastName}
+                </Text>
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [styles.applyButton, pressed && styles.applyButtonPressed]}
+                onPress={() => handleApply(job)}
+              >
+                <Text style={styles.applyButtonText}>Apply</Text>
+              </Pressable>
+            </View>
+          ))
+        ) : (
           <Text style={styles.emptyText}>
-            {activeTab === "myJobs" ? "You haven't created any jobs yet." : "No jobs available."}
+            {activeTab === "myJobs" ? "You haven't created any jobs yet." : "No jobs match the filters."}
           </Text>
         )}
       </ScrollView>
+
       <BottomTab tabs={contractorTabs} activeTab="All Jobs" userRole="Contractor" />
     </SafeAreaView>
   );
@@ -180,31 +337,125 @@ const styles = StyleSheet.create({
   },
   activeTab: { backgroundColor: "#fb923c" },
   tabText: { fontWeight: "700", color: "#111827" },
-  activeTabText: { color: "#fff" },
+
+filtersContainer: {
+  backgroundColor: "#fff",
+  padding: 12,
+  marginHorizontal: 15,
+  marginBottom: 10,
+  borderRadius: 15,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.1,
+  shadowRadius: 5,
+  elevation: 3,
+},
+filterInput: {
+  backgroundColor: "#f3f4f6",
+  paddingVertical: 10,
+  paddingHorizontal: 12,
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: "#e5e7eb",
+},
+dateInput: {
+  flex: 1,
+  paddingVertical: 10,
+  paddingHorizontal: 12,
+  backgroundColor: "#f3f4f6",
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: "#e5e7eb",
+  justifyContent: "center",
+  marginHorizontal: 2,
+},
+row: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  marginVertical: 5,
+},
+rowButtons: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  marginTop: 10,
+},
+applyButton: {
+  flex: 1,
+  backgroundColor: "#fb923c",
+  paddingVertical: 12,
+  borderRadius: 10,
+  alignItems: "center",
+  marginRight: 5,
+  shadowColor: "#fb923c",
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.3,
+  shadowRadius: 4,
+},
+applyfilterButton: {
+  flex: 1,
+  backgroundColor: "#4b664eff",
+  paddingVertical: 12,
+  borderRadius: 10,
+  alignItems: "center",
+  marginRight: 5,
+  shadowColor: "#fb923c",
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.3,
+  shadowRadius: 4,
+},
+clearButton: {
+  flex: 1,
+  backgroundColor: "#ef4444",
+  paddingVertical: 12,
+  borderRadius: 10,
+  alignItems: "center",
+  marginLeft: 5,
+  shadowColor: "#ef4444",
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.3,
+  shadowRadius: 4,
+},
+applyButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+clearButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+
 
   jobCard: {
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
     backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowRadius: 4,
+    elevation: 3,
+    borderLeftWidth: 5,
+    borderLeftColor: "#fb923c",
   },
   roleTag: {
     alignSelf: "flex-start",
     paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    paddingHorizontal: 10,
+    borderRadius: 12,
     marginBottom: 10,
   },
   contractorTag: { backgroundColor: "#f97316" },
   labourTag: { backgroundColor: "#10b981" },
   roleTagText: { color: "#fff", fontWeight: "700", fontSize: 12 },
 
-  jobTitle: { fontSize: 18, fontWeight: "700", marginBottom: 6, color: "#111827" },
-  jobText: { fontSize: 14, color: "#374151", marginBottom: 4 },
-  emptyText: { fontSize: 14, color: "#6b7280", fontStyle: "italic", marginVertical: 5 },
+  jobTitle: { fontSize: 18, fontWeight: "700", marginBottom: 8, color: "#111827" },
+  jobText: { fontSize: 14, color: "#374151", marginBottom: 8 },
+
+  infoRow: { flexDirection: "row", marginBottom: 4 },
+  infoLabel: { fontWeight: "600", color: "#4b5563", width: 100 },
+  infoValue: { color: "#374151", flex: 1 },
+
+
+  applyButtonPressed: {
+    backgroundColor: "#f97316",
+    transform: [{ scale: 0.97 }],
+    shadowOpacity: 0.5,
+  },
+
+  emptyText: { fontSize: 14, color: "#6b7280", fontStyle: "italic", marginVertical: 10 },
 });
