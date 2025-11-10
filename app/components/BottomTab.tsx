@@ -18,11 +18,12 @@ export default function BottomTab({ tabs, activeTab, userRole }: BottomTabProps)
   const router = useRouter();
   const pathname = usePathname();
 
-  // Simple mapping of tab labels to routes
+  // ✅ Route mapping based on user role
   const routeMap: Record<string, string> = {
     Home: userRole === "Contractor" ? "/screens/ContractorHomepage" : "/screens/Homepage",
     "Create Jobs": "/screens/CreateJobs",
     "All Jobs": "/screens/ContractorAllJobs",
+    "Find Jobs": "/screens/LabourAllJobs", // ✅ Added for Labour role
     Chats: "/screens/Chats",
     Settings: "/screens/Settings",
   };
@@ -34,9 +35,8 @@ export default function BottomTab({ tabs, activeTab, userRole }: BottomTabProps)
       return;
     }
 
-    // Don't navigate if already on the same page
     if (pathname !== targetPath) {
-      router.replace(targetPath as any); // ✅ cast as any to fix TS error
+      router.replace(targetPath as any);
     }
   };
 

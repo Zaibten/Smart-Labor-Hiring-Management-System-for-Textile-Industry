@@ -65,10 +65,9 @@ export default function AllJobs() {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-
   // For filter toggle animation
   const [filtersVisible, setFiltersVisible] = useState(true);
-  const animationValue = useRef(new Animated.Value(1)).current; // 1 means visible, 0 means hidden
+  const animationValue = useRef(new Animated.Value(1)).current;
 
   const toggleFilters = () => {
     Animated.timing(animationValue, {
@@ -81,12 +80,12 @@ export default function AllJobs() {
 
   const filterHeight = animationValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 300], // Adjust based on filters height
+    outputRange: [0, 300],
   });
 
   const arrowRotation = animationValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ["180deg", "0deg"], // Rotate arrow up/down
+    outputRange: ["180deg", "0deg"],
   });
 
   const clearFilters = () => {
@@ -100,10 +99,18 @@ export default function AllJobs() {
     });
   };
 
+  // ✅ Tabs for each role
   const contractorTabs = [
     { label: "Home", icon: "home" },
     { label: "Create Jobs", icon: "add-circle" },
     { label: "All Jobs", icon: "list" },
+    { label: "Chats", icon: "chatbubbles" },
+    { label: "Settings", icon: "settings" },
+  ];
+
+  const labourTabs = [
+    { label: "Home", icon: "home" },
+    { label: "Find Jobs", icon: "briefcase" },
     { label: "Chats", icon: "chatbubbles" },
     { label: "Settings", icon: "settings" },
   ];
@@ -162,29 +169,26 @@ export default function AllJobs() {
     }
   };
 
- 
-const filteredJobs = (
-  activeTab === "myJobs"
-    ? myJobs
-    : allJobs.filter((job) => job.createdBy.email !== user.email)
-).filter((job) => {
-  const { location, skill, startDate, endDate, minBudget, maxBudget } = filters;
+  const filteredJobs = (
+    activeTab === "myJobs"
+      ? myJobs
+      : allJobs.filter((job) => job.createdBy.email !== user.email)
+  ).filter((job) => {
+    const { location, skill, startDate, endDate, minBudget, maxBudget } = filters;
+    const matchesSearch =
+      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.skill.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const matchesSearch =
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.skill.toLowerCase().includes(searchQuery.toLowerCase());
-
-  return (
-    matchesSearch &&
-    (!location || job.location.toLowerCase().includes(location.toLowerCase())) &&
-    (!skill || job.skill.toLowerCase().includes(skill.toLowerCase())) &&
-    (!startDate || new Date(job.startDate) >= new Date(startDate)) &&
-    (!endDate || new Date(job.endDate) <= new Date(endDate)) &&
-    (!minBudget || job.budget >= parseFloat(minBudget)) &&
-    (!maxBudget || job.budget <= parseFloat(maxBudget))
-  );
-});
-
+    return (
+      matchesSearch &&
+      (!location || job.location.toLowerCase().includes(location.toLowerCase())) &&
+      (!skill || job.skill.toLowerCase().includes(skill.toLowerCase())) &&
+      (!startDate || new Date(job.startDate) >= new Date(startDate)) &&
+      (!endDate || new Date(job.endDate) <= new Date(endDate)) &&
+      (!minBudget || job.budget >= parseFloat(minBudget)) &&
+      (!maxBudget || job.budget <= parseFloat(maxBudget))
+    );
+  });
 
   if (loading) {
     return (
@@ -194,9 +198,9 @@ const filteredJobs = (
           <ActivityIndicator size="large" color="#fb923c" />
         </View>
         <BottomTab
-          tabs={contractorTabs}
-          activeTab="All Jobs"
-          userRole="Contractor"
+          tabs={user.role === "Labour" ? labourTabs : contractorTabs}
+          activeTab={user.role === "Labour" ? "Find Jobs" : "All Jobs"}
+          userRole={user.role === "Labour" ? "Labour" : "Contractor"}
         />
       </SafeAreaView>
     );
@@ -206,30 +210,24 @@ const filteredJobs = (
     <SafeAreaView style={styles.safeArea}>
       <AppBar title="Jobs" />
 
-      <View style={styles.tabContainer}>
-        {user.role === "Contractor" && (
+      {user.role === "Contractor" && (
+        <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === "myJobs" && styles.activeTab,
-            ]}
+            style={[styles.tabButton, activeTab === "myJobs" && styles.activeTab]}
             onPress={() => setActiveTab("myJobs")}
           >
             <Text style={styles.tabText}>My Jobs</Text>
           </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "allJobs" && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab("allJobs")}
-        >
-          <Text style={styles.tabText}>All Jobs</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === "allJobs" && styles.activeTab]}
+            onPress={() => setActiveTab("allJobs")}
+          >
+            <Text style={styles.tabText}>All Jobs</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      {/* Toggle Button */}
+      {/* Toggle Filters */}
       <TouchableOpacity onPress={toggleFilters} style={styles.toggleContainer}>
         <Text style={styles.toggleText}>
           {filtersVisible ? "Hide Filters" : "Show Filters"}
@@ -239,20 +237,22 @@ const filteredJobs = (
         />
       </TouchableOpacity>
 
-      {/* Filters with animation */}
-      <Animated.View style={[styles.filtersContainer, { height: filterHeight, overflow: "hidden" }]}>
+      {/* Filters */}
+      <Animated.View
+        style={[styles.filtersContainer, { height: filterHeight, overflow: "hidden" }]}
+      >
         <ScrollView>
-            <View style={styles.searchContainer}>
-  <TextInput
-    style={styles.searchInput}
-    placeholder="Search jobs by title or skill..."
-    placeholderTextColor="#9ca3af"
-    value={searchQuery}
-    onChangeText={(text) => setSearchQuery(text)}
-  />
-</View>
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search jobs by title or skill..."
+              placeholderTextColor="#9ca3af"
+              value={searchQuery}
+              onChangeText={(text) => setSearchQuery(text)}
+            />
+          </View>
+
           <View style={styles.row}>
-            
             <TextInput
               placeholder="Location"
               style={[styles.filterInput, { flex: 1, marginRight: 5 }]}
@@ -331,30 +331,25 @@ const filteredJobs = (
         </ScrollView>
       </Animated.View>
 
-
+      {/* Jobs List */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {filteredJobs.length > 0 ? (
           filteredJobs.map((job) => (
-           <View key={job._id} style={styles.jobCard}>
+            <View key={job._id} style={styles.jobCard}>
               <View
-  style={[
-    styles.roleTag,
-    job.createdBy.role === "Contractor"
-      ? styles.contractorTag
-      : job.createdBy.role === "Labour"
-      ? styles.labourTag
-      : styles.industryTag,
-  ]}
->
-  <Text style={styles.roleTagText}>
-    {job.createdBy.role === "Contractor"
-      ? "Contractor"
-      : job.createdBy.role === "Labour"
-      ? "Labour"
-      : "Industry"}
-  </Text>
-</View>
-
+                style={[
+                  styles.roleTag,
+                  job.createdBy.role === "Contractor"
+                    ? styles.contractorTag
+                    : job.createdBy.role === "Labour"
+                    ? styles.labourTag
+                    : styles.industryTag,
+                ]}
+              >
+                <Text style={styles.roleTagText}>
+                  {job.createdBy.role}
+                </Text>
+              </View>
 
               <Text style={styles.jobTitle}>{job.title}</Text>
               <Text style={styles.jobText}>{job.description}</Text>
@@ -375,25 +370,23 @@ const filteredJobs = (
                 <Text style={styles.infoLabel}>Budget:</Text>
                 <Text style={styles.infoValue}>Rs: {job.budget}</Text>
               </View>
-             <View style={styles.infoRow}>
-  <Text style={styles.infoLabel}>Duration:</Text>
-  <View style={{ flexDirection: "column" }}>
-    <Text style={[styles.infoValue, { fontWeight: "700", color: "#fb923c" }]}>
-      {Math.max(
-        0,
-        Math.ceil(
-          (new Date(job.endDate).getTime() - new Date(job.startDate).getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )}{" "}
-      days
-    </Text>
-    <Text style={[styles.infoValue, { color: "#6b7280", fontSize: 13 }]}>
-      {new Date(job.startDate).toLocaleDateString()} →{" "}
-      {new Date(job.endDate).toLocaleDateString()}
-    </Text>
-  </View>
-</View>
+
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Duration:</Text>
+                <View style={{ flexDirection: "column" }}>
+                  <Text style={[styles.infoValue, { fontWeight: "700", color: "#fb923c" }]}>
+                    {Math.ceil(
+                      (new Date(job.endDate).getTime() - new Date(job.startDate).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    )}{" "}
+                    days
+                  </Text>
+                  <Text style={[styles.infoValue, { color: "#6b7280", fontSize: 13 }]}>
+                    {new Date(job.startDate).toLocaleDateString()} →{" "}
+                    {new Date(job.endDate).toLocaleDateString()}
+                  </Text>
+                </View>
+              </View>
 
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Created By:</Text>
@@ -402,15 +395,17 @@ const filteredJobs = (
                 </Text>
               </View>
 
-             {activeTab === "allJobs" && (
-  <Pressable
-    style={({ pressed }) => [styles.applyButton, pressed && styles.applyButtonPressed]}
-    onPress={() => handleApply(job)}
-  >
-    <Text style={styles.applyButtonText}>Apply</Text>
-  </Pressable>
-)}
-
+              {activeTab === "allJobs" && (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.applyButton,
+                    pressed && styles.applyButtonPressed,
+                  ]}
+                  onPress={() => handleApply(job)}
+                >
+                  <Text style={styles.applyButtonText}>Apply</Text>
+                </Pressable>
+              )}
             </View>
           ))
         ) : (
@@ -418,10 +413,11 @@ const filteredJobs = (
         )}
       </ScrollView>
 
+      {/* ✅ Role-based BottomTab */}
       <BottomTab
-        tabs={contractorTabs}
-        activeTab="All Jobs"
-        userRole="Contractor"
+        tabs={user.role === "Labour" ? labourTabs : contractorTabs}
+        activeTab={user.role === "Labour" ? "Find Jobs" : "All Jobs"}
+        userRole={user.role === "Labour" ? "Labour" : "Contractor"}
       />
     </SafeAreaView>
   );
