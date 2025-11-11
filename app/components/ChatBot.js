@@ -1,16 +1,16 @@
 import { Audio } from "expo-av";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Easing,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Easing,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function ChatBot() {
@@ -109,7 +109,7 @@ export default function ChatBot() {
 
     try {
       const response = await fetch(
-        "http://192.168.100.37:3000/api/chat",
+        "https://labour-server.vercel.app/api/chat",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -175,7 +175,7 @@ export default function ChatBot() {
       });
 
       const response = await fetch(
-        "http://192.168.100.37:3000/api/transcribe",
+        "https://labour-server.vercel.app/api/transcribe",
         {
           method: "POST",
           body: formData,

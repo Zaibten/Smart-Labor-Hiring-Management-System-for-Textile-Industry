@@ -2,18 +2,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -117,13 +117,13 @@ export default function AllJobs() {
           setUser(parsedUser);
           await AsyncStorage.setItem("userEmail", parsedUser.email);
 
-          const resAll = await fetch("http://192.168.100.37:3000/api/alljobs");
+          const resAll = await fetch("https://labour-server.vercel.app/api/alljobs");
           const jobsAll = await resAll.json();
           setAllJobs(jobsAll);
 
           if (parsedUser.role === "Contractor") {
             const resMine = await fetch(
-              `http://192.168.100.37:3000/api/my-jobs-email/${parsedUser.email}`
+              `https://labour-server.vercel.app/api/my-jobs-email/${parsedUser.email}`
             );
             const jobsMine = await resMine.json();
             setMyJobs(jobsMine);

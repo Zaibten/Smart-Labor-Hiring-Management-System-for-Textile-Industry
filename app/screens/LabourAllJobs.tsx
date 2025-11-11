@@ -124,13 +124,13 @@ export default function AllJobs() {
           setUser(parsedUser);
           await AsyncStorage.setItem("userEmail", parsedUser.email);
 
-          const resAll = await fetch("http://192.168.100.37:3000/api/alljobs");
+          const resAll = await fetch("https://labour-server.vercel.app/api/alljobs");
           const jobsAll = await resAll.json();
           setAllJobs(jobsAll);
 
           if (parsedUser.role === "Contractor") {
             const resMine = await fetch(
-              `http://192.168.100.37:3000/api/my-jobs-email/${parsedUser.email}`
+              `https://labour-server.vercel.app/api/my-jobs-email/${parsedUser.email}`
             );
             const jobsMine = await resMine.json();
             setMyJobs(jobsMine);

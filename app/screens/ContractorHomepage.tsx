@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppBar from "../components/AppBar"; // ✅ Import AppBar component
 import BottomTab from "../components/BottomTab";
-import ChatBot from "../components/ChatBot";
 
 export default function Homepage() {
   const [user, setUser] = useState<any>(null);
@@ -26,6 +26,7 @@ export default function Homepage() {
     fetchUser();
   }, []);
 
+  // 🔹 Logout function
   const handleLogout = () => {
     Alert.alert(
       "Confirm Logout",
@@ -50,13 +51,19 @@ export default function Homepage() {
     );
   };
 
-  if (!user) return <ActivityIndicator size="large" color="#fb923c" />;
+  if (!user)
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fb923c" />
+        <Text style={styles.loadingText}>Loading Labour Hub...</Text>
+      </SafeAreaView>
+    );
 
   const nameFromEmail =
     user.email?.split("@")[0].charAt(0).toUpperCase() +
     user.email?.split("@")[0].slice(1);
 
-  // Tabs
+  // 🔹 Define Tabs
   const labourTabs = [
     { label: "Home", icon: "home" },
     { label: "Find Jobs", icon: "briefcase" },
@@ -74,62 +81,87 @@ export default function Homepage() {
 
   const tabsToShow = user.role === "Contractor" ? contractorTabs : labourTabs;
 
-return (
-  <SafeAreaView style={styles.safeArea}>
-    {/* Main content */}
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Welcome, {nameFromEmail} 👋</Text>
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      {/* ✅ Animated App Bar */}
+      <AppBar title={`Welcome, ${nameFromEmail} 👋`} />
+
+      {/* 🔹 Page Content */}
+      <View style={styles.container}>
         <Text style={styles.roleText}>Role: {user.role}</Text>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+
+        {/* 🔹 Floating ChatBot */}
+        {/* <View style={styles.chatbotWrapper} pointerEvents="box-none">
+          <ChatBot />
+        </View> */}
       </View>
 
-      {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
-
-    {/* Chatbot Floating */}
-    <View style={styles.chatbotWrapper} pointerEvents="box-none">
-      <ChatBot />
-    </View>
-
-    {/* Bottom Tab */}
-    <View style={styles.tabWrapper}>
-      <BottomTab tabs={contractorTabs} activeTab="Home" userRole="Contractor" />
-    </View>
-  </SafeAreaView>
-);
-
+      {/* 🔹 Bottom Tabs */}
+      <View style={styles.tabWrapper}>
+        <BottomTab
+          tabs={tabsToShow}
+          activeTab="Home"
+          userRole={user.role || "Labour"}
+        />
+      </View>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#fff" },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+  loadingText: {
+    color: "#fb923c",
+    marginTop: 8,
+    fontSize: 16,
+    fontWeight: "600",
+  },
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start", // ✅ change from "center" to "flex-start"
-    paddingTop: 50, // optional padding from top
+    justifyContent: "flex-start",
+    paddingTop: 30,
     backgroundColor: "#fff",
   },
-  headerContainer: { alignItems: "center" },
-  headerText: { fontSize: 24, fontWeight: "bold", color: "#0f172a" },
-  roleText: { marginTop: 8, fontSize: 18, color: "#fb923c" },
+  roleText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: "#fb923c",
+    fontWeight: "600",
+  },
   logoutButton: {
     marginTop: 30,
     backgroundColor: "#ef4444",
     paddingVertical: 12,
     paddingHorizontal: 35,
     borderRadius: 10,
-    zIndex: 10, // ensure it's on top
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  logoutText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  logoutText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    letterSpacing: 0.3,
+  },
   chatbotWrapper: {
     position: "absolute",
     bottom: 80,
     right: 10,
-    zIndex: 5, // behind the logout button
+    zIndex: 5,
   },
   tabWrapper: {
     position: "absolute",
@@ -139,4 +171,3 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 });
-

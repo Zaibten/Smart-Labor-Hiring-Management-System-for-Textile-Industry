@@ -10,8 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppBar from "../components/AppBar"; // ✅ Import AppBar
 import BottomTab from "../components/BottomTab";
-import ChatBot from "../components/ChatBot";
 
 export default function Homepage() {
   const [user, setUser] = useState<any>(null);
@@ -50,7 +50,15 @@ export default function Homepage() {
     );
   };
 
-  if (!user) return <ActivityIndicator size="large" color="#fb923c" />;
+  if (!user)
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fb923c" />
+        <Text style={{ color: "#fb923c", marginTop: 10, fontWeight: "600" }}>
+          Loading Labour Hub...
+        </Text>
+      </SafeAreaView>
+    );
 
   const nameFromEmail =
     user.email?.split("@")[0].charAt(0).toUpperCase() +
@@ -66,9 +74,11 @@ export default function Homepage() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* ✅ Professional Animated App Bar */}
+      <AppBar title={`Welcome, ${nameFromEmail} 👋`} />
+
+      {/* 🔹 Main Content */}
       <View style={styles.container}>
-        {/* Header */}
-        <Text style={styles.header}>Welcome, {nameFromEmail} 👋</Text>
         <Text style={styles.roleText}>Role: {user.role}</Text>
 
         {/* Logout Button */}
@@ -77,12 +87,12 @@ export default function Homepage() {
         </TouchableOpacity>
 
         {/* Chatbot */}
-        <View style={styles.chatbotWrapper}>
+        {/* <View style={styles.chatbotWrapper}>
           <ChatBot />
-        </View>
+        </View> */}
       </View>
 
-      {/* Labour Bottom Tabs */}
+      {/* 🔹 Labour Bottom Tabs */}
       <View style={styles.tabWrapper}>
         <BottomTab tabs={labourTabs} activeTab="Home" userRole="Labour" />
       </View>
@@ -92,35 +102,42 @@ export default function Homepage() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#fff" },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
   container: {
     flex: 1,
     justifyContent: "flex-start",
     alignItems: "center",
-    paddingTop: 50,
+    paddingTop: 30,
     backgroundColor: "#fff",
   },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#0f172a",
-  },
   roleText: {
-    marginTop: 10,
+    marginTop: 20,
     fontSize: 18,
     color: "#fb923c",
+    fontWeight: "600",
   },
   logoutButton: {
-    marginTop: 25,
+    marginTop: 30,
     backgroundColor: "#ef4444",
     paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-    zIndex: 10,
+    paddingHorizontal: 35,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   logoutText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+    letterSpacing: 0.3,
   },
   chatbotWrapper: {
     position: "absolute",
