@@ -74,6 +74,28 @@ const scaleAnim = useRef(new Animated.Value(0)).current;
 const opacityAnim = useRef(new Animated.Value(0)).current;
 
 const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+const [appliedJobs, setAppliedJobs] = useState<{ [jobId: string]: boolean }>({});
+
+const checkIfApplied = async (jobId: string) => {
+  try {
+    const res = await fetch(`http://192.168.100.39:3000/api/check-application/${jobId}?email=${user.email}`);
+    const data = await res.json();
+    setAppliedJobs(prev => ({ ...prev, [jobId]: data.applied }));
+  } catch (err) {
+    console.error("Error checking application:", err);
+  }
+};
+
+useEffect(() => {
+  if (allJobs.length > 0 && user.email) {
+    allJobs.forEach(job => {
+      checkIfApplied(job._id);
+    });
+  }
+}, [allJobs, user.email]);
+
+
+
 
 const openProfileModal = (email: string) => {
   setSelectedEmail(email);
@@ -619,18 +641,19 @@ const filteredJobs = (
     {/* Badge at the top-right of the card */}
 
     <Pressable
-      style={({ pressed }) => [
-        styles.applyButton,
-        pressed && !job.applicants.some(app => app.laborId === user._id) && styles.applyButtonPressed,
-        job.applicants.some(app => app.laborId === user._id) && { backgroundColor: "#9ca3af" }, // grey if applied
-      ]}
-      onPress={() => handleApply(job)}
-      disabled={job.applicants.some(app => app.laborId === user._id)}
-    >
-      <Text style={styles.applyButtonText}>
-        {job.applicants.some(app => app.laborId === user._id) ? "Applied" : "Apply"}
-      </Text>
-    </Pressable>
+  style={({ pressed }) => [
+    styles.applyButton,
+    pressed && !appliedJobs[job._id] && styles.applyButtonPressed,
+    appliedJobs[job._id] && { backgroundColor: "#9ca3af" }, // grey if applied
+  ]}
+  onPress={() => handleApply(job)}
+  disabled={appliedJobs[job._id]} // disable only if applied
+>
+  <Text style={styles.applyButtonText}>
+    {appliedJobs[job._id] ? "Applied" : "Apply"}
+  </Text>
+</Pressable>
+
   </View>
 )}
 
