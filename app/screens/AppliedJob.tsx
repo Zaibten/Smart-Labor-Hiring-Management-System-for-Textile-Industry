@@ -1,21 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import axios from "axios";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
-import Profile from "./Profile"; // Profile modal component
+import Profile from "./Profile";
+
+const BACKEND_URL = "http://192.168.100.39:3000/api/chat"; // replace with your backend
 
 interface Contractor {
   firstName: string;
@@ -33,6 +40,12 @@ interface AppliedJob {
   contractor: Contractor;
 }
 
+interface Message {
+  sender: "me" | "other";
+  text: string;
+  timestamp: string;
+}
+
 export default function Response() {
   const [user, setUser] = useState<{
     firstName: string;
@@ -44,8 +57,17 @@ export default function Response() {
 
   const [jobsApplied, setJobsApplied] = useState<AppliedJob[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Profile modal states
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+
+  // Chat modal states
+  const [chatModalVisible, setChatModalVisible] = useState(false);
+  const [chatUserEmail, setChatUserEmail] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const flatListRef = useRef<FlatList>(null);
 
   const openProfileModal = (email: string) => {
     setSelectedEmail(email);
@@ -58,9 +80,67 @@ export default function Response() {
   };
 
   const handleChatPress = (email: string) => {
-    console.log("Chat with:", email);
-    // Navigate to Chat screen or open chat modal
+    setChatUserEmail(email);
+    setChatModalVisible(true);
+    fetchMessages(email);
   };
+
+  const fetchMessages = async (otherUser: string) => {
+    if (!user.email) return;
+    try {
+      const res = await axios.get(`${BACKEND_URL}/${user.email}/${otherUser}`);
+      setMessages(
+        res.data.map((msg: any) => ({
+          sender: msg.senderEmail === user.email ? "me" : "other",
+          text: msg.message,
+          timestamp: msg.timestamp,
+        }))
+      );
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !user.email || !chatUserEmail) return;
+    try {
+      const res = await axios.post(`${BACKEND_URL}/send`, {
+        senderEmail: user.email,
+        receiverEmail: chatUserEmail,
+        message: newMessage,
+      });
+      setMessages(prev => [
+        ...prev,
+        { sender: "me", text: newMessage, timestamp: res.data.timestamp },
+      ]);
+      setNewMessage("");
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const renderMessageItem = ({ item }: { item: Message }) => (
+    <View
+      style={[
+        styles.messageContainer,
+        item.sender === "me" ? styles.sender : styles.receiver,
+      ]}
+    >
+      <View
+        style={[
+          styles.messageBubble,
+          item.sender === "me" && { backgroundColor: "#34d399" },
+        ]}
+      >
+        <Text style={styles.messageText}>{item.text}</Text>
+        <Text style={styles.timestamp}>
+          {new Date(item.timestamp).toLocaleTimeString()}
+        </Text>
+      </View>
+    </View>
+  );
 
   useEffect(() => {
     const fetchUserJobs = async () => {
@@ -69,7 +149,9 @@ export default function Response() {
         const localUser = userData ? JSON.parse(userData) : null;
         if (!localUser?.email) return;
 
-        const response = await fetch(`http://192.168.100.39:3000/api/jobs/user/${localUser.email}`);
+        const response = await fetch(
+          `http://192.168.100.39:3000/api/jobs/user/${localUser.email}`
+        );
         if (!response.ok) throw new Error("Failed to fetch user jobs");
         const data = await response.json();
 
@@ -77,7 +159,10 @@ export default function Response() {
           firstName: data.user.firstName || "",
           lastName: data.user.lastName || "",
           email: data.user.email || "",
-          role: data.user.role === "Contractor" || data.user.role === "Labour" ? data.user.role : undefined,
+          role:
+            data.user.role === "Contractor" || data.user.role === "Labour"
+              ? data.user.role
+              : undefined,
           image: data.user.image,
         });
 
@@ -109,7 +194,9 @@ export default function Response() {
 
       {/* User Info */}
       <View style={styles.userInfo}>
-        <Text style={styles.userName}>{user.firstName} {user.lastName}</Text>
+        <Text style={styles.userName}>
+          {user.firstName} {user.lastName}
+        </Text>
         <Text style={styles.userEmail}>{user.email}</Text>
       </View>
 
@@ -118,21 +205,29 @@ export default function Response() {
           jobsApplied.map((job, index) => (
             <View key={index} style={styles.card}>
               <TouchableOpacity onPress={() => openProfileModal(job.contractor.email)}>
-                {/* <Image
-                  source={{ uri: job.contractor.image || "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png" }}
+                <Image
+                  source={
+                    job.contractor.image
+                      ? { uri: job.contractor.image }
+                      : require("../../assets/images/logo.png")
+                  }
                   style={styles.avatar}
-                /> */}
-                          <Image source={require("../../assets/images/logo.png")} style={styles.avatar}
-/>
-                
+                />
               </TouchableOpacity>
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.name}>{job.contractor.firstName} {job.contractor.lastName}</Text>
+                <Text style={styles.name}>
+                  {job.contractor.firstName} {job.contractor.lastName}
+                </Text>
                 <Text style={styles.email}>{job.contractor.email}</Text>
                 <Text style={styles.jobTitle}>Job: {job.title}</Text>
-                <Text style={styles.appliedAt}>Applied At: {new Date(job.appliedAt).toLocaleString()}</Text>
+                <Text style={styles.appliedAt}>
+                  Applied At: {new Date(job.appliedAt).toLocaleString()}
+                </Text>
               </View>
-              <TouchableOpacity onPress={() => handleChatPress(job.contractor.email)} style={styles.chatBtn}>
+              <TouchableOpacity
+                onPress={() => handleChatPress(job.contractor.email)}
+                style={styles.chatBtn}
+              >
                 <Ionicons name="chatbubble-ellipses-outline" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
@@ -143,7 +238,12 @@ export default function Response() {
       </ScrollView>
 
       {/* Profile Modal */}
-      <Modal visible={modalVisible} animationType="fade" transparent={false} onRequestClose={closeModal}>
+      <Modal
+        visible={modalVisible}
+        animationType="fade"
+        transparent={false}
+        onRequestClose={closeModal}
+      >
         <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
           <Pressable
             onPress={closeModal}
@@ -165,6 +265,68 @@ export default function Response() {
         </SafeAreaView>
       </Modal>
 
+      {/* Chat Modal */}
+      <Modal
+        transparent
+        visible={chatModalVisible}
+        onRequestClose={() => setChatModalVisible(false)}
+        animationType="slide"
+      >
+        <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: 40 }}>
+          <Pressable
+            onPress={() => setChatModalVisible(false)}
+            style={{ position: "absolute", top: 40, right: 20, zIndex: 10 }}
+          >
+            <Ionicons name="close-circle" size={30} color="#fb923c" />
+          </Pressable>
+
+          {chatUserEmail && (
+            <>
+              <FlatList
+                ref={flatListRef}
+                data={messages}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={renderMessageItem}
+                contentContainerStyle={{ padding: 10 }}
+              />
+
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ padding: 10, backgroundColor: "#f3f4f6" }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <TextInput
+                    value={newMessage}
+                    onChangeText={setNewMessage}
+                    placeholder="Type a message"
+                    style={{
+                      flex: 1,
+                      borderWidth: 1,
+                      borderColor: "#e5e7eb",
+                      borderRadius: 20,
+                      paddingHorizontal: 15,
+                      paddingVertical: 8,
+                      marginRight: 10,
+                      backgroundColor: "#fff",
+                    }}
+                  />
+                  <TouchableOpacity
+                    onPress={sendMessage}
+                    style={{
+                      backgroundColor: "#fb923c",
+                      padding: 10,
+                      borderRadius: 20,
+                    }}
+                  >
+                    <Text style={{ color: "#fff" }}>Send</Text>
+                  </TouchableOpacity>
+                </View>
+              </KeyboardAvoidingView>
+            </>
+          )}
+        </View>
+      </Modal>
+
       <BottomTab tabs={[]} activeTab="" userRole={user.role} />
     </SafeAreaView>
   );
@@ -172,7 +334,13 @@ export default function Response() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#f3f4f6" },
-  userInfo: { padding: 15, backgroundColor: "#fff", borderBottomWidth: 1, borderColor: "#e5e7eb", marginBottom: 10 },
+  userInfo: {
+    padding: 15,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderColor: "#e5e7eb",
+    marginBottom: 10,
+  },
   userName: { fontSize: 18, fontWeight: "700", color: "#111827" },
   userEmail: { fontSize: 14, color: "#6b7280", marginTop: 2 },
   scrollContent: { padding: 15, paddingBottom: 120 },
@@ -202,4 +370,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center", marginTop: 20 },
+  messageContainer: { flexDirection: "row", marginBottom: 10 },
+  sender: { justifyContent: "flex-end", alignSelf: "flex-end" },
+  receiver: { justifyContent: "flex-start", alignSelf: "flex-start" },
+  messageBubble: { maxWidth: "75%", backgroundColor: "#fb923c", padding: 10, borderRadius: 12 },
+  messageText: { color: "#fff" },
+  timestamp: { color: "#fff", fontSize: 10, marginTop: 4, alignSelf: "flex-end" },
 });

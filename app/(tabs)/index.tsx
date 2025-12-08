@@ -1,7 +1,7 @@
 // app/index.tsx
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import AppliedJob from "../screens/Response";
+import AppliedJob from "../screens/AppliedJob";
 
 
 export default function HomePage() {
@@ -15,7 +15,7 @@ export default function HomePage() {
         </Text>
       </View> */}
       {/* <Profile/> */}
-      <AppliedJob/>
+      <AppliedJob />
 
       {/* Floating Chatbot */}
       {/* <View style={styles.chatbotWrapper}>

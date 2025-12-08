@@ -1,22 +1,29 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    Image,
-    Modal,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 import Profile from "./Profile"; // Profile modal component
+
+const BACKEND_URL = "http://192.168.100.39:3000/api/chat"; // replace with your backend
 
 interface Labour {
   labourId: string | null;
@@ -37,6 +44,12 @@ interface JobResponse {
   labours: Labour[];
 }
 
+interface Message {
+  sender: "me" | "other";
+  text: string;
+  timestamp: string;
+}
+
 export default function Response() {
   const [contractorEmail, setContractorEmail] = useState<string | null>(null);
   const [jobs, setJobs] = useState<JobResponse[]>([]);
@@ -47,14 +60,69 @@ export default function Response() {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
+  // Chat modal states
+  const [chatModalVisible, setChatModalVisible] = useState(false);
+  const [chatUserEmail, setChatUserEmail] = useState<string | null>(null); // email to chat with
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const flatListRef = useRef<FlatList>(null);
+
+  const handleChatPress = (email: string) => {
+    setChatUserEmail(email);
+    setChatModalVisible(true);
+    fetchMessages(email);
+  };
+
+  const fetchMessages = async (otherUser: string) => {
+    if (!contractorEmail) return;
+    try {
+      const res = await axios.get(`${BACKEND_URL}/${contractorEmail}/${otherUser}`);
+      setMessages(res.data.map((msg: any) => ({
+        sender: msg.senderEmail === contractorEmail ? "me" : "other",
+        text: msg.message,
+        timestamp: msg.timestamp,
+      })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !contractorEmail || !chatUserEmail) return;
+
+    try {
+      const res = await axios.post(`${BACKEND_URL}/send`, {
+        senderEmail: contractorEmail,
+        receiverEmail: chatUserEmail,
+        message: newMessage,
+      });
+
+      setMessages(prev => [
+        ...prev,
+        { sender: "me", text: newMessage, timestamp: res.data.timestamp },
+      ]);
+      setNewMessage("");
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const renderMessageItem = ({ item }: { item: Message }) => (
+    <View style={[styles.messageContainer, item.sender === "me" ? styles.sender : styles.receiver]}>
+      <View style={[styles.messageBubble, item.sender === "me" && { backgroundColor: "#34d399" }]}>
+        <Text style={styles.messageText}>{item.text}</Text>
+        <Text style={styles.timestamp}>{new Date(item.timestamp).toLocaleTimeString()}</Text>
+      </View>
+    </View>
+  );
+
   // Get contractor email from AsyncStorage
   useEffect(() => {
     const fetchContractorEmail = async () => {
       const userData = await AsyncStorage.getItem("user");
       const user = userData ? JSON.parse(userData) : null;
-      if (user?.email) {
-        setContractorEmail(user.email);
-      }
+      if (user?.email) setContractorEmail(user.email);
     };
     fetchContractorEmail();
   }, []);
@@ -65,11 +133,12 @@ export default function Response() {
 
     const fetchResponses = async () => {
       try {
-        const response = await fetch(`http://192.168.100.39:3000/api/responses-by-contractor/${contractorEmail}`);
+        const response = await fetch(
+          `http://192.168.100.39:3000/api/responses-by-contractor/${contractorEmail}`
+        );
         if (!response.ok) throw new Error("Failed to fetch responses");
         const data = await response.json();
 
-        // Group responses by job
         const grouped: { [key: string]: JobResponse } = {};
         data.responses.forEach((resp: any) => {
           if (!grouped[resp.jobId]) {
@@ -117,10 +186,6 @@ export default function Response() {
     });
   };
 
-  const handleChatPress = (email: string) => {
-    console.log("Chat with:", email);
-  };
-
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -153,12 +218,19 @@ export default function Response() {
                     <Image source={{ uri: labour.image }} style={styles.avatar} />
                   </TouchableOpacity>
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={styles.name}>{labour.firstName} {labour.lastName}</Text>
+                    <Text style={styles.name}>
+                      {labour.firstName} {labour.lastName}
+                    </Text>
                     <Text style={styles.email}>{labour.email}</Text>
                     <Text style={styles.status}>Role: {labour.role}</Text>
-                    <Text style={styles.appliedAt}>Applied At: {new Date(job.appliedAtList[aidx]).toLocaleString()}</Text>
+                    <Text style={styles.appliedAt}>
+                      Applied At: {new Date(job.appliedAtList[aidx]).toLocaleString()}
+                    </Text>
                   </View>
-                  <TouchableOpacity onPress={() => handleChatPress(labour.email)} style={styles.chatBtn}>
+                  <TouchableOpacity
+                    onPress={() => handleChatPress(labour.email)}
+                    style={styles.chatBtn}
+                  >
                     <Ionicons name="chatbubble-ellipses-outline" size={24} color="#fff" />
                   </TouchableOpacity>
                 </View>
@@ -169,34 +241,113 @@ export default function Response() {
       </ScrollView>
 
       {/* Profile Modal */}
-      <Modal transparent visible={modalVisible} onRequestClose={closeModal}>
+      <Modal
+        transparent
+        visible={modalVisible}
+        onRequestClose={closeModal}
+        animationType="none"
+      >
         <Animated.View
           style={{
             flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
             backgroundColor: opacityAnim.interpolate({
               inputRange: [0, 1],
-              outputRange: ["rgba(0,0,0,0)", "rgba(0,0,0,0.5)"],
+              outputRange: ["rgba(0,0,0,0)", "rgba(0,0,0,0.7)"],
             }),
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
           <Animated.View
             style={{
-              width: "90%",
-              maxHeight: "90%",
+              width: "100%",
+              height: "100%",
               backgroundColor: "#fff",
-              borderRadius: 12,
+              borderRadius: 0,
+              paddingTop: 60,
               transform: [{ scale: scaleAnim }],
               opacity: opacityAnim,
             }}
           >
-            <Pressable onPress={closeModal} style={{ position: "absolute", top: 10, right: 10, padding: 5 }}>
-              <Text style={{ fontSize: 18, fontWeight: "700" }}>X</Text>
+            <Pressable
+              onPress={closeModal}
+              style={{
+                position: "absolute",
+                top: 20,
+                right: 20,
+                padding: 10,
+                zIndex: 10,
+              }}
+            >
+              <Ionicons name="close-circle" size={30} color="#fb923c" />
             </Pressable>
-            {selectedEmail && <Profile email={selectedEmail} />}
+            <ScrollView contentContainerStyle={{ padding: 20 }}>
+              {selectedEmail && <Profile email={selectedEmail} />}
+            </ScrollView>
           </Animated.View>
         </Animated.View>
+      </Modal>
+
+      {/* Chat Modal */}
+      <Modal
+        transparent
+        visible={chatModalVisible}
+        onRequestClose={() => setChatModalVisible(false)}
+        animationType="slide"
+      >
+        <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: 40 }}>
+          <Pressable
+            onPress={() => setChatModalVisible(false)}
+            style={{ position: "absolute", top: 40, right: 20, zIndex: 10 }}
+          >
+            <Ionicons name="close-circle" size={30} color="#fb923c" />
+          </Pressable>
+
+          {chatUserEmail && (
+            <>
+              <FlatList
+                ref={flatListRef}
+                data={messages}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={renderMessageItem}
+                contentContainerStyle={{ padding: 10 }}
+              />
+
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ padding: 10, backgroundColor: "#f3f4f6" }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <TextInput
+                    value={newMessage}
+                    onChangeText={setNewMessage}
+                    placeholder="Type a message"
+                    style={{
+                      flex: 1,
+                      borderWidth: 1,
+                      borderColor: "#e5e7eb",
+                      borderRadius: 20,
+                      paddingHorizontal: 15,
+                      paddingVertical: 8,
+                      marginRight: 10,
+                      backgroundColor: "#fff",
+                    }}
+                  />
+                  <TouchableOpacity
+                    onPress={sendMessage}
+                    style={{
+                      backgroundColor: "#fb923c",
+                      padding: 10,
+                      borderRadius: 20,
+                    }}
+                  >
+                    <Text style={{ color: "#fff" }}>Send</Text>
+                  </TouchableOpacity>
+                </View>
+              </KeyboardAvoidingView>
+            </>
+          )}
+        </View>
       </Modal>
 
       <BottomTab tabs={[]} activeTab="" userRole="Contractor" />
@@ -242,4 +393,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center", marginTop: 20 },
+  messageContainer: { flexDirection: "row", marginBottom: 10 },
+  sender: { justifyContent: "flex-end", alignSelf: "flex-end" },
+  receiver: { justifyContent: "flex-start", alignSelf: "flex-start" },
+  messageBubble: { maxWidth: "75%", backgroundColor: "#fb923c", padding: 10, borderRadius: 12 },
+  messageText: { color: "#fff" },
+  timestamp: { color: "#fff", fontSize: 10, marginTop: 4, alignSelf: "flex-end" },
 });
