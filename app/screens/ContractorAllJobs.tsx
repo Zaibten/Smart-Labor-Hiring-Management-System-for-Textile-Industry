@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useRef, useState } from "react";
-
+import Profile from "./Profile";
 
 import {
   ActivityIndicator,
@@ -73,44 +73,27 @@ const [modalText, setModalText] = useState("");
 const scaleAnim = useRef(new Animated.Value(0)).current;
 const opacityAnim = useRef(new Animated.Value(0)).current;
 
-const openModal = (text: string) => {
-  setModalText(text);
+const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+
+const openProfileModal = (email: string) => {
+  setSelectedEmail(email);
   setModalVisible(true);
 
-  // Animate in
   Animated.parallel([
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 8,
-      tension: 40,
-    }),
-    Animated.timing(opacityAnim, {
-      toValue: 1,
-      duration: 250,
-      useNativeDriver: true,
-    }),
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, friction: 8, tension: 40 }),
+    Animated.timing(opacityAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
   ]).start();
 };
 
 const closeModal = () => {
-  // Animate out
   Animated.parallel([
-    Animated.timing(opacityAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }),
-    Animated.timing(scaleAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }),
+    Animated.timing(opacityAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+    Animated.timing(scaleAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
   ]).start(() => {
     setModalVisible(false);
+    setSelectedEmail(null);
   });
 };
-
 
 
   const [filters, setFilters] = useState({
@@ -232,8 +215,10 @@ useEffect(() => {
           await AsyncStorage.setItem("userEmail", parsedUser.email);
 
           const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
-          const jobsAll = await resAll.json();
-          setAllJobs(jobsAll);
+const jobsAll = await resAll.json();
+
+setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
+
 
           if (parsedUser.role === "Contractor") {
             const resMine = await fetch(
@@ -493,6 +478,8 @@ const filteredJobs = (
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+
       </Animated.View>
 
 
@@ -525,7 +512,7 @@ const filteredJobs = (
 </View>
 
 <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-<Pressable onPress={() => openModal(`Modal is open for ${job.createdBy.firstName}`)}>
+<Pressable onPress={() => openProfileModal(job.createdBy.email)}>
   <Image
     source={{
       uri: userImages[job.createdBy.email]?.trim() ||
@@ -536,40 +523,11 @@ const filteredJobs = (
 </Pressable>
 
 
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalVisible}
-  onRequestClose={() => setModalVisible(false)}
->
-  <View style={{
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)"
-  }}>
-    <View style={{
-      width: "80%",
-      backgroundColor: "#fff",
-      padding: 20,
-      borderRadius: 12,
-      alignItems: "center",
-    }}>
-      <Pressable
-        onPress={() => setModalVisible(false)}
-        style={{
-          position: "absolute",
-          top: 10,
-          right: 10,
-          padding: 5,
-        }}
-      >
-        <Text style={{ fontSize: 18, fontWeight: "700" }}>X</Text>
-      </Pressable>
-      <Text style={{ fontSize: 16, textAlign: "center" }}>{modalText}</Text>
-    </View>
-  </View>
-</Modal>
+
+
+
+
+
 
 
   <View>
@@ -685,6 +643,44 @@ const filteredJobs = (
           <Text style={styles.emptyText}>No jobs found.</Text>
         )}
       </ScrollView>
+
+      <Modal
+  transparent
+  visible={modalVisible}
+  animationType="fade"
+  onRequestClose={closeModal}
+>
+  <Animated.View
+    style={{
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      opacity: opacityAnim,
+    }}
+  >
+    <Animated.View
+      style={{
+        flex: 1,
+        width: "100%",
+        backgroundColor: "#fff",
+        borderRadius: 0,
+        transform: [{ scale: scaleAnim }],
+        padding: 15,
+      }}
+    >
+      <Pressable
+        onPress={closeModal}
+        style={{ position: "absolute", top: 40, right: 20, zIndex: 10 }}
+      >
+        <Text style={{ fontSize: 22, fontWeight: "700" }}>X</Text>
+      </Pressable>
+
+      {/* Profile component inside modal */}
+      {selectedEmail && <Profile email={selectedEmail} />}
+    </Animated.View>
+  </Animated.View>
+</Modal>
 
       <BottomTab
         tabs={contractorTabs}

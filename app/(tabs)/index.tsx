@@ -1,7 +1,8 @@
 // app/index.tsx
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import SplashScreen from "../screens/SplashScreen";
+import AppliedJob from "../screens/Response";
+
 
 export default function HomePage() {
   return (
@@ -13,7 +14,8 @@ export default function HomePage() {
           This is your simple React Native App using Expo
         </Text>
       </View> */}
-      <SplashScreen/>
+      {/* <Profile/> */}
+      <AppliedJob/>
 
       {/* Floating Chatbot */}
       {/* <View style={styles.chatbotWrapper}>
