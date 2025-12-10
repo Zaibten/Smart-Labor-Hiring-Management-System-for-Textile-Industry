@@ -24,7 +24,7 @@ export default function BottomTab({ tabs, activeTab, userRole }: BottomTabProps)
     "Create Jobs": "/screens/CreateJobs",
     "All Jobs": "/screens/ContractorAllJobs",
     "Find Jobs": "/screens/LabourAllJobs", // ✅ Added for Labour role
-    Chats: "/screens/Chats",
+    Chats: "/screens/ChatList",
     Settings: "/screens/Settings",
   };
 

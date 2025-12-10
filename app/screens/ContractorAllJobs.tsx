@@ -69,6 +69,7 @@ export default function AllJobs() {
   const [activeTab, setActiveTab] = useState<"myJobs" | "allJobs">("allJobs");
   const [userImages, setUserImages] = useState<{ [email: string]: string }>({});
   const [modalVisible, setModalVisible] = useState(false);
+  
 const [modalText, setModalText] = useState("");
 const scaleAnim = useRef(new Animated.Value(0)).current;
 const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -509,6 +510,8 @@ const filteredJobs = (
         {filteredJobs.length > 0 ? (
           filteredJobs.map((job) => (
            <View key={job._id} style={styles.jobCard}>
+
+            
             
             <Text style={{ color: "#6b7280", fontSize: 12, marginBottom: 5 }}>
   {getTimeAgo(job.createdAt)}
@@ -562,7 +565,7 @@ const filteredJobs = (
   </View>
 </View>
 
-{job.applicants.some(app => app.laborId === user._id) && (
+{/* {job.applicants.some(app => app.laborId === user._id) && (
       <Animated.View
         style={{
           position: "absolute",
@@ -581,7 +584,7 @@ const filteredJobs = (
           Applied
         </Text>
       </Animated.View>
-    )}
+    )} */}
 
               <Text style={styles.jobTitle}>{job.title}</Text>
               <Text style={styles.jobText}>{job.description}</Text>
@@ -636,26 +639,28 @@ const filteredJobs = (
                   {job.createdBy.email}
                 </Text>
               </View> */}
-{activeTab === "allJobs" && (
-  <View style={{ position: "relative", marginBottom: 10 }}>
-    {/* Badge at the top-right of the card */}
+{activeTab === "allJobs" &&
+  job.applicants.some(app => app.laborId === user._id) && (
+    <Animated.View
+      style={{
+        position: "absolute",
+        top: 10,
+        right: 10,
+        backgroundColor: "#13582eff",
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 12,
+        opacity: 0.9,
+        zIndex: 10,
+      }}
+    >
+      <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>
+        Applied
+      </Text>
+    </Animated.View>
+  )
+}
 
-    <Pressable
-  style={({ pressed }) => [
-    styles.applyButton,
-    pressed && !appliedJobs[job._id] && styles.applyButtonPressed,
-    appliedJobs[job._id] && { backgroundColor: "#9ca3af" }, // grey if applied
-  ]}
-  onPress={() => handleApply(job)}
-  disabled={appliedJobs[job._id]} // disable only if applied
->
-  <Text style={styles.applyButtonText}>
-    {appliedJobs[job._id] ? "Applied" : "Apply"}
-  </Text>
-</Pressable>
-
-  </View>
-)}
 
 
 
