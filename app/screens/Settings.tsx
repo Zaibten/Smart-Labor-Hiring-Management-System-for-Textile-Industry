@@ -137,6 +137,9 @@ const handleLogout = () => {
 
 
 
+  <TouchableOpacity style={styles.menuItem}>
+    <Text style={styles.menuLabel}>Manage Profile</Text>
+  </TouchableOpacity>
 
   {/* Preferences Section */}
   <Text style={styles.sectionTitle}>Preferences</Text>

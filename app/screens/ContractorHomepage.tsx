@@ -99,7 +99,9 @@ if (loading) return (
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* ------------------ AppBar ------------------ */}
-      <AppBar title={`Welcome, ${user.firstName} 👷‍♂️`} />
+      {/* <AppBar title={`Welcome, ${user.firstName} 👷‍♂️`} /> */}
+            <AppBar title={`Labour Hub`} />
+
 
       {/* ------------------ Scrollable Content ------------------ */}
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

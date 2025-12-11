@@ -263,25 +263,26 @@ const handleSubmit = async () => {
 
 
 <View style={{ height: 200, marginBottom: 15, borderRadius: 8, overflow: 'hidden' }}>
+<View style={styles.mapContainer}>
   <MapView
-    style={{ flex: 1 }}
+    style={styles.mapStyle}
     region={region}
-onPress={async (e) => {
-  const { latitude, longitude } = e.nativeEvent.coordinate;
-
-  setMarkerCoord({ latitude, longitude });
-  setRegion({ ...region, latitude, longitude });
-
-  const name = await getLocationName(latitude, longitude);
-  setLocation(name);
-}}
-
-
-
-
+    onPress={async (e) => {
+      const { latitude, longitude } = e.nativeEvent.coordinate;
+      setMarkerCoord({ latitude, longitude });
+      setRegion({ ...region, latitude, longitude });
+      const name = await getLocationName(latitude, longitude);
+      setLocation(name);
+    }}
+    customMapStyle={mapStyle} // optional for light/modern look
   >
-    <Marker coordinate={markerCoord} />
+<Marker
+  coordinate={markerCoord}
+  pinColor="#fb923c" // orange marker
+/>
   </MapView>
+</View>
+
 </View>
         <TextInput style={styles.input} placeholder="Number of Workers" keyboardType="numeric" value={workers} onChangeText={setWorkers} />
         <TextInput style={styles.input} placeholder="Skill / Trade Required" value={skill} onChangeText={setSkill} />
@@ -356,6 +357,38 @@ onPress={async (e) => {
     </SafeAreaView>
   );
 }
+// Colorful map style
+const mapStyle = [
+  { elementType: "geometry", stylers: [{ color: "#e0f7fa" }] },        // light blue background
+  { elementType: "labels.text.fill", stylers: [{ color: "#006064" }] }, // dark teal text
+  { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#a7f3d0" }] // green parks
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#ffe082" }] // yellow roads
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#5d4037" }] // brown road labels
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#4fc3f7" }] // bright blue water
+  },
+  {
+    featureType: "poi.business",
+    elementType: "geometry",
+    stylers: [{ color: "#ffccbc" }] // light orange buildings
+  }
+];
+
 
 
 const styles = StyleSheet.create({
@@ -393,6 +426,26 @@ userImage: {
 userTextContainer: {
   flexDirection: "column",
 },
+mapContainer: {
+  height: 200,
+  marginBottom: 15,
+  borderRadius: 8,
+  overflow: 'hidden',
+  borderWidth: 1,
+  borderColor: "#ccc", // lighter border
+  backgroundColor: "#e0f7fa",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
+
+
+mapStyle: {
+  flex: 1,
+},
+
 userName: { fontSize: 17, fontWeight: "700", color: "#fff" },
 userRole: { fontSize: 13, color: "#fff", marginTop: 2 },
 
