@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker"; // make sure to install this
+import MapView, { Marker } from 'react-native-maps';
 
 
 import React, { useEffect, useState } from "react";
@@ -32,7 +33,19 @@ const [jobTitle, setJobTitle] = useState("");
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
+  
 
+const [region, setRegion] = useState({
+  latitude: 24.8607,  // Default Karachi
+  longitude: 67.0011,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
+});
+
+const [markerCoord, setMarkerCoord] = useState({
+  latitude: 24.8607,
+  longitude: 67.0011,
+});
 
   
 // inside your component state
@@ -66,6 +79,69 @@ useEffect(() => {
   };
   fetchUser();
 }, []);
+
+// useEffect(() => {
+// Geocoder.fallbackToGoogle("false"); // string instead of boolean
+// }, []);
+
+const getLocationName = async (lat: number, lng: number): Promise<string> => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`,
+      {
+        headers: {
+          "User-Agent": "labourshub/1.0",
+          "Accept": "application/json",
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    return data.display_name || "Unknown Location";
+  } catch (err) {
+    console.log("Reverse error:", err);
+    return "Unknown Location";
+  }
+};
+
+const searchLocationToCoords = async (text: string) => {
+  setLocation(text);
+
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+        text
+      )}&format=json&limit=1&accept-language=en`,
+      {
+        headers: {
+          "User-Agent": "labourshub/1.0",
+          "Accept": "application/json",
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.length > 0) {
+      const latitude = parseFloat(data[0].lat);
+      const longitude = parseFloat(data[0].lon);
+
+      setMarkerCoord({ latitude, longitude });
+      setRegion({ ...region, latitude, longitude });
+
+      // Update location in English
+      setLocation(data[0].display_name);
+    }
+  } catch (err) {
+    console.log("Search error:", err);
+  }
+};
+
+
+
+
+
 
 
   const contractorTabs = [
@@ -161,7 +237,35 @@ const handleSubmit = async () => {
         {/* Job Inputs */}
         <TextInput style={styles.input} placeholder="Job Title" value={jobTitle} onChangeText={setJobTitle} />
         <TextInput style={styles.input} placeholder="Job Description" multiline value={description} onChangeText={setDescription} />
-        <TextInput style={styles.input} placeholder="Location" value={location} onChangeText={setLocation} />
+<TextInput
+  style={styles.input}
+  placeholder="Location"
+  value={location}
+  onChangeText={searchLocationToCoords}
+/>
+
+
+<View style={{ height: 200, marginBottom: 15, borderRadius: 8, overflow: 'hidden' }}>
+  <MapView
+    style={{ flex: 1 }}
+    region={region}
+onPress={async (e) => {
+  const { latitude, longitude } = e.nativeEvent.coordinate;
+
+  setMarkerCoord({ latitude, longitude });
+  setRegion({ ...region, latitude, longitude });
+
+  const name = await getLocationName(latitude, longitude);
+  setLocation(name);
+}}
+
+
+
+
+  >
+    <Marker coordinate={markerCoord} />
+  </MapView>
+</View>
         <TextInput style={styles.input} placeholder="Number of Workers" keyboardType="numeric" value={workers} onChangeText={setWorkers} />
         <TextInput style={styles.input} placeholder="Skill / Trade Required" value={skill} onChangeText={setSkill} />
         <TextInput style={styles.input} placeholder="Budget" keyboardType="numeric" value={budget} onChangeText={setBudget} />
