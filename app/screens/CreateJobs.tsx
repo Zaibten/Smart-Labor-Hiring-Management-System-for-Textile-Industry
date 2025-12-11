@@ -3,6 +3,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker"; // make sure to install this
 import MapView, { Marker } from 'react-native-maps';
 
+import { useRef } from "react";
 
 import React, { useEffect, useState } from "react";
 import {
@@ -104,6 +105,21 @@ const getLocationName = async (lat: number, lng: number): Promise<string> => {
     return "Unknown Location";
   }
 };
+
+
+// inside component
+const typingTimeoutRef = useRef<number | null>(null);
+
+const handleLocationChange = (text: string) => {
+  setLocation(text); // update input immediately
+
+  if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+  typingTimeoutRef.current = setTimeout(() => {
+    if (text.trim()) searchLocationToCoords(text.trim());
+  }, 800); // wait 800ms after user stops typing
+};
+
 
 const searchLocationToCoords = async (text: string) => {
   setLocation(text);
@@ -241,8 +257,9 @@ const handleSubmit = async () => {
   style={styles.input}
   placeholder="Location"
   value={location}
-  onChangeText={searchLocationToCoords}
+  onChangeText={handleLocationChange}
 />
+
 
 
 <View style={{ height: 200, marginBottom: 15, borderRadius: 8, overflow: 'hidden' }}>
