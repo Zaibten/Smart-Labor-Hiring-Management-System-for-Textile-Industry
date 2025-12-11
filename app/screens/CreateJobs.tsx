@@ -1,8 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker"; // make sure to install this
-import axios from 'axios';
-import MapView, { Marker } from 'react-native-maps';
+
 
 import React, { useEffect, useState } from "react";
 import {
@@ -33,32 +32,7 @@ const [jobTitle, setJobTitle] = useState("");
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-// inside your component
-const [region, setRegion] = useState({
-  latitude: 24.8607, // default: Karachi
-  longitude: 67.0011,
-  latitudeDelta: 0.05,
-  longitudeDelta: 0.05,
-});
 
-// Function to get coordinates from location
-const fetchCoordinates = async (address: string) => {
-  try {
-    if (!address) return;
-    const API_KEY = "AIzaSyDLjGuox_0JwC5Y2D4WlYiRgwfz0ppCuHo"; // replace with your API key
-    const response = await axios.get(
-      `https://maps.googleapis.com/maps/api/geocode/json`,
-      { params: { address, key: API_KEY } }
-    );
-    const { results } = response.data;
-    if (results.length > 0) {
-      const { lat, lng } = results[0].geometry.location;
-      setRegion({ ...region, latitude: lat, longitude: lng });
-    }
-  } catch (error) {
-    console.error("Geocoding error:", error);
-  }
-};
 
   
 // inside your component state
@@ -187,28 +161,7 @@ const handleSubmit = async () => {
         {/* Job Inputs */}
         <TextInput style={styles.input} placeholder="Job Title" value={jobTitle} onChangeText={setJobTitle} />
         <TextInput style={styles.input} placeholder="Job Description" multiline value={description} onChangeText={setDescription} />
-<TextInput
-  style={styles.input}
-  placeholder="Location"
-  value={location}
-  onChangeText={(text) => {
-    setLocation(text);
-    fetchCoordinates(text); // update map on every change
-  }}
-/>
-
-
-
-<View style={{ height: 200, borderRadius: 8, overflow: 'hidden', marginBottom: 15 }}>
-  <MapView
-    style={{ flex: 1 }}
-    region={region}
-    onRegionChangeComplete={(r) => setRegion(r)}
-  >
-    <Marker coordinate={{ latitude: region.latitude, longitude: region.longitude }} />
-  </MapView>
-</View>
-
+        <TextInput style={styles.input} placeholder="Location" value={location} onChangeText={setLocation} />
         <TextInput style={styles.input} placeholder="Number of Workers" keyboardType="numeric" value={workers} onChangeText={setWorkers} />
         <TextInput style={styles.input} placeholder="Skill / Trade Required" value={skill} onChangeText={setSkill} />
         <TextInput style={styles.input} placeholder="Budget" keyboardType="numeric" value={budget} onChangeText={setBudget} />

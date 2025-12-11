@@ -18,6 +18,9 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "googleMaps": {
+          "apiKey": "AIzaSyDLjGuox_0JwC5Y2D4WlYiRgwfz0ppCuHo"
+        },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
