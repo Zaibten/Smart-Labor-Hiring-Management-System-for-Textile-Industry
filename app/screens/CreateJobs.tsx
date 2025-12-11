@@ -1,16 +1,20 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker"; // make sure to install this
+import axios from 'axios';
+import MapView, { Marker } from 'react-native-maps';
+
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -28,6 +32,40 @@ const [jobTitle, setJobTitle] = useState("");
   const [endDate, setEndDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+// inside your component
+const [region, setRegion] = useState({
+  latitude: 24.8607, // default: Karachi
+  longitude: 67.0011,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
+});
+
+// Function to get coordinates from location
+const fetchCoordinates = async (address: string) => {
+  try {
+    if (!address) return;
+    const API_KEY = "AIzaSyDLjGuox_0JwC5Y2D4WlYiRgwfz0ppCuHo"; // replace with your API key
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json`,
+      { params: { address, key: API_KEY } }
+    );
+    const { results } = response.data;
+    if (results.length > 0) {
+      const { lat, lng } = results[0].geometry.location;
+      setRegion({ ...region, latitude: lat, longitude: lng });
+    }
+  } catch (error) {
+    console.error("Geocoding error:", error);
+  }
+};
+
+  
+// inside your component state
+const [shift, setShift] = useState("Shift A"); // default shift
+const [jobTime, setJobTime] = useState(new Date());
+const [showTimePicker, setShowTimePicker] = useState(false);
+
 
   const [user, setUser] = useState({
     _id: "",
@@ -102,25 +140,27 @@ const handleSubmit = async () => {
     const response = await fetch("http://192.168.100.39:3000/api/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: jobTitle,
-        description,
-        location,
-        workersRequired: parseInt(workers),
-        skill,
-        budget: parseFloat(budget),
-        contact,
-        startDate,
-        endDate,
-        createdBy: {
-          userId: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          image: user.image,
-          email: user.email, // include email here
-        },
-      }),
+     body: JSON.stringify({
+  title: jobTitle,
+  description,
+  location,
+  workersRequired: parseInt(workers),
+  skill,
+  budget: parseFloat(budget),
+  contact,
+  startDate,
+  endDate,
+  jobTime,
+  shift,
+  createdBy: {
+    userId: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    role: user.role,
+    image: user.image,
+    email: user.email,
+  },
+}),
     });
 
     const data = await response.json();
@@ -147,11 +187,67 @@ const handleSubmit = async () => {
         {/* Job Inputs */}
         <TextInput style={styles.input} placeholder="Job Title" value={jobTitle} onChangeText={setJobTitle} />
         <TextInput style={styles.input} placeholder="Job Description" multiline value={description} onChangeText={setDescription} />
-        <TextInput style={styles.input} placeholder="Location" value={location} onChangeText={setLocation} />
+<TextInput
+  style={styles.input}
+  placeholder="Location"
+  value={location}
+  onChangeText={(text) => {
+    setLocation(text);
+    fetchCoordinates(text); // update map on every change
+  }}
+/>
+
+
+
+<View style={{ height: 200, borderRadius: 8, overflow: 'hidden', marginBottom: 15 }}>
+  <MapView
+    style={{ flex: 1 }}
+    region={region}
+    onRegionChangeComplete={(r) => setRegion(r)}
+  >
+    <Marker coordinate={{ latitude: region.latitude, longitude: region.longitude }} />
+  </MapView>
+</View>
+
         <TextInput style={styles.input} placeholder="Number of Workers" keyboardType="numeric" value={workers} onChangeText={setWorkers} />
         <TextInput style={styles.input} placeholder="Skill / Trade Required" value={skill} onChangeText={setSkill} />
         <TextInput style={styles.input} placeholder="Budget" keyboardType="numeric" value={budget} onChangeText={setBudget} />
         <TextInput style={styles.input} placeholder="Contact Info" keyboardType="phone-pad" value={contact} onChangeText={setContact} />
+
+{/* Job Time */}
+<TouchableOpacity style={styles.dateButton} onPress={() => setShowTimePicker(true)}>
+  <Text style={styles.dateText}>
+    Job Time: {jobTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+  </Text>
+</TouchableOpacity>
+{showTimePicker && (
+  <DateTimePicker
+    value={jobTime}
+    mode="time"
+    display={Platform.OS === "ios" ? "spinner" : "default"}
+    is24Hour={false} // ensure 12-hour format
+    onChange={(event, date) => {
+      setShowTimePicker(false);
+      if (date) setJobTime(date);
+    }}
+  />
+)}
+
+
+{/* Shift Picker */}
+<View style={styles.pickerWrapper}>
+  <Text style={styles.pickerLabel}>Select Shift:</Text>
+  <Picker
+    selectedValue={shift}
+    onValueChange={(itemValue) => setShift(itemValue)}
+    style={styles.picker}
+    dropdownIconColor="#fb923c"
+  >
+    <Picker.Item label="Shift A" value="Shift A" />
+    <Picker.Item label="Shift B" value="Shift B" />
+    <Picker.Item label="Shift C" value="Shift C" />
+  </Picker>
+</View>
 
         {/* Start Date */}
         <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartPicker(true)}>
@@ -177,10 +273,10 @@ const handleSubmit = async () => {
 
       
 
-      <View style={styles.tabWrapper}>
+     
+ <View style={styles.tabWrapper}>
         <BottomTab tabs={contractorTabs} activeTab="Create Jobs" userRole="Contractor" />
       </View>
-
 
       
     </SafeAreaView>
@@ -245,6 +341,26 @@ userRole: { fontSize: 13, color: "#fff", marginTop: 2 },
     marginBottom: 15,
     backgroundColor: "#f9fafb",
   },
+  pickerWrapper: {
+  borderWidth: 1,
+  borderColor: "#e5e7eb",
+  borderRadius: 8,
+  marginBottom: 15,
+  backgroundColor: "#f9fafb",
+  paddingHorizontal: 12,
+  paddingVertical: Platform.OS === "ios" ? 5 : 0,
+},
+pickerLabel: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#0f172a",
+  marginBottom: 6,
+},
+picker: {
+  width: "100%",
+  color: "#0f172a",
+},
+
   dateText: { color: "#0f172a" },
   button: {
     backgroundColor: "#fb923c",

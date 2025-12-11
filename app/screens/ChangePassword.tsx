@@ -1,24 +1,29 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+
 import {
-  Alert,
-  Animated,
-  Easing,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Animated,
+    Easing,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export const options = { headerShown: false };
+interface ChangePasswordScreenProps {
+  onClose: () => void;
+}
 
-export default function ForgotPasswordScreen() {
+export default function ChangePasswordScreen({ onClose }: ChangePasswordScreenProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -37,6 +42,32 @@ export default function ForgotPasswordScreen() {
       Animated.timing(slideUp, { toValue: 0, duration: 700, easing: Easing.out(Easing.exp), useNativeDriver: true }),
     ]).start();
   }, []);
+
+
+  // inside the component
+useEffect(() => {
+  // Animate logo, fade, and slide
+  Animated.parallel([
+    Animated.spring(logoScale, { toValue: 1, friction: 5, tension: 60, useNativeDriver: true }),
+    Animated.timing(fadeAnim, { toValue: 1, duration: 700, easing: Easing.out(Easing.exp), useNativeDriver: true }),
+    Animated.timing(slideUp, { toValue: 0, duration: 700, easing: Easing.out(Easing.exp), useNativeDriver: true }),
+  ]).start();
+
+  // Fetch email from local storage
+  const fetchEmail = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("user"); // assuming you stored a JSON user object
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        if (user.email) setEmail(user.email);
+      }
+    } catch (err) {
+      console.log("Error fetching email from storage:", err);
+    }
+  };
+
+  fetchEmail();
+}, []);
 
   const handleCheckEmail = async () => {
     if (!email) {
@@ -99,35 +130,46 @@ export default function ForgotPasswordScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={styles.container}>
+
+        {/* Close Button at top-right */}
+        <TouchableOpacity
+          style={{ position: "absolute", top: 40, right: 20, zIndex: 10, backgroundColor: "#ef4444", borderRadius: 18, width: 36, height: 36, justifyContent: "center", alignItems: "center" }}
+          onPress={onClose}
+        >
+          <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>X</Text>
+        </TouchableOpacity>
+
+        {/* Existing logo, form, and modal content */}
         <Animated.View style={{ transform: [{ scale: logoScale }], opacity: fadeAnim, alignItems: "center", marginBottom: 30 }}>
           <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
         </Animated.View>
 
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideUp }], width: "100%" }}>
-          <Text style={styles.title}>Forgot Password?</Text>
+          <Text style={styles.title}>Change Password?</Text>
           <Text style={styles.subtitle}>Enter your email to reset your password.</Text>
 
           <View style={styles.form}>
             <TextInput
-              style={[styles.input, { borderColor: isFocused ? "#fb923c" : "transparent" }]}
-              placeholder="Enter your email"
-              placeholderTextColor="#aaa"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-            />
+  style={[
+    styles.input,
+    { borderColor: isFocused ? "#fb923c" : "transparent", backgroundColor: "#e5e7eb" }, // lighter bg to indicate disabled
+  ]}
+  placeholder="Enter your email"
+  placeholderTextColor="#aaa"
+  keyboardType="email-address"
+  autoCapitalize="none"
+  value={email}
+  onChangeText={setEmail}
+  onFocus={() => setIsFocused(true)}
+  onBlur={() => setIsFocused(false)}
+  editable={false} // make it read-only
+/>
+
 
             <TouchableOpacity activeOpacity={0.8} style={styles.shadowWrapper} onPress={handleCheckEmail}>
               <LinearGradient colors={["#f97316", "#fb923c"]} style={styles.resetButton}>
                 <Text style={styles.resetText}>{loading ? "Checking..." : "Next"}</Text>
               </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity activeOpacity={0.7} onPress={() => router.push("/screens/LoginScreen")}>
-              <Text style={styles.backToLogin}>← Back to Login</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

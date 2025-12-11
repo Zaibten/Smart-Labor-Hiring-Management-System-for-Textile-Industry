@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BarChart, ContributionGraph, LineChart, PieChart, ProgressChart } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -45,11 +45,15 @@ export default function ContractorDashboard() {
     fetchData();
   }, []);
 
-  if (loading) return (
-    <SafeAreaView style={styles.loadingContainer}>
+// inside your component
+if (loading) return (
+  <SafeAreaView style={styles.loadingContainer}>
+    <View style={styles.loaderBox}>
+      <ActivityIndicator size="large" color="#fb923c" />
       <Text style={styles.loadingText}>Loading Dashboard...</Text>
-    </SafeAreaView>
-  );
+    </View>
+  </SafeAreaView>
+);
 
   const totalApplicants = jobs.reduce((acc, job) => acc + (job.applicants?.length || 0), 0);
   const maxApplicants = Math.max(...jobs.map(j => j.applicants?.length || 1));
@@ -291,10 +295,43 @@ const chartConfig = {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#f0f4f8" },
-  loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
-  loadingText: { fontSize: 18, fontWeight: "600", color: "#fb923c" },
+loadingContainer: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "#ffffff",
+},
+
+loaderBox: {
+  width: 160,
+  height: 160,
+  borderRadius: 24,
+  backgroundColor: "#fff",
+  justifyContent: "center",
+  alignItems: "center",
+  shadowColor: "#fb923c",
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.35,
+  shadowRadius: 12,
+  elevation: 12,
+  transform: [{ scale: 1 }],
+  // Animate scaling for subtle bounce effect
+},
+
+loadingText: {
+  marginTop: 12,
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#fb923c",
+  textAlign: "center",
+},
+
+// Optional: keyframe animation for bounce (React Native Animated alternative)
+
 
   container: { paddingVertical: 20, paddingHorizontal: 20 },
+
+  
 
   // --- User Card ---
   userCard: {
