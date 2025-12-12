@@ -231,7 +231,7 @@ const handleSubmit = async () => {
   if (error) { Alert.alert("Validation Error", error); return; }
 
   try {
-    const response = await fetch("https://labour-server.vercel.app/api/jobs", {
+    const response = await fetch("http://192.168.100.39:3000/api/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
      body: JSON.stringify({

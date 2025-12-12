@@ -18,11 +18,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 import Profile from "./Profile";
 
-const BACKEND_URL = "https://labour-server.vercel.app/api/chat"; // replace with your backend
+const BACKEND_URL = "http://192.168.100.39:3000/api/chat"; // replace with your backend
 
 interface Contractor {
   firstName: string;
@@ -150,7 +149,7 @@ export default function Response() {
         if (!localUser?.email) return;
 
         const response = await fetch(
-          `https://labour-server.vercel.app/api/jobs/user/${localUser.email}`
+          `http://192.168.100.39:3000/api/jobs/user/${localUser.email}`
         );
         if (!response.ok) throw new Error("Failed to fetch user jobs");
         const data = await response.json();
@@ -180,7 +179,7 @@ export default function Response() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <AppBar title="My Applied Jobs" />
+        {/* <AppBar title="My Applied Jobs" /> */}
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#fb923c" />
         </View>
@@ -190,7 +189,7 @@ export default function Response() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <AppBar title="My Applied Jobs" />
+      {/* <AppBar title="My Applied Jobs" /> */}
 
       {/* User Info */}
       <View style={styles.userInfo}>

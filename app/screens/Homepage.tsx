@@ -1,10 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Dimensions, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import AppliedJobScreen from "../screens/AppliedJob";
 
+import ResponseScreen from "../screens/Response";
 
 const { width } = Dimensions.get("window");
 
@@ -21,6 +23,9 @@ export default function ContractorDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
+const [showResponseModal, setShowResponseModal] = useState(false);
+const [showJobResponseModal, setShowJobResponseModal] = useState(false);
+const [showAppliedJobModal, setShowAppliedJobModal] = useState(false);
 
 
   
@@ -33,7 +38,7 @@ export default function ContractorDashboard() {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
 
-        const res = await fetch(`https://labour-server.vercel.app/api/my-jobs-email/${parsedUser.email}`);
+        const res = await fetch(`http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`);
         const data = await res.json();
         setJobs(data.length ? data : [{ _id: "default", title: "No Jobs", workersRequired: 0, applicants: [], budget: 0 }]);
       } catch (err) {
@@ -55,6 +60,7 @@ if (loading) return (
   </SafeAreaView>
 );
 
+  
   const totalApplicants = jobs.reduce((acc, job) => acc + (job.applicants?.length || 0), 0);
   const maxApplicants = Math.max(...jobs.map(j => j.applicants?.length || 1));
 
@@ -125,7 +131,80 @@ if (loading) return (
           </View>
         </View>
 
+{/* Response Button */}
+  <View style={styles.actionBtn}>
+    <Text onPress={() => setShowResponseModal(true)} style={styles.actionBtnText}>
+      Response
+    </Text>
+  </View>
 
+  {/* Job Response Button */}
+  <View style={styles.actionBtn}>
+    <Text onPress={() => setShowJobResponseModal(true)} style={styles.actionBtnText}>
+      Job Response
+    </Text>
+  </View>
+
+  {/* Applied Job Button */}
+{/* ================= MODALS ================= */}
+
+<Modal visible={showResponseModal} transparent animationType="slide">
+  <View style={styles.modalContainer}>
+    <View style={styles.modalBoxLarge}>
+      
+      <Text style={styles.modalTitle}>Response</Text>
+
+      {/* SHOW RESPONSE.TSX HERE */}
+      <View style={{ height: 500, width: "100%" }}>
+  <ResponseScreen />
+</View>
+
+
+      <Text style={styles.closeBtn} onPress={() => setShowResponseModal(false)}>
+        Close
+      </Text>
+
+    </View>
+  </View>
+</Modal>
+<Modal visible={showJobResponseModal} transparent animationType="slide">
+  <View style={styles.modalContainer}>
+    <View style={styles.modalBoxLarge}>
+
+      <Text style={styles.modalTitle}>Job Response</Text>
+
+      {/* SHOW RESPONSE.TSX HERE ALSO */}
+      <View style={{ height: 500, width: "100%" }}>
+  <ResponseScreen />
+</View>
+
+
+      <Text style={styles.closeBtn} onPress={() => setShowJobResponseModal(false)}>
+        Close
+      </Text>
+
+    </View>
+  </View>
+</Modal>
+<Modal visible={showAppliedJobModal} transparent animationType="slide">
+  <View style={styles.modalContainer}>
+    <View style={styles.modalBoxLarge}>
+
+      <Text style={styles.modalTitle}>Applied Jobs</Text>
+
+      {/* SHOW APPLIEDJOB.TSX HERE */}
+      <View style={{ height: 500, width: "100%" }}>
+  <AppliedJobScreen />
+</View>
+
+
+      <Text style={styles.closeBtn} onPress={() => setShowAppliedJobModal(false)}>
+        Close
+      </Text>
+
+    </View>
+  </View>
+</Modal>
 
         {/* ------------------ Stats Cards ------------------ */}
         {/* <View style={styles.statsRow}>
@@ -286,6 +365,14 @@ loaderBox: {
   transform: [{ scale: 1 }],
   // Animate scaling for subtle bounce effect
 },
+modalBoxLarge: {
+  width: "90%",
+  height: "80%",
+  backgroundColor: "#fff",
+  borderRadius: 20,
+  padding: 20,
+  alignItems: "center",
+},
 
 loadingText: {
   marginTop: 12,
@@ -412,6 +499,53 @@ loadingText: {
     backgroundColor: "#f9fafb",
     padding: 8,
   },
+actionBtn: {
+  backgroundColor: "#fb923c",
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  borderRadius: 12,
+  marginTop:10,
+  marginBottom:10,
+  flex: 1,
+  marginHorizontal: 4,
+  alignItems: "center",
+},
+actionBtnText: {
+  color: "#fff",
+  fontWeight: "700",
+  fontSize: 14,
+},
+
+modalContainer: {
+  flex: 1,
+  backgroundColor: "rgba(0,0,0,0.5)",
+  justifyContent: "center",
+  alignItems: "center",
+},
+modalBox: {
+  width: "85%",
+  backgroundColor: "#fff",
+  borderRadius: 20,
+  padding: 20,
+  alignItems: "center",
+},
+modalTitle: {
+  fontSize: 20,
+  fontWeight: "700",
+  marginBottom: 10,
+},
+modalContent: {
+  fontSize: 14,
+  color: "#555",
+  marginBottom: 20,
+  textAlign: "center",
+},
+closeBtn: {
+  color: "#fb923c",
+  fontSize: 16,
+  fontWeight: "700",
+  marginTop: 10,
+},
 
   // --- Animations hint ---
   animatedCard: {

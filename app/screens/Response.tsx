@@ -3,27 +3,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 import Profile from "./Profile"; // Profile modal component
 
-const BACKEND_URL = "https://labour-server.vercel.app/api/chat"; // replace with your backend
+const BACKEND_URL = "http://192.168.100.39:3000/api/chat"; // replace with your backend
 
 interface Labour {
   labourId: string | null;
@@ -134,7 +133,7 @@ export default function Response() {
     const fetchResponses = async () => {
       try {
         const response = await fetch(
-          `https://labour-server.vercel.app/api/responses-by-contractor/${contractorEmail}`
+          `http://192.168.100.39:3000/api/responses-by-contractor/${contractorEmail}`
         );
         if (!response.ok) throw new Error("Failed to fetch responses");
         const data = await response.json();
@@ -189,7 +188,7 @@ export default function Response() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <AppBar title="Job Responses" />
+        {/* <AppBar title="Job Responses" /> */}
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#fb923c" />
         </View>
@@ -199,7 +198,7 @@ export default function Response() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <AppBar title="Job Responses" />
+      {/* <AppBar title="Job Responses" /> */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {jobs.length === 0 ? (
           <Text style={styles.emptyText}>No responses found for your jobs.</Text>
