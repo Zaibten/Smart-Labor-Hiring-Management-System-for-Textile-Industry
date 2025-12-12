@@ -76,6 +76,7 @@ const opacityAnim = useRef(new Animated.Value(0)).current;
 
 const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
 const [appliedJobs, setAppliedJobs] = useState<{ [jobId: string]: boolean }>({});
+const [userSkills, setUserSkills] = useState<string[]>([]);
 
 const checkIfApplied = async (jobId: string) => {
   try {
@@ -232,25 +233,33 @@ useEffect(() => {
     const fetchUserAndJobs = async () => {
       try {
         const userData = await AsyncStorage.getItem("user");
-        if (userData) {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
-          await AsyncStorage.setItem("userEmail", parsedUser.email);
+if (userData) {
+  const parsedUser = JSON.parse(userData);
+  setUser(parsedUser);
+  await AsyncStorage.setItem("userEmail", parsedUser.email);
 
-          const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
-const jobsAll = await resAll.json();
+  // ✅ Fetch logged-in user's skills
+  try {
+    const skillsRes = await fetch(`http://192.168.100.39:3000/api/user/skills/${parsedUser.email}`);
+    const skillData = await skillsRes.json();
+    if (skillData.success) setUserSkills(skillData.skills);
+  } catch (err) {
+    console.log("Error loading user skills:", err);
+  }
 
-setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
+  const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
+  const jobsAll = await resAll.json();
+  setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
 
+  if (parsedUser.role === "Contractor") {
+    const resMine = await fetch(
+      `http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`
+    );
+    const jobsMine = await resMine.json();
+    setMyJobs(jobsMine);
+  }
+}
 
-          if (parsedUser.role === "Contractor") {
-            const resMine = await fetch(
-              `http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`
-            );
-            const jobsMine = await resMine.json();
-            setMyJobs(jobsMine);
-          }
-        }
       } catch (err) {
         console.error("Error fetching jobs:", err);
       } finally {
@@ -259,6 +268,22 @@ setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
     };
     fetchUserAndJobs();
   }, []);
+
+  const searchJobsFromAPI = async (text: string) => {
+  try {
+    const res = await fetch(
+      `http://192.168.100.39:3000/api/search-jobs?name=${text}&skill=${text}`
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setAllJobs(data.jobs);   // update jobs list
+    }
+  } catch (err) {
+    console.log("Search API error:", err);
+  }
+};
 
 const handleApply = async (job: Job) => {
   try {
@@ -337,8 +362,9 @@ const handleApply = async (job: Job) => {
 const filteredJobs = (
   activeTab === "myJobs"
     ? myJobs
-    : allJobs.filter((job) => job.createdBy.email !== user.email)
+    : allJobs
 ).filter((job) => {
+
   const { location, skill, startDate, endDate, minBudget, maxBudget } = filters;
 
   const matchesSearch =
@@ -415,13 +441,17 @@ const filteredJobs = (
       <Animated.View style={[styles.filtersContainer, { height: filterHeight, overflow: "hidden" }]}>
         <ScrollView>
             <View style={styles.searchContainer}>
-  <TextInput
-    style={styles.searchInput}
-    placeholder="Search jobs by title or skill..."
-    placeholderTextColor="#9ca3af"
-    value={searchQuery}
-    onChangeText={(text) => setSearchQuery(text)}
-  />
+<TextInput
+  style={styles.searchInput}
+  placeholder="Search jobs by title or skill..."
+  placeholderTextColor="#9ca3af"
+  value={searchQuery}
+  onChangeText={(text) => {
+    setSearchQuery(text);
+    searchJobsFromAPI(text);  // 🔥 call API live
+  }}
+/>
+
 </View>
           <View style={styles.row}>
             

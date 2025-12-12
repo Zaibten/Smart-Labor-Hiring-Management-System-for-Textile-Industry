@@ -1,5 +1,8 @@
+import { Ionicons } from "@expo/vector-icons"; // <-- add this at the top if not already
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import UserSkillsScreen from "./Skill";
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,9 +22,11 @@ import BottomTab from "../components/BottomTab";
 import ChangePasswordScreen from "./ChangePassword";
 const { width, height } = Dimensions.get("window");
 
+
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+const [skillsVisible, setSkillsVisible] = useState(false);
 
   const [aboutVisible, setAboutVisible] = useState(false);
   const [faqVisible, setFaqVisible] = useState(false);
@@ -29,6 +34,18 @@ export default function SettingsPage() {
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
+
+
+  const openSkillsModal = () => {
+  setSkillsVisible(true);
+  fadeAnim.setValue(0);
+  scaleAnim.setValue(0.8);
+  Animated.parallel([
+    Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+    Animated.spring(scaleAnim, { toValue: 1, friction: 5, useNativeDriver: true }),
+  ]).start();
+};
 
 
   // Add this state at the top
@@ -137,9 +154,36 @@ const handleLogout = () => {
 
 
 
-  <TouchableOpacity style={styles.menuItem}>
-    <Text style={styles.menuLabel}>Manage Profile</Text>
+<TouchableOpacity
+  style={styles.menuItem}
+  onPress={openSkillsModal}  // <- use new function
+>
+  <Text style={styles.menuLabel}>Manage Skills</Text>
+</TouchableOpacity>
+
+
+<Modal visible={skillsVisible} animationType="slide">
+  <UserSkillsScreen />
+  
+  {/* Close Button */}
+  <TouchableOpacity
+    style={{
+      position: "absolute",
+      top: 40,
+      right: 20,
+      backgroundColor: "#fb7c3c",
+      padding: 10,
+      borderRadius: 30
+    }}
+    onPress={() => setSkillsVisible(false)}
+  >
+    <Ionicons name="close" size={26} color="#fff" />
   </TouchableOpacity>
+</Modal>
+
+
+
+
 
   {/* Preferences Section */}
   <Text style={styles.sectionTitle}>Preferences</Text>
@@ -224,6 +268,31 @@ const styles = StyleSheet.create({
   flex: 1,
   backgroundColor: "#fff",
 },
+modalBoxShort: {
+  width: width - 60,            // slightly smaller width
+  maxHeight: height / 2,        // half the screen height
+  backgroundColor: "#fff",
+  borderRadius: 20,
+  padding: 20,
+  alignSelf: "center",
+},
+crossIcon: {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: "#ef4444",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 10,
+},
+skillItem: {
+  paddingVertical: 5,
+},
+
+
 modalHeader: {
   flexDirection: "row",
   justifyContent: "space-between",
@@ -255,6 +324,7 @@ closeModalText: {
   fontWeight: "700",
   fontSize: 16,
 },
+
 
 saveBtn: {
   backgroundColor: "#fb7c3c",
