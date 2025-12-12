@@ -23,6 +23,9 @@ import ChangePasswordScreen from "./ChangePassword";
 const { width, height } = Dimensions.get("window");
 
 
+
+
+
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
@@ -62,14 +65,37 @@ const openChangePasswordModal = () => {
   ]).start();
 };
 
+const contractorTabs = [
+  { label: "Home", icon: "home" },
+  { label: "Create Jobs", icon: "add-circle" },
+  { label: "All Jobs", icon: "list" },
+  { label: "Chats", icon: "chatbubbles" },
+  { label: "Settings", icon: "settings" },
+];
 
-  const contractorTabs = [
-    { label: "Home", icon: "home" },
-    { label: "Create Jobs", icon: "add-circle" },
-    { label: "All Jobs", icon: "list" },
-    { label: "Chats", icon: "chatbubbles" },
-    { label: "Settings", icon: "settings" },
-  ];
+const labourTabs = [
+  { label: "Home", icon: "home" },
+  { label: "Find Jobs", icon: "search" },
+  { label: "Chats", icon: "chatbubbles" },
+  { label: "Settings", icon: "settings" },
+];
+
+
+  const [userRole, setUserRole] = useState<"Contractor" | "Labour">("Labour");
+
+const loadUser = async () => {
+  try {
+    const userData = await AsyncStorage.getItem("user");
+    const user = userData ? JSON.parse(userData) : null;
+
+    if (user?.role) setUserRole(user.role);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
+
 
   // Logout handler
 const handleLogout = () => {
@@ -255,9 +281,14 @@ const handleLogout = () => {
         </View>
       </Modal>
 
-      <View style={styles.tabWrapper}>
-        <BottomTab tabs={contractorTabs} activeTab="Settings" userRole="Contractor" />
-      </View>
+     <View style={styles.tabWrapper}>
+  <BottomTab
+    tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
+    activeTab="Settings"
+    userRole={userRole}
+  />
+</View>
+
     </SafeAreaView>
   );
 }

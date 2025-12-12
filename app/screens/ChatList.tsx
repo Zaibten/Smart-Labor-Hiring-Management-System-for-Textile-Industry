@@ -3,18 +3,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -26,6 +26,17 @@ interface ChatItem {
   lastMessage: string;
   timestamp: string;
 }
+
+
+
+const labourTabs = [
+  { label: "Home", icon: "home" },
+  { label: "Find Jobs", icon: "search" },
+  { label: "Chats", icon: "chatbubbles" },
+  { label: "Settings", icon: "settings" },
+];
+
+
 
   const contractorTabs = [
     { label: "Home", icon: "home" },
@@ -53,23 +64,38 @@ export default function ChatList() {
   const [newMessage, setNewMessage] = useState("");
   const flatListRef = useRef<FlatList>(null);
 
+
+  const [userRole, setUserRole] = useState<"Contractor" | "Labour">("Labour");
+
+const loadUser = async () => {
+  const userData = await AsyncStorage.getItem("user");
+  const user = userData ? JSON.parse(userData) : null;
+
+  if (user?.role) setUserRole(user.role);   // <-- SAVE ROLE
+
+  if (user?.email) {
+    setUserEmail(user.email);
+    fetchChatList(user.email);
+  }
+};
+
   useEffect(() => {
     loadUser();
   }, []);
 
-  const loadUser = async () => {
-    try {
-      const userData = await AsyncStorage.getItem("user");
-      const user = userData ? JSON.parse(userData) : null;
+  // const loadUser = async () => {
+  //   try {
+  //     const userData = await AsyncStorage.getItem("user");
+  //     const user = userData ? JSON.parse(userData) : null;
 
-      if (!user?.email) return;
+  //     if (!user?.email) return;
 
-      setUserEmail(user.email);
-      fetchChatList(user.email);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  //     setUserEmail(user.email);
+  //     fetchChatList(user.email);
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
 
   const fetchChatList = async (email: string) => {
     try {
@@ -236,8 +262,13 @@ export default function ChatList() {
       </Modal>
 
       <View style={styles.tabWrapper}>
-              <BottomTab tabs={contractorTabs} activeTab="Chats" userRole="Contractor" />
-            </View>
+  <BottomTab
+    tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
+    activeTab="Chats"
+    userRole={userRole}
+  />
+</View>
+
     </View>
   );
 }

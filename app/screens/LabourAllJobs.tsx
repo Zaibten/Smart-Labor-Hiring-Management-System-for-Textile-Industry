@@ -4,20 +4,20 @@ import React, { useEffect, useRef, useState } from "react";
 import Profile from "./Profile";
 
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Image,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -53,6 +53,22 @@ interface Job {
 }
 
 
+const contractorTabs = [
+  { label: "Home", icon: "home" },
+  { label: "Create Jobs", icon: "add-circle" },
+  { label: "All Jobs", icon: "list" },
+  { label: "Chats", icon: "chatbubbles" },
+  { label: "Settings", icon: "settings" },
+];
+
+const labourTabs = [
+  { label: "Home", icon: "home" },
+  { label: "Find Jobs", icon: "search" },
+  { label: "Chats", icon: "chatbubbles" },
+  { label: "Settings", icon: "settings" },
+];
+
+
 
 export default function AllJobs() {
   const [user, setUser] = useState({
@@ -69,11 +85,47 @@ export default function AllJobs() {
   const [activeTab, setActiveTab] = useState<"myJobs" | "allJobs">("allJobs");
   const [userImages, setUserImages] = useState<{ [email: string]: string }>({});
   const [modalVisible, setModalVisible] = useState(false);
+  
 const [modalText, setModalText] = useState("");
 const scaleAnim = useRef(new Animated.Value(0)).current;
 const opacityAnim = useRef(new Animated.Value(0)).current;
 
 const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+const [appliedJobs, setAppliedJobs] = useState<{ [jobId: string]: boolean }>({});
+const [userSkills, setUserSkills] = useState<string[]>([]);
+
+const checkIfApplied = async (jobId: string) => {
+  try {
+    const res = await fetch(`http://192.168.100.39:3000/api/check-application/${jobId}?email=${user.email}`);
+    const data = await res.json();
+    setAppliedJobs(prev => ({ ...prev, [jobId]: data.applied }));
+  } catch (err) {
+    console.error("Error checking application:", err);
+  }
+};
+
+useEffect(() => {
+  if (allJobs.length > 0 && user.email) {
+    allJobs.forEach(job => {
+      checkIfApplied(job._id);
+    });
+  }
+}, [allJobs, user.email]);
+
+  const [userRole, setUserRole] = useState<"Contractor" | "Labour">("Labour");
+
+const loadUser = async () => {
+  try {
+    const userData = await AsyncStorage.getItem("user");
+    const user = userData ? JSON.parse(userData) : null;
+
+    if (user?.role) setUserRole(user.role);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
 
 const openProfileModal = (email: string) => {
   setSelectedEmail(email);
@@ -209,25 +261,33 @@ useEffect(() => {
     const fetchUserAndJobs = async () => {
       try {
         const userData = await AsyncStorage.getItem("user");
-        if (userData) {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
-          await AsyncStorage.setItem("userEmail", parsedUser.email);
+if (userData) {
+  const parsedUser = JSON.parse(userData);
+  setUser(parsedUser);
+  await AsyncStorage.setItem("userEmail", parsedUser.email);
 
-          const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
-const jobsAll = await resAll.json();
+  // ✅ Fetch logged-in user's skills
+  try {
+    const skillsRes = await fetch(`http://192.168.100.39:3000/api/user/skills/${parsedUser.email}`);
+    const skillData = await skillsRes.json();
+    if (skillData.success) setUserSkills(skillData.skills);
+  } catch (err) {
+    console.log("Error loading user skills:", err);
+  }
 
-setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
+  const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
+  const jobsAll = await resAll.json();
+  setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
 
+  if (parsedUser.role === "Contractor") {
+    const resMine = await fetch(
+      `http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`
+    );
+    const jobsMine = await resMine.json();
+    setMyJobs(jobsMine);
+  }
+}
 
-          if (parsedUser.role === "Contractor") {
-            const resMine = await fetch(
-              `http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`
-            );
-            const jobsMine = await resMine.json();
-            setMyJobs(jobsMine);
-          }
-        }
       } catch (err) {
         console.error("Error fetching jobs:", err);
       } finally {
@@ -236,6 +296,22 @@ setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
     };
     fetchUserAndJobs();
   }, []);
+
+  const searchJobsFromAPI = async (text: string) => {
+  try {
+    const res = await fetch(
+      `http://192.168.100.39:3000/api/search-jobs?name=${text}&skill=${text}`
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setAllJobs(data.jobs);   // update jobs list
+    }
+  } catch (err) {
+    console.log("Search API error:", err);
+  }
+};
 
 const handleApply = async (job: Job) => {
   try {
@@ -314,8 +390,9 @@ const handleApply = async (job: Job) => {
 const filteredJobs = (
   activeTab === "myJobs"
     ? myJobs
-    : allJobs.filter((job) => job.createdBy.email !== user.email)
+    : allJobs
 ).filter((job) => {
+
   const { location, skill, startDate, endDate, minBudget, maxBudget } = filters;
 
   const matchesSearch =
@@ -392,13 +469,17 @@ const filteredJobs = (
       <Animated.View style={[styles.filtersContainer, { height: filterHeight, overflow: "hidden" }]}>
         <ScrollView>
             <View style={styles.searchContainer}>
-  <TextInput
-    style={styles.searchInput}
-    placeholder="Search jobs by title or skill..."
-    placeholderTextColor="#9ca3af"
-    value={searchQuery}
-    onChangeText={(text) => setSearchQuery(text)}
-  />
+<TextInput
+  style={styles.searchInput}
+  placeholder="Search jobs by title or skill..."
+  placeholderTextColor="#9ca3af"
+  value={searchQuery}
+  onChangeText={(text) => {
+    setSearchQuery(text);
+    searchJobsFromAPI(text);  // 🔥 call API live
+  }}
+/>
+
 </View>
           <View style={styles.row}>
             
@@ -487,6 +568,8 @@ const filteredJobs = (
         {filteredJobs.length > 0 ? (
           filteredJobs.map((job) => (
            <View key={job._id} style={styles.jobCard}>
+
+            
             
             <Text style={{ color: "#6b7280", fontSize: 12, marginBottom: 5 }}>
   {getTimeAgo(job.createdAt)}
@@ -540,7 +623,7 @@ const filteredJobs = (
   </View>
 </View>
 
-{job.applicants.some(app => app.laborId === user._id) && (
+{/* {job.applicants.some(app => app.laborId === user._id) && (
       <Animated.View
         style={{
           position: "absolute",
@@ -559,7 +642,7 @@ const filteredJobs = (
           Applied
         </Text>
       </Animated.View>
-    )}
+    )} */}
 
               <Text style={styles.jobTitle}>{job.title}</Text>
               <Text style={styles.jobText}>{job.description}</Text>
@@ -614,25 +697,28 @@ const filteredJobs = (
                   {job.createdBy.email}
                 </Text>
               </View> */}
-{activeTab === "allJobs" && (
-  <View style={{ position: "relative", marginBottom: 10 }}>
-    {/* Badge at the top-right of the card */}
-
-    <Pressable
-      style={({ pressed }) => [
-        styles.applyButton,
-        pressed && !job.applicants.some(app => app.laborId === user._id) && styles.applyButtonPressed,
-        job.applicants.some(app => app.laborId === user._id) && { backgroundColor: "#9ca3af" }, // grey if applied
-      ]}
-      onPress={() => handleApply(job)}
-      disabled={job.applicants.some(app => app.laborId === user._id)}
+{activeTab === "allJobs" &&
+  job.applicants.some(app => app.laborId === user._id) && (
+    <Animated.View
+      style={{
+        position: "absolute",
+        top: 10,
+        right: 10,
+        backgroundColor: "#13582eff",
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 12,
+        opacity: 0.9,
+        zIndex: 10,
+      }}
     >
-      <Text style={styles.applyButtonText}>
-        {job.applicants.some(app => app.laborId === user._id) ? "Applied" : "Apply"}
+      <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>
+        Applied
       </Text>
-    </Pressable>
-  </View>
-)}
+    </Animated.View>
+  )
+}
+
 
 
 
@@ -682,11 +768,11 @@ const filteredJobs = (
   </Animated.View>
 </Modal>
 
-      <BottomTab
-        tabs={contractorTabs}
-        activeTab="All Jobs"
-        userRole="Contractor"
-      />
+     <BottomTab
+         tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
+         activeTab="Chats"
+         userRole={userRole}
+       />
     </SafeAreaView>
   );
 }
