@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { usePathname, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import Profile from "./Profile";
 
@@ -70,7 +71,7 @@ const labourTabs = [
 
 
 
-export default function AllJobs() {
+export default function LabourAllJobs() {
   const [user, setUser] = useState({
     _id: "",
     firstName: "",
@@ -79,6 +80,18 @@ export default function AllJobs() {
     email: "",
     image: "",
   });
+   const router = useRouter();
+  const pathname = usePathname();
+
+  const routeMap: { [key: string]: string } = {
+  Home: "/labour/home",
+  "Find Jobs": "/labour/all-jobs",
+  Chats: "/chats",
+  Settings: "/settings",
+  "Create Jobs": "/contractor/create-jobs",
+  "All Jobs": "/contractor/all-jobs",
+};
+
   const [allJobs, setAllJobs] = useState<Job[]>([]);
   const [myJobs, setMyJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -191,24 +204,31 @@ const getTimeAgo = (dateString: string) => {
 
 // Fetch user image by email
 const fetchUserImage = async (email: string) => {
-  if (userImages[email]) return; // already fetched
+  if (userImages[email]) return;
   try {
     const res = await fetch(`http://192.168.100.39:3000/api/user-by-email/${email}`);
-    if (!res.ok) throw new Error("User not found");
+    if (!res.ok) {
+      // silently fallback to default
+      setUserImages(prev => ({
+        ...prev,
+        [email]: "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
+      }));
+      return;
+    }
     const data = await res.json();
-    const imageUrl =
-      data.image && data.image.trim() !== ""
-        ? data.image.trim()
-        : "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png";
-
+    const imageUrl = data.image?.trim() || "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png";
     setUserImages(prev => ({ ...prev, [email]: imageUrl }));
   } catch (err) {
+    // only log unexpected errors
+    console.warn("Unexpected error fetching user image for", email, err);
     setUserImages(prev => ({
       ...prev,
-      [email]: "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png"
+      [email]: "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
     }));
   }
 };
+
+
 
 
 // Preload images after fetching jobs
@@ -249,53 +269,48 @@ useEffect(() => {
     });
   };
 
-  const contractorTabs = [
-    { label: "Home", icon: "home" },
-    { label: "Create Jobs", icon: "add-circle" },
-    { label: "All Jobs", icon: "list" },
-    { label: "Chats", icon: "chatbubbles" },
-    { label: "Settings", icon: "settings" },
-  ];
 
-  useEffect(() => {
-    const fetchUserAndJobs = async () => {
-      try {
-        const userData = await AsyncStorage.getItem("user");
-if (userData) {
-  const parsedUser = JSON.parse(userData);
-  setUser(parsedUser);
-  await AsyncStorage.setItem("userEmail", parsedUser.email);
 
-  // ✅ Fetch logged-in user's skills
-  try {
-    const skillsRes = await fetch(`http://192.168.100.39:3000/api/user/skills/${parsedUser.email}`);
-    const skillData = await skillsRes.json();
-    if (skillData.success) setUserSkills(skillData.skills);
-  } catch (err) {
-    console.log("Error loading user skills:", err);
-  }
-
-  const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
-  const jobsAll = await resAll.json();
-  setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
-
-  if (parsedUser.role === "Contractor") {
-    const resMine = await fetch(
-      `http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`
-    );
-    const jobsMine = await resMine.json();
-    setMyJobs(jobsMine);
-  }
-}
-
-      } catch (err) {
-        console.error("Error fetching jobs:", err);
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  const fetchUserAndJobs = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("user");
+      if (!userData) {
+        console.log("No user found in storage");
+        return; // exit early if user not logged in
       }
-    };
-    fetchUserAndJobs();
-  }, []);
+
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+
+      await AsyncStorage.setItem("userEmail", parsedUser.email);
+
+      // fetch skills
+      const skillsRes = await fetch(`http://192.168.100.39:3000/api/user/skills/${parsedUser.email}`);
+      const skillData = await skillsRes.json();
+      if (skillData.success) setUserSkills(skillData.skills);
+
+      // fetch all jobs
+      const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
+      const jobsAll = await resAll.json();
+      setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
+
+      // fetch my jobs if contractor
+      if (parsedUser.role === "Contractor") {
+        const resMine = await fetch(`http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`);
+        const jobsMine = await resMine.json();
+        setMyJobs(jobsMine);
+      }
+    } catch (err) {
+      console.error("Error fetching jobs or user:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchUserAndJobs();
+}, []);
+
 
   const searchJobsFromAPI = async (text: string) => {
   try {
@@ -311,6 +326,18 @@ if (userData) {
   } catch (err) {
     console.log("Search API error:", err);
   }
+};
+const handleTabPress = (label: string) => {
+  if (!user.email) {
+    Alert.alert("Error", "User not loaded yet");
+    return;
+  }
+  const targetPath = routeMap[label];
+  if (!targetPath) {
+    alert(`${label} screen coming soon!`);
+    return;
+  }
+  if (pathname !== targetPath) router.replace(targetPath as any);
 };
 
 const handleApply = async (job: Job) => {
@@ -419,11 +446,9 @@ const filteredJobs = (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#fb923c" />
         </View>
-        <BottomTab
-          tabs={contractorTabs}
-          activeTab="All Jobs"
-          userRole="Contractor"
-        />
+
+
+
       </SafeAreaView>
     );
   }
@@ -768,11 +793,12 @@ const filteredJobs = (
   </Animated.View>
 </Modal>
 
-     <BottomTab
-         tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
-         activeTab="Chats"
-         userRole={userRole}
-       />
+ <BottomTab
+  tabs={labourTabs}
+  activeTab={pathname.includes("LabourAllJobs") ? "Find Jobs" : undefined}
+  userRole="Labour"
+/>
+
     </SafeAreaView>
   );
 }
