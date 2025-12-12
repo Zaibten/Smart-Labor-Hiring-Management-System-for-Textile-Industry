@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker"; // make sure to install this
+import { Animated, Modal } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
 
 import { useRef } from "react";
@@ -33,6 +34,33 @@ const [jobTitle, setJobTitle] = useState("");
   const [endDate, setEndDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+const [showGuide, setShowGuide] = useState(false);
+const guideOpacity = useRef(new Animated.Value(0)).current;
+
+useEffect(() => {
+  const checkGuide = async () => {
+    const hasSeen = await AsyncStorage.getItem("hasSeenJobGuide");
+    if (!hasSeen) {
+      setShowGuide(true);
+      Animated.timing(guideOpacity, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+  checkGuide();
+}, []);
+const closeGuide = async () => {
+  Animated.timing(guideOpacity, {
+    toValue: 0,
+    duration: 400,
+    useNativeDriver: true,
+  }).start(() => {
+    setShowGuide(false);
+    AsyncStorage.setItem("hasSeenJobGuide", "true");
+  });
+};
 
   
 
@@ -249,7 +277,30 @@ const handleSubmit = async () => {
     <SafeAreaView style={styles.safeArea}>
       <AppBar title="Create Job" />
 
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
+
+
+        {showGuide && (
+  <Modal transparent animationType="fade" visible={showGuide}>
+    <Animated.View style={[styles.guideOverlay, { opacity: guideOpacity }]}>
+      <View style={styles.guideContainer}>
+        <Text style={styles.guideTitle}>Welcome to Create Job!</Text>
+        <Text style={styles.guideText}>
+          1. Enter the job title and description.{"\n"}
+          2. Select the location on the map or type it.{"\n"}
+          3. Specify number of workers, required skill, and budget.{"\n"}
+          4. Choose shift, job time, start and end dates.{"\n"}
+          5. Click "Post Job" to submit.
+        </Text>
+        <TouchableOpacity style={styles.guideButton} onPress={closeGuide}>
+          <Text style={styles.guideButtonText}>Got it!</Text>
+        </TouchableOpacity>
+      </View>
+    </Animated.View>
+  </Modal>
+)}
+
         {/* Job Inputs */}
         <TextInput style={styles.input} placeholder="Job Title" value={jobTitle} onChangeText={setJobTitle} />
         <TextInput style={styles.input} placeholder="Job Description" multiline value={description} onChangeText={setDescription} />
@@ -498,4 +549,50 @@ picker: {
   },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   tabWrapper: { position: "absolute", bottom: 0, left: 0, right: 0 },
+  guideOverlay: {
+  flex: 1,
+  backgroundColor: "rgba(0,0,0,0.5)",
+  justifyContent: "center",
+  alignItems: "center",
+  padding: 20,
+},
+guideContainer: {
+  backgroundColor: "#fff",
+  borderRadius: 15,
+  padding: 25,
+  width: "100%",
+  maxWidth: 400,
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 4,
+  elevation: 5,
+},
+guideTitle: {
+  fontSize: 20,
+  fontWeight: "bold",
+  color: "#fb923c",
+  marginBottom: 15,
+  textAlign: "center",
+},
+guideText: {
+  fontSize: 16,
+  color: "#333",
+  marginBottom: 25,
+  textAlign: "left",
+  lineHeight: 22,
+},
+guideButton: {
+  backgroundColor: "#fb923c",
+  paddingVertical: 12,
+  paddingHorizontal: 25,
+  borderRadius: 8,
+},
+guideButtonText: {
+  color: "#fff",
+  fontWeight: "bold",
+  fontSize: 16,
+},
+
 });
