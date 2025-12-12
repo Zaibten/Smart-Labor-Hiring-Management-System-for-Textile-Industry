@@ -25,6 +25,22 @@ const { width, height } = Dimensions.get("window");
 
 
 
+const labourTabs = [
+  { label: "Home", icon: "home" },
+  { label: "Find Jobs", icon: "search" },
+  { label: "Chats", icon: "chatbubbles" },
+  { label: "Settings", icon: "settings" },
+];
+
+
+
+  const contractorTabs = [
+    { label: "Home", icon: "home" },
+    { label: "Create Jobs", icon: "add-circle" },
+    { label: "All Jobs", icon: "list" },
+    { label: "Chats", icon: "chatbubbles" },
+    { label: "Settings", icon: "settings" },
+  ];
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
@@ -65,20 +81,6 @@ const openChangePasswordModal = () => {
   ]).start();
 };
 
-const contractorTabs = [
-  { label: "Home", icon: "home" },
-  { label: "Create Jobs", icon: "add-circle" },
-  { label: "All Jobs", icon: "list" },
-  { label: "Chats", icon: "chatbubbles" },
-  { label: "Settings", icon: "settings" },
-];
-
-const labourTabs = [
-  { label: "Home", icon: "home" },
-  { label: "Find Jobs", icon: "search" },
-  { label: "Chats", icon: "chatbubbles" },
-  { label: "Settings", icon: "settings" },
-];
 
 
   const [userRole, setUserRole] = useState<"Contractor" | "Labour">("Labour");
@@ -134,13 +136,18 @@ const handleLogout = () => {
 
   const closeModal = (setVisible: any) => setVisible(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const storedUser = await AsyncStorage.getItem("user");
-      if (storedUser) setUser(JSON.parse(storedUser));
-    };
-    fetchUser();
-  }, []);
+useEffect(() => {
+  const fetchUser = async () => {
+    const storedUser = await AsyncStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      if (parsedUser.role) setUserRole(parsedUser.role); // <-- set role here
+    }
+  };
+  fetchUser();
+}, []);
+
 
   if (!user)
     return (
