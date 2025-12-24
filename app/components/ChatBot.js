@@ -1,16 +1,16 @@
 import { Audio } from "expo-av";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Easing,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Easing,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function ChatBot() {

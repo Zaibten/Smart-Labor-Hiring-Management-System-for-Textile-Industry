@@ -285,20 +285,79 @@ if (userData) {
   }
 };
 
+// const handleApply = async (job: Job) => {
+//   try {
+//     const response = await fetch(`http://192.168.100.39:3000/api/jobs/apply/${job._id}`, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ labourId: user._id, labourEmail: user.email }),
+//     });
+
+//     const data = await response.json();
+
+//     if (response.ok) {
+//       Alert.alert("Success", `You applied for "${job.title}"`);
+
+//       // Update local state to reflect the application immediately
+//       setAllJobs(prev =>
+//         prev.map(j =>
+//           j._id === job._id
+//             ? {
+//                 ...j,
+//                 noOfWorkersApplied: j.noOfWorkersApplied + 1,
+//                 applicants: [
+//                   ...j.applicants,
+//                   { laborId: user._id, laborEmail: user.email, appliedAt: new Date().toISOString() },
+//                 ],
+//               }
+//             : j
+//         )
+//       );
+
+//       // Optionally refresh myJobs too if active tab is "myJobs"
+//       if (activeTab === "myJobs") {
+//         setMyJobs(prev => [
+//           ...prev,
+//           {
+//             ...job,
+//             noOfWorkersApplied: job.noOfWorkersApplied + 1,
+//             applicants: [
+//               ...job.applicants,
+//               { laborId: user._id, laborEmail: user.email, appliedAt: new Date().toISOString() },
+//             ],
+//           },
+//         ]);
+//       }
+
+//     } else {
+//       Alert.alert("Error", data.message);
+//     }
+//   } catch (err) {
+//     console.error(err);
+//     Alert.alert("Error", "Something went wrong");
+//   }
+// };
+
 const handleApply = async (job: Job) => {
   try {
-    const response = await fetch(`http://192.168.100.39:3000/api/jobs/apply/${job._id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ labourId: user._id, labourEmail: user.email }),
-    });
+    // Use user.email from state instead of hardcoded value
+    const response = await fetch(
+      `http://192.168.100.39:3000/api/apply/${job._id}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ labourEmail: user.email }), // ✅ use AsyncStorage user
+      }
+    );
 
     const data = await response.json();
 
     if (response.ok) {
       Alert.alert("Success", `You applied for "${job.title}"`);
 
-      // Update local state to reflect the application immediately
+      // Update local state immediately
+      setAppliedJobs(prev => ({ ...prev, [job._id]: true }));
+
       setAllJobs(prev =>
         prev.map(j =>
           j._id === job._id
@@ -306,39 +365,25 @@ const handleApply = async (job: Job) => {
                 ...j,
                 noOfWorkersApplied: j.noOfWorkersApplied + 1,
                 applicants: [
-                  ...j.applicants,
-                  { laborId: user._id, laborEmail: user.email, appliedAt: new Date().toISOString() },
+                  ...(j.applicants || []),
+                  {
+                    laborId: user._id,
+                    laborEmail: user.email, // ✅ replace hardcoded email
+                    appliedAt: new Date().toISOString(),
+                  },
                 ],
               }
             : j
         )
       );
-
-      // Optionally refresh myJobs too if active tab is "myJobs"
-      if (activeTab === "myJobs") {
-        setMyJobs(prev => [
-          ...prev,
-          {
-            ...job,
-            noOfWorkersApplied: job.noOfWorkersApplied + 1,
-            applicants: [
-              ...job.applicants,
-              { laborId: user._id, laborEmail: user.email, appliedAt: new Date().toISOString() },
-            ],
-          },
-        ]);
-      }
-
     } else {
-      Alert.alert("Error", data.message);
+      Alert.alert("Error", data.message || "Could not apply");
     }
   } catch (err) {
     console.error(err);
     Alert.alert("Error", "Something went wrong");
   }
 };
-
-
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -669,29 +714,40 @@ const filteredJobs = (
                   {job.createdBy.email}
                 </Text>
               </View> */}
-{activeTab === "allJobs" &&
-  job.applicants.some(app => app.laborId === user._id) && (
-    <Animated.View
-      style={{
-        position: "absolute",
-        top: 10,
-        right: 10,
-        backgroundColor: "#13582eff",
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        borderRadius: 12,
-        opacity: 0.9,
-        zIndex: 10,
-      }}
-    >
-      <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>
-        Applied
-      </Text>
-    </Animated.View>
-  )
-}
+{appliedJobs[job._id] && (
+  <Animated.View
+    style={{
+      position: "absolute",
+      top: 10,
+      right: 10,
+      backgroundColor: "#13582eff",
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderRadius: 12,
+      opacity: 0.9,
+      zIndex: 10,
+    }}
+  >
+    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>
+      Applied
+    </Text>
+  </Animated.View>
+)}
 
 
+
+<TouchableOpacity
+  style={[
+    styles.applyButton,
+    appliedJobs[job._id] && { backgroundColor: "#9ca3af" },
+  ]}
+  disabled={!!appliedJobs[job._id]}
+  onPress={() => handleApply(job)}
+>
+  <Text style={styles.applyButtonText}>
+    {appliedJobs[job._id] ? "Applied" : "Apply"}
+  </Text>
+</TouchableOpacity>
 
 
 

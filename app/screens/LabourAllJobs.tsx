@@ -722,8 +722,16 @@ const filteredJobs = (
                   {job.createdBy.email}
                 </Text>
               </View> */}
-{activeTab === "allJobs" &&
-  job.applicants.some(app => app.laborId === user._id) && (
+  {activeTab === "allJobs" && !job.applicants.some(app => app.laborId === user._id) && (
+    <TouchableOpacity
+      style={styles.applyButton}
+      onPress={() => handleApply(job)}
+    >
+      <Text style={styles.applyButtonText}>Apply</Text>
+    </TouchableOpacity>
+  )}
+
+  {activeTab === "allJobs" && job.applicants.some(app => app.laborId === user._id) && (
     <Animated.View
       style={{
         position: "absolute",
@@ -743,7 +751,6 @@ const filteredJobs = (
     </Animated.View>
   )
 }
-
 
 
 
