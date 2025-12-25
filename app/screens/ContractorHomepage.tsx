@@ -4,8 +4,8 @@ import { ActivityIndicator, Dimensions, Image, Modal, SafeAreaView, ScrollView, 
 import { BarChart, ContributionGraph, LineChart, PieChart, ProgressChart } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import Agreement from "../screens/agreement";
 import AppliedJobScreen from "../screens/AppliedJob";
-
 import ResponseScreen from "../screens/Response";
 
 const { width } = Dimensions.get("window");
@@ -22,12 +22,14 @@ export default function ContractorDashboard() {
   const [user, setUser] = useState<any>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+const [showAgreementScreen, setShowAgreementScreen] = useState(false);
+const [currentScreen, setCurrentScreen] = useState<"Dashboard" | "Agreement">("Dashboard");
 
 
 const [showResponseModal, setShowResponseModal] = useState(false);
 const [showJobResponseModal, setShowJobResponseModal] = useState(false);
 const [showAppliedJobModal, setShowAppliedJobModal] = useState(false);
-
+const { width } = Dimensions.get("window");
   
 
   useEffect(() => {
@@ -137,80 +139,66 @@ if (loading) return (
   {/* Response Button */}
   <View style={styles.actionBtn}>
     <Text onPress={() => setShowResponseModal(true)} style={styles.actionBtnText}>
-      Response
+      Job Response
     </Text>
   </View>
+  
 
   {/* Job Response Button */}
   <View style={styles.actionBtn}>
     <Text onPress={() => setShowJobResponseModal(true)} style={styles.actionBtnText}>
-      Job Response
+      Applied Job Response
     </Text>
   </View>
 
-  {/* Applied Job Button */}
-
+  {/* Agreement Job Button */}
+  <View style={styles.actionBtn}>
+    <Text onPress={() => setShowAppliedJobModal(true)} style={styles.actionBtnText}>
+      Make Agreement
+    </Text>
+  </View>
 
 </View>
 {/* ================= MODALS ================= */}
 
 <Modal visible={showResponseModal} transparent animationType="slide">
-  <View style={styles.modalContainer}>
-    <View style={styles.modalBoxLarge}>
-      
-      <Text style={styles.modalTitle}>Response</Text>
-
-      {/* SHOW RESPONSE.TSX HERE */}
-      <View style={{ height: 500, width: "100%" }}>
-  <ResponseScreen />
-</View>
-
-
-      <Text style={styles.closeBtn} onPress={() => setShowResponseModal(false)}>
-        Close
-      </Text>
-
+  <View style={[styles.modalContainer, { backgroundColor: "rgba(59, 130, 246, 0.5)" }]}>
+    <View style={[styles.modalBoxLarge, { backgroundColor: "#EFF6FF" }]}>
+      <Text style={[styles.modalTitle, { color: "#1D4ED8" }]}>Response</Text>
+      <ScrollView style={{ flex: 1, width: "100%" }}>
+        <ResponseScreen />
+      </ScrollView>
+      <Text style={styles.closeBtn} onPress={() => setShowResponseModal(false)}>Close</Text>
     </View>
   </View>
 </Modal>
-<Modal visible={showJobResponseModal} transparent animationType="slide">
-  <View style={styles.modalContainer}>
-    <View style={styles.modalBoxLarge}>
 
-      <Text style={styles.modalTitle}>Job Response</Text>
-
-      {/* SHOW RESPONSE.TSX HERE ALSO */}
-      <View style={{ height: 500, width: "100%" }}>
-  <ResponseScreen />
-</View>
-
-
-      <Text style={styles.closeBtn} onPress={() => setShowJobResponseModal(false)}>
-        Close
-      </Text>
-
+{/* --- Job Response Modal --- */}
+<Modal visible={showJobResponseModal} transparent animationType="fade">
+  <View style={[styles.modalContainer, { backgroundColor: "rgba(16, 185, 129, 0.4)" }]}>
+    <View style={[styles.modalBoxLarge, { backgroundColor: "#ECFDF5" }]}>
+      <Text style={[styles.modalTitle, { color: "#059669" }]}>Job Response</Text>
+      <ScrollView style={{ flex: 1, width: "100%" }}>
+        <AppliedJobScreen />
+      </ScrollView>
+      <Text style={styles.closeBtn} onPress={() => setShowJobResponseModal(false)}>Close</Text>
     </View>
   </View>
 </Modal>
+
+{/* --- Applied Jobs Modal --- */}
 <Modal visible={showAppliedJobModal} transparent animationType="slide">
-  <View style={styles.modalContainer}>
-    <View style={styles.modalBoxLarge}>
-
-      <Text style={styles.modalTitle}>Applied Jobs</Text>
-
-      {/* SHOW APPLIEDJOB.TSX HERE */}
-      <View style={{ height: 500, width: "100%" }}>
-  <AppliedJobScreen />
-</View>
-
-
-      <Text style={styles.closeBtn} onPress={() => setShowAppliedJobModal(false)}>
-        Close
-      </Text>
-
+  <View style={[styles.modalContainer, { backgroundColor: "rgba(251, 191, 36, 0.4)" }]}>
+    <View style={[styles.modalBoxLarge, { backgroundColor: "#FFFBEB" }]}>
+      <Text style={[styles.modalTitle, { color: "#B45309" }]}>Applied Jobs</Text>
+      <ScrollView style={{ flex: 1, width: "100%" }}>
+        <Agreement />
+      </ScrollView>
+      <Text style={styles.closeBtn} onPress={() => setShowAppliedJobModal(false)}>Close</Text>
     </View>
   </View>
 </Modal>
+
 
 
 {/* ------------------ Contractor Details ------------------ */}
@@ -263,97 +251,110 @@ if (loading) return (
           </View>
         </View>
 
-        {/* ------------------ Bar Chart ------------------ */}
-        <View style={styles.chartWrapperFull}>
-          <Text style={styles.chartTitle}>Applicants per Job</Text>
-          <BarChart
-            data={barData}
-            width={width - 40}
-            height={220}
-            chartConfig={chartConfig}
-            verticalLabelRotation={30}
-            yAxisLabel=""
-  yAxisSuffix=""
-            fromZero
-            showValuesOnTopOfBars
-            style={styles.chartStyle}
-          />
-        </View>
+{/* ------------------ Applicants per Job ------------------ */}
+<View style={styles.chartWrapper}>
+  <Text style={styles.chartTitle}>Applicants per Job</Text>
+  <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={{ paddingHorizontal: 10 }}>
+    <BarChart
+      data={barData}
+      width={Math.max(jobs.length * 80, width - 40)}
+      height={220}
+      chartConfig={chartConfig}
+      verticalLabelRotation={30}
+      fromZero
+      showValuesOnTopOfBars
+      style={styles.chartStyle}
+      yAxisLabel=""
+      yAxisSuffix=""
+    />
+  </ScrollView>
+</View>
 
-        {/* ------------------ Stacked Bar Chart ------------------ */}
-        <View style={styles.chartWrapperFull}>
-          <Text style={styles.chartTitle}>Applicants vs Workers</Text>
-          <BarChart
-            data={stackedBarData}
-            width={width - 40}
-            height={220}
-            chartConfig={chartConfig}
-            verticalLabelRotation={30}
-            yAxisLabel=""
-  yAxisSuffix=""
-            fromZero
-            showValuesOnTopOfBars
-            style={styles.chartStyle}
-          />
-        </View>
+{/* ------------------ Applicants vs Workers ------------------ */}
+<View style={styles.chartWrapper}>
+  <Text style={styles.chartTitle}>Applicants vs Workers</Text>
+  <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={{ paddingHorizontal: 10 }}>
+    <BarChart
+      data={stackedBarData}
+      width={Math.max(jobs.length * 80, width - 40)}
+      height={220}
+      chartConfig={chartConfig}
+      verticalLabelRotation={30}
+      fromZero
+      showValuesOnTopOfBars
+      style={styles.chartStyle}
+      yAxisLabel=""
+      yAxisSuffix=""
+    />
+  </ScrollView>
+</View>
 
-        {/* ------------------ Line Chart ------------------ */}
-        <View style={styles.chartWrapperFull}>
-          <Text style={styles.chartTitle}>Applicants Trend</Text>
-          <LineChart
-            data={lineData}
-            width={width - 40}
-            height={220}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chartStyle}
-            withDots
-            withShadow
-          />
-        </View>
+{/* ------------------ Applicants Trend ------------------ */}
+<View style={styles.chartWrapper}>
+  <Text style={styles.chartTitle}>Applicants Trend</Text>
+  <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={{ paddingHorizontal: 10 }}>
+    <LineChart
+      data={lineData}
+      width={Math.max(jobs.length * 200, width - 40)}
+      height={220}
+      chartConfig={chartConfig}
+      bezier
+      style={styles.chartStyle}
+      withDots
+      withShadow
+    />
+  </ScrollView>
+</View>
 
-        {/* ------------------ Pie Chart ------------------ */}
-        <View style={styles.chartWrapperFull}>
-          <Text style={styles.chartTitle}>Job Distribution</Text>
-          <PieChart
-            data={pieData}
-            width={width - 40}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            absolute
-          />
-        </View>
+{/* ------------------ Pie Chart ------------------ */}
+<View style={styles.chartWrapper}>
+  <Text style={styles.chartTitle}>Job Distribution</Text>
+  <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={{ paddingHorizontal: 10 }}>
+    <PieChart
+      data={pieData}
+      width={Math.max(jobs.length * 80, width - 40)}
+      height={220}
+      chartConfig={chartConfig}
+      accessor="population"
+      backgroundColor="transparent"
+      paddingLeft="15"
+      absolute
+    />
+  </ScrollView>
+</View>
 
-        {/* ------------------ Progress Chart ------------------ */}
-        <View style={styles.chartWrapperFull}>
-          <Text style={styles.chartTitle}>Applicants Ratio</Text>
-          <ProgressChart
-            data={progressData}
-            width={width - 40}
-            height={220}
-            strokeWidth={16}
-            radius={32}
-            chartConfig={chartConfig}
-            hideLegend={false}
-          />
-        </View>
+{/* ------------------ Progress Chart ------------------ */}
+<View style={styles.chartWrapper}>
+  <Text style={styles.chartTitle}>Applicants Ratio</Text>
+  <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={{ paddingHorizontal: 10 }}>
+    <ProgressChart
+      data={progressData}
+      width={Math.max(jobs.length * 80, width - 40)}
+      height={220}
+      strokeWidth={16}
+      radius={32}
+      chartConfig={chartConfig}
+      hideLegend={false}
+    />
+  </ScrollView>
+</View>
 
-        {/* ------------------ Contribution Graph (NEW) ------------------ */}
-        <View style={styles.chartWrapperFull}>
-          <Text style={styles.chartTitle}>Job Activity Over Time</Text>
-          <ContributionGraph
-  values={contributionData}
-  endDate={new Date()}
-  numDays={30}
-  width={width - 40}
-  height={220}
-  chartConfig={chartConfig}
-/>
+{/* ------------------ Contribution Graph ------------------ */}
+<View style={styles.chartWrapper}>
+  <Text style={styles.chartTitle}>Job Activity Over Time</Text>
+  <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={{ paddingHorizontal: 10 }}>
+    <ContributionGraph
+      values={contributionData}
+      endDate={new Date()}
+      numDays={30}
+      width={Math.max(jobs.length * 80, width - 40)}
+      height={220}
+      chartConfig={chartConfig}
+    />
+  </ScrollView>
+</View>
 
-        </View>
+
 
       </ScrollView>
 
@@ -391,6 +392,23 @@ loadingContainer: {
   alignItems: "center",
   backgroundColor: "#ffffff",
 },
+chartWrapper: {
+  width: "100%",
+  backgroundColor: "#fff",
+  borderRadius: 20,
+  padding: 20,
+  marginBottom: 25,
+  shadowColor: "#000",
+  shadowOpacity: 0.06,
+  shadowOffset: { width: 0, height: 5 },
+  shadowRadius: 12,
+  elevation: 5,
+},
+chartStyle: {
+  borderRadius: 16,
+  backgroundColor: "#f9fafb",
+  padding: 8,
+},
 
 loaderBox: {
   width: 160,
@@ -407,14 +425,7 @@ loaderBox: {
   transform: [{ scale: 1 }],
   // Animate scaling for subtle bounce effect
 },
-modalBoxLarge: {
-  width: "90%",
-  height: "80%",
-  backgroundColor: "#fff",
-  borderRadius: 20,
-  padding: 20,
-  alignItems: "center",
-},
+
 
 loadingText: {
   marginTop: 12,
@@ -432,7 +443,7 @@ loadingText: {
   
 
   // --- User Card ---
-  userCard: {
+ userCard: {
     flexDirection: "row",
     backgroundColor: "#ffffff",
     borderRadius: 20,
@@ -444,7 +455,6 @@ loadingText: {
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
     elevation: 6,
-    transform: [{ translateY: 0 }],
   },
   actionBtn: {
   backgroundColor: "#fb923c",
@@ -452,14 +462,15 @@ loadingText: {
   paddingHorizontal: 16,
   borderRadius: 12,
   flex: 1,
-  marginHorizontal: 4,
+  marginHorizontal: 1,
   alignItems: "center",
 },
 actionBtnText: {
-  color: "#fff",
-  fontWeight: "700",
-  fontSize: 14,
-},
+    fontSize: width * 0.035,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+  },
 
 modalContainer: {
   flex: 1,
@@ -468,12 +479,21 @@ modalContainer: {
   alignItems: "center",
 },
 modalBox: {
-  width: "85%",
+  width: "100%",
   backgroundColor: "#fff",
   borderRadius: 20,
   padding: 20,
   alignItems: "center",
 },
+modalBoxLarge: {
+  width: "95%",       // make it almost full width
+  height: "90%",      // make it taller
+  backgroundColor: "#fff",
+  borderRadius: 20,
+  padding: 20,
+  alignItems: "center",
+},
+
 modalTitle: {
   fontSize: 20,
   fontWeight: "700",
@@ -499,10 +519,25 @@ closeBtn: {
     borderWidth: 3,
     borderColor: "#fb923c",
   },
-  userName: { fontSize: 22, fontWeight: "700", color: "#111827" },
-  userEmail: { fontSize: 14, color: "#6b7280", marginTop: 4 },
-  userRole: { fontSize: 14, color: "#0a66c2", marginTop: 2, fontWeight: "600" },
-
+  userName: {
+    fontSize: width * 0.05, // scales with screen width
+    fontWeight: "700",
+    color: "#111827",
+    flexShrink: 1,           // allows text to wrap
+  },
+  userEmail: {
+    fontSize: width * 0.035,
+    color: "#6b7280",
+    marginTop: 4,
+    flexShrink: 1,
+  },
+  userRole: {
+    fontSize: width * 0.035,
+    color: "#0a66c2",
+    marginTop: 2,
+    fontWeight: "600",
+    flexShrink: 1,
+  },
   // --- Contractor Details ---
   contractorDetailsCard: {
     backgroundColor: "#fff",
@@ -539,8 +574,20 @@ closeBtn: {
     shadowRadius: 8,
     elevation: 3,
   },
-  latestJobTitle: { fontSize: 16, fontWeight: "600", color: "#111827" },
-  latestJobInfo: { fontSize: 13, color: "#555", marginTop: 3 },
+  
+  latestJobTitle: {
+    fontSize: width * 0.045,
+    fontWeight: "600",
+    color: "#111827",
+    flexShrink: 1,
+  },
+  latestJobInfo: {
+    fontSize: width * 0.035,
+    color: "#555",
+    marginTop: 3,
+    flexShrink: 1,
+    flexWrap: "wrap",       // wraps text if too long
+  },
 
   // --- Stats Cards ---
   statsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 25 },
@@ -558,35 +605,30 @@ closeBtn: {
     elevation: 6,
     transform: [{ scale: 1 }],
   },
-  statNumber: { fontSize: 28, fontWeight: "700", color: "#fb923c" },
-  statLabel: { fontSize: 14, color: "#6b7280", marginTop: 6 },
-
-  // --- Charts ---
-  chartWrapperFull: {
-    width: width - 40,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 25,
-    alignSelf: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  chartTitle: {
-    fontSize: 18,
+ statNumber: {
+    fontSize: width * 0.07,
     fontWeight: "700",
-    marginBottom: 12,
-    color: "#111827",
+    color: "#fb923c",
+  },
+  statLabel: {
+    fontSize: width * 0.035,
+    color: "#6b7280",
+    marginTop: 6,
     textAlign: "center",
   },
-  chartStyle: {
-    borderRadius: 16,
-    backgroundColor: "#f9fafb",
-    padding: 8,
-  },
+
+
+
+chartTitle: {
+  fontSize: width * 0.045,
+  fontWeight: "700",
+  marginBottom: 12,
+  color: "#111827",
+  textAlign: "center",
+  flexShrink: 1, // allows text to wrap
+},
+
+
 
   // --- Animations hint ---
   animatedCard: {

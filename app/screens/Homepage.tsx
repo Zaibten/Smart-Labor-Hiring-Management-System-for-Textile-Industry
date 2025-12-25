@@ -6,7 +6,6 @@ import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 import AppliedJobScreen from "../screens/AppliedJob";
 
-import ResponseScreen from "../screens/Response";
 
 const { width } = Dimensions.get("window");
 
@@ -131,81 +130,26 @@ if (loading) return (
           </View>
         </View>
 
-{/* Response Button */}
-  <View style={styles.actionBtn}>
-    <Text onPress={() => setShowResponseModal(true)} style={styles.actionBtnText}>
-      Response
-    </Text>
-  </View>
+
 
   {/* Job Response Button */}
   <View style={styles.actionBtn}>
     <Text onPress={() => setShowJobResponseModal(true)} style={styles.actionBtnText}>
-      Job Response
+      Applied Job Response
     </Text>
   </View>
-
-  {/* Applied Job Button */}
-{/* ================= MODALS ================= */}
-
-<Modal visible={showResponseModal} transparent animationType="slide">
-  <View style={styles.modalContainer}>
-    <View style={styles.modalBoxLarge}>
-      
-      <Text style={styles.modalTitle}>Response</Text>
-
-      {/* SHOW RESPONSE.TSX HERE */}
-      <View style={{ height: 500, width: "100%" }}>
-  <ResponseScreen />
-</View>
-
-
-      <Text style={styles.closeBtn} onPress={() => setShowResponseModal(false)}>
-        Close
-      </Text>
-
+{/* --- Job Response Modal --- */}
+<Modal visible={showJobResponseModal} transparent animationType="fade">
+  <View style={[styles.modalContainer, { backgroundColor: "rgba(16, 185, 129, 0.4)" }]}>
+    <View style={[styles.modalBoxLarge, { backgroundColor: "#ECFDF5" }]}>
+      <Text style={[styles.modalTitle, { color: "#059669" }]}>Job Response</Text>
+      <ScrollView style={{ flex: 1, width: "100%" }}>
+        <AppliedJobScreen />
+      </ScrollView>
+      <Text style={styles.closeBtn} onPress={() => setShowJobResponseModal(false)}>Close</Text>
     </View>
   </View>
 </Modal>
-<Modal visible={showJobResponseModal} transparent animationType="slide">
-  <View style={styles.modalContainer}>
-    <View style={styles.modalBoxLarge}>
-
-      <Text style={styles.modalTitle}>Job Response</Text>
-
-      {/* SHOW RESPONSE.TSX HERE ALSO */}
-      <View style={{ height: 500, width: "100%" }}>
-  <ResponseScreen />
-</View>
-
-
-      <Text style={styles.closeBtn} onPress={() => setShowJobResponseModal(false)}>
-        Close
-      </Text>
-
-    </View>
-  </View>
-</Modal>
-<Modal visible={showAppliedJobModal} transparent animationType="slide">
-  <View style={styles.modalContainer}>
-    <View style={styles.modalBoxLarge}>
-
-      <Text style={styles.modalTitle}>Applied Jobs</Text>
-
-      {/* SHOW APPLIEDJOB.TSX HERE */}
-      <View style={{ height: 500, width: "100%" }}>
-  <AppliedJobScreen />
-</View>
-
-
-      <Text style={styles.closeBtn} onPress={() => setShowAppliedJobModal(false)}>
-        Close
-      </Text>
-
-    </View>
-  </View>
-</Modal>
-
         {/* ------------------ Stats Cards ------------------ */}
         {/* <View style={styles.statsRow}>
           <View style={styles.statCard}>
