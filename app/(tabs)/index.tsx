@@ -1,7 +1,7 @@
 // app/index.tsx
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import AppliedJob from "../screens/SplashScreen";
+import AppliedJob from "../screens/user";
 
 
 export default function HomePage() {

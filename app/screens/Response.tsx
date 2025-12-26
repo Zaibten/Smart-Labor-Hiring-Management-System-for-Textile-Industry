@@ -22,7 +22,7 @@ import {
 import BottomTab from "../components/BottomTab";
 import Profile from "./Profile"; // Profile modal component
 
-const BACKEND_URL = "http://192.168.100.39:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "http://172.23.212.221:3000/api/chat"; // replace with your backend
 
 interface Labour {
   labourId: string | null;
@@ -133,7 +133,7 @@ export default function Response() {
     const fetchResponses = async () => {
       try {
         const response = await fetch(
-          `http://192.168.100.39:3000/api/responses-by-contractor/${contractorEmail}`
+          `http://172.23.212.221:3000/api/responses-by-contractor/${contractorEmail}`
         );
         if (!response.ok) throw new Error("Failed to fetch responses");
         const data = await response.json();

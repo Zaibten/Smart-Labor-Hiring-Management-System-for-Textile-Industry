@@ -40,7 +40,7 @@ const { width } = Dimensions.get("window");
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
 
-        const res = await fetch(`http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`);
+        const res = await fetch(`http://172.23.212.221:3000/api/my-jobs-email/${parsedUser.email}`);
         const data = await res.json();
         setJobs(data.length ? data : [{ _id: "default", title: "No Jobs", workersRequired: 0, applicants: [], budget: 0 }]);
       } catch (err) {

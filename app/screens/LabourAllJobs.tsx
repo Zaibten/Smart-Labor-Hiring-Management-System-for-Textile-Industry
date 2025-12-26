@@ -109,7 +109,7 @@ const [userSkills, setUserSkills] = useState<string[]>([]);
 
 const checkIfApplied = async (jobId: string) => {
   try {
-    const res = await fetch(`http://192.168.100.39:3000/api/check-application/${jobId}?email=${user.email}`);
+    const res = await fetch(`http://172.23.212.221:3000/api/check-application/${jobId}?email=${user.email}`);
     const data = await res.json();
     setAppliedJobs(prev => ({ ...prev, [jobId]: data.applied }));
   } catch (err) {
@@ -206,7 +206,7 @@ const getTimeAgo = (dateString: string) => {
 const fetchUserImage = async (email: string) => {
   if (userImages[email]) return;
   try {
-    const res = await fetch(`http://192.168.100.39:3000/api/user-by-email/${email}`);
+    const res = await fetch(`http://172.23.212.221:3000/api/user-by-email/${email}`);
     if (!res.ok) {
       // silently fallback to default
       setUserImages(prev => ({
@@ -286,18 +286,18 @@ useEffect(() => {
       await AsyncStorage.setItem("userEmail", parsedUser.email);
 
       // fetch skills
-      const skillsRes = await fetch(`http://192.168.100.39:3000/api/user/skills/${parsedUser.email}`);
+      const skillsRes = await fetch(`http://172.23.212.221:3000/api/user/skills/${parsedUser.email}`);
       const skillData = await skillsRes.json();
       if (skillData.success) setUserSkills(skillData.skills);
 
       // fetch all jobs
-      const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
+      const resAll = await fetch("http://172.23.212.221:3000/api/alljobs");
       const jobsAll = await resAll.json();
       setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
 
       // fetch my jobs if contractor
       if (parsedUser.role === "Contractor") {
-        const resMine = await fetch(`http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`);
+        const resMine = await fetch(`http://172.23.212.221:3000/api/my-jobs-email/${parsedUser.email}`);
         const jobsMine = await resMine.json();
         setMyJobs(jobsMine);
       }
@@ -315,7 +315,7 @@ useEffect(() => {
   const searchJobsFromAPI = async (text: string) => {
   try {
     const res = await fetch(
-      `http://192.168.100.39:3000/api/search-jobs?name=${text}&skill=${text}`
+      `http://172.23.212.221:3000/api/search-jobs?name=${text}&skill=${text}`
     );
 
     const data = await res.json();
@@ -342,7 +342,7 @@ const handleTabPress = (label: string) => {
 
 const handleApply = async (job: Job) => {
   try {
-    const response = await fetch(`http://192.168.100.39:3000/api/jobs/apply/${job._id}`, {
+    const response = await fetch(`http://172.23.212.221:3000/api/jobs/apply/${job._id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ labourId: user._id, labourEmail: user.email }),

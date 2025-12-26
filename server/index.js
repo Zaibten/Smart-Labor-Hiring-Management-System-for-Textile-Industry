@@ -575,6 +575,84 @@ const userSchema = new mongoose.Schema(
 
 const User = mongoose.model("User", userSchema);
 
+app.post("/api/update-profile-image", upload.single("image"), async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email is required" });
+  if (!req.file) return res.status(400).json({ message: "No image uploaded" });
+
+  try {
+    // Use full URL to serve image
+    const imageUrl = `http://172.23.212.221:3000/${req.file.path.replace("\\", "/")}`;
+    const user = await User.findOneAndUpdate({ email }, { image: imageUrl }, { new: true });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    return res.status(200).json({ message: "Profile image updated", user });
+  } catch (err) {
+    console.log("Server error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const { skill, role, q } = req.query;
+
+    let filter = {};
+
+    // 🔎 Search by skill (case-insensitive)
+    if (skill) {
+      filter.skills = { $regex: skill, $options: "i" };
+    }
+
+    // 🔎 Filter by role
+    if (role) {
+      filter.role = role;
+    }
+
+    // 🔎 Search by name
+    if (q) {
+      filter.$or = [
+        { firstName: { $regex: q, $options: "i" } },
+        { lastName: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    const users = await User.find(filter).select(
+      "firstName lastName email phone role image skills"
+    );
+
+    // 🏷 Add badge dynamically
+    const formattedUsers = users.map(user => ({
+      _id: user._id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      phone: user.phone,
+      image: user.image,
+      skills: user.skills,
+      role: user.role,
+      badge: user.role === "Contractor" ? "🟦 Contractor" : "🟩 Labour",
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: formattedUsers.length,
+      users: formattedUsers,
+    });
+
+  } catch (error) {
+    console.error("User Fetch Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
 // ---------- Get Current User ----------
 app.get("/api/user/:userId", async (req, res) => {
   try {

@@ -21,7 +21,7 @@ import {
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 
-const BACKEND_URL = "http://192.168.100.39:3000/api/chat";
+const BACKEND_URL = "http://172.23.212.221:3000/api/chat";
 
 interface ChatItem {
   email: string;
