@@ -2,17 +2,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 
@@ -34,6 +36,13 @@ interface ChatMessage {
   timestamp: string;
 }
 
+interface Review {
+  reviewerEmail: string;
+  rating: number;
+  feedback?: string;
+  createdAt: string;
+}
+
 interface Profile {
   user: {
     firstName: string;
@@ -42,7 +51,10 @@ interface Profile {
     role: string;
     image: string;
     createdAt: string;
+    averageRating?: number;
+    totalReviews?: number;
   };
+  reviews: Review[];
   stats: {
     totalJobsPosted: number;
     totalJobsApplied: number;
@@ -57,6 +69,7 @@ export default function UsersScreen() {
   const [loading, setLoading] = useState(true);
   const [nameSearch, setNameSearch] = useState("");
   const [skillSearch, setSkillSearch] = useState("");
+const [userProfiles, setUserProfiles] = useState<{ [email: string]: Profile }>({});
 
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -68,6 +81,39 @@ export default function UsersScreen() {
   const [userEmail, setUserEmail] = useState("");
 
   const [userRole, setUserRole] = useState<"Contractor" | "Labour">("Labour");
+
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+const [reviewRating, setReviewRating] = useState<number>(0);
+const [reviewFeedback, setReviewFeedback] = useState("");
+const [reviewTargetEmail, setReviewTargetEmail] = useState(""); // user being reviewed
+const openReviewModal = (email: string) => {
+  setReviewTargetEmail(email);
+  setReviewModalVisible(true);
+};
+
+const submitReview = async () => {
+  if (!reviewRating) {
+    alert("Please select a rating");
+    return;
+  }
+
+  try {
+    const res = await axios.post(`http://172.23.212.221:3000/api/users/${reviewTargetEmail}/review`, {
+      reviewerEmail: userEmail, // logged-in user
+      rating: reviewRating,
+      feedback: reviewFeedback,
+    });
+
+    alert("Review submitted successfully!");
+    setReviewModalVisible(false);
+    setReviewRating(0);
+    setReviewFeedback("");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to submit review");
+  }
+};
+
 
 //   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -166,23 +212,30 @@ const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   };
 
   // Open profile
-  const openProfile = async (email: string) => {
-    try {
-      const res = await axios.get(`http://172.23.212.221:3000/api/profile/${email}`);
-      setProfileData(res.data);
-      setProfileModalVisible(true);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+const openProfile = async (email: string) => {
+  try {
+    const res = await axios.get(`http://172.23.212.221:3000/api/profile/${email}`);
+    setUserProfiles(prev => ({ ...prev, [email]: res.data }));
+    setProfileModalVisible(true);
+    setProfileData(res.data); // optional, if you want modal to work
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-  const renderUser = ({ item }: { item: User }) => (
+
+const renderUser = ({ item }: { item: User }) => {
+  const profile = userProfiles[item.email]; // get profile for this user
+
+  return (
     <View style={styles.card}>
       <TouchableOpacity onPress={() => openProfile(item.email)}>
         <Image source={{ uri: item.image }} style={styles.avatar} />
       </TouchableOpacity>
+
       <View style={{ flex: 1, marginLeft: 12 }}>
         <Text style={styles.name}>{item.name}</Text>
+
         <Text
           style={[
             styles.badge,
@@ -191,15 +244,42 @@ const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         >
           {item.badge}
         </Text>
+
         <Text style={styles.skills}>
           {item.skills.length ? item.skills.join(", ") : "No skills added"}
         </Text>
-        <TouchableOpacity onPress={() => openChat(item.email)} style={styles.chatBtn}>
+
+        {/* Chat Button */}
+        <TouchableOpacity
+          onPress={() => openChat(item.email)}
+          style={styles.chatBtn}
+        >
           <Text style={{ color: "#fff" }}>💬 Chat</Text>
         </TouchableOpacity>
+
+        {/* ⭐ User rating */}
+        <Text style={{ textAlign: "center", marginVertical: 6 }}>
+          ⭐ {profile?.user?.averageRating || 0} / 5  
+          ({profile?.user?.totalReviews || 0} reviews)
+        </Text>
+
+        {/* ⭐ Review Button */}
+        {item.email !== userEmail && (
+          <TouchableOpacity
+            onPress={() => openReviewModal(item.email)}
+            style={styles.reviewBtn}
+          >
+            <Text style={{ color: "#16a34a", fontWeight: "bold" }}>
+              ⭐ Submit Review
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
+};
+
+
 
   if (loading)
     return (
@@ -292,53 +372,228 @@ const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
               <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
                 <Text style={{ color: "#fff" }}>Send</Text>
               </TouchableOpacity>
+
+
             </View>
           </View>
         </TouchableOpacity>
+
+
+
       </Modal>
 
-      {/* Profile Modal */}
-      <Modal visible={profileModalVisible} transparent animationType="fade">
-        <TouchableOpacity
-          style={styles.modalBg}
-          onPress={() => setProfileModalVisible(false)}
+
+{/* Review Modal */}
+<Modal visible={reviewModalVisible} transparent animationType="fade">
+  <TouchableOpacity
+    style={styles.modalBg}
+    activeOpacity={1}
+    onPress={() => setReviewModalVisible(false)}
+  >
+    <Animated.View
+      style={[
+        styles.modalContent,
+        {
+          transform: [{ scale: 1 }],
+        },
+      ]}
+    >
+      <Text style={{ fontWeight: "bold", fontSize: 18, textAlign: "center" }}>
+        Leave a Review
+      </Text>
+
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          marginVertical: 10,
+        }}
+      >
+        {[1, 2, 3, 4, 5].map((star) => (
+          <TouchableOpacity key={star} onPress={() => setReviewRating(star)}>
+            <Text
+              style={{
+                fontSize: 30,
+                color: star <= reviewRating ? "#facc15" : "#ccc",
+              }}
+            >
+              ★
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <TextInput
+        placeholder="Write your feedback..."
+        value={reviewFeedback}
+        onChangeText={setReviewFeedback}
+        style={{
+          borderWidth: 1,
+          borderColor: "#ccc",
+          borderRadius: 8,
+          padding: 10,
+          height: 100,
+        }}
+        multiline
+      />
+
+      <TouchableOpacity
+        onPress={submitReview}
+        style={{
+          backgroundColor: "#2563eb",
+          padding: 12,
+          borderRadius: 8,
+          marginTop: 10,
+        }}
+      >
+        <Text
+          style={{
+            color: "#fff",
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
         >
-          {profileData && (
-            <View style={styles.modalContent}>
-              <Text style={{ fontWeight: "bold", fontSize: 18, textAlign: "center" }}>
-                {profileData.user.firstName} {profileData.user.lastName}
+          Submit
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  </TouchableOpacity>
+</Modal>
+
+{/* Profile Modal */}
+<Modal visible={profileModalVisible} transparent animationType="fade">
+  <TouchableOpacity
+    style={styles.modalBg}
+    activeOpacity={1}
+    onPress={() => setProfileModalVisible(false)}
+  >
+    {profileData ? (
+      <ScrollView
+        style={[styles.modalContent, { maxHeight: "80%" }]}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        <Text style={{ fontWeight: "bold", fontSize: 18, textAlign: "center" }}>
+          {profileData.user.firstName} {profileData.user.lastName}
+        </Text>
+        <Image
+          source={{ uri: profileData.user.image }}
+          style={{ width: 100, height: 100, borderRadius: 50, alignSelf: "center", marginVertical: 10 }}
+        />
+        <Text>
+          <Text style={{ fontWeight: "bold" }}>Email:</Text> {profileData.user.email}
+        </Text>
+        <Text>
+          <Text style={{ fontWeight: "bold" }}>Role:</Text> {profileData.user.role}
+        </Text>
+        <Text>
+          <Text style={{ fontWeight: "bold" }}>Joined:</Text>{" "}
+          {new Date(profileData.user.createdAt).toLocaleDateString()}
+        </Text>
+
+        <View style={{ borderBottomWidth: 1, borderColor: "#ccc", marginVertical: 5 }} />
+
+        <Text>
+          <Text style={{ fontWeight: "bold" }}>Total Jobs Posted:</Text>{" "}
+          {profileData.stats.totalJobsPosted}
+        </Text>
+        <Text>
+          <Text style={{ fontWeight: "bold" }}>Total Jobs Applied:</Text>{" "}
+          {profileData.stats.totalJobsApplied}
+        </Text>
+        <Text>
+          <Text style={{ fontWeight: "bold" }}>Total Applicants On Jobs:</Text>{" "}
+          {profileData.stats.totalApplicantsOnJobs}
+        </Text>
+
+        <View style={{ borderBottomWidth: 1, borderColor: "#ccc", marginVertical: 10 }} />
+
+        {/* ⭐ Average Rating */}
+        <Text style={{ fontWeight: "bold", marginBottom: 6 }}>
+          ⭐ {profileData.user.averageRating || 0} / 5 ({profileData.user.totalReviews || 0} reviews)
+        </Text>
+
+        {/* Reviews */}
+        {profileData.reviews?.length === 0 ? (
+          <Text style={{ color: "#777" }}>No reviews yet</Text>
+        ) : (
+          profileData.reviews.map((review, index) => (
+            <View
+              key={index}
+              style={{
+                backgroundColor: "#f9fafb",
+                padding: 10,
+                borderRadius: 8,
+                marginBottom: 8,
+              }}
+            >
+              <Text style={{ fontWeight: "bold" }}>{review.reviewerEmail}</Text>
+
+              <Text style={{ color: "#facc15", fontSize: 16 }}>
+                {"★".repeat(review.rating)}
+                {"☆".repeat(5 - review.rating)}
               </Text>
-              <Image
-                source={{ uri: profileData.user.image }}
-                style={{ width: 100, height: 100, borderRadius: 50, alignSelf: "center", marginVertical: 10 }}
-              />
-              <Text>
-                <Text style={{ fontWeight: "bold" }}>Email:</Text> {profileData.user.email}
-              </Text>
-              <Text>
-                <Text style={{ fontWeight: "bold" }}>Role:</Text> {profileData.user.role}
-              </Text>
-              <Text>
-                <Text style={{ fontWeight: "bold" }}>Joined:</Text>{" "}
-                {new Date(profileData.user.createdAt).toLocaleDateString()}
-              </Text>
-              <View style={{ borderBottomWidth: 1, borderColor: "#ccc", marginVertical: 5 }} />
-              <Text>
-                <Text style={{ fontWeight: "bold" }}>Total Jobs Posted:</Text>{" "}
-                {profileData.stats.totalJobsPosted}
-              </Text>
-              <Text>
-                <Text style={{ fontWeight: "bold" }}>Total Jobs Applied:</Text>{" "}
-                {profileData.stats.totalJobsApplied}
-              </Text>
-              <Text>
-                <Text style={{ fontWeight: "bold" }}>Total Applicants On Jobs:</Text>{" "}
-                {profileData.stats.totalApplicantsOnJobs}
+
+              {review.feedback ? (
+                <Text style={{ color: "#555", marginTop: 4 }}>{review.feedback}</Text>
+              ) : null}
+
+              <Text style={{ fontSize: 10, color: "#999", marginTop: 4 }}>
+                {new Date(review.createdAt).toLocaleDateString()}
               </Text>
             </View>
-          )}
-        </TouchableOpacity>
-      </Modal>
+          ))
+        )}
+      </ScrollView>
+    ) : null}
+</TouchableOpacity>
+</Modal>
+
+
+{/* Reviews Section */}
+{/* <View style={{ marginTop: 10 }}>
+  <Text style={{ fontWeight: "bold", fontSize: 16, marginBottom: 6 }}>
+    Reviews
+  </Text>
+
+  {profileData?.reviews?.length === 0 ? (
+    <Text style={{ color: "#777" }}>No reviews yet</Text>
+  ) : (
+    <ScrollView style={{ maxHeight: 200 }}>
+      {profileData?.reviews?.map((review, index) => (
+        <View
+          key={index}
+          style={{
+            backgroundColor: "#f9fafb",
+            padding: 10,
+            borderRadius: 8,
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ fontWeight: "bold" }}>
+            {review.reviewerEmail}
+          </Text>
+
+          <Text style={{ color: "#facc15", fontSize: 16 }}>
+            {"★".repeat(review.rating)}
+            {"☆".repeat(5 - review.rating)}
+          </Text>
+
+          {review.feedback ? (
+            <Text style={{ color: "#555", marginTop: 4 }}>
+              {review.feedback}
+            </Text>
+          ) : null}
+
+          <Text style={{ fontSize: 10, color: "#999", marginTop: 4 }}>
+            {new Date(review.createdAt).toLocaleDateString()}
+          </Text>
+        </View>
+      ))}
+    </ScrollView>
+  )}
+</View> */}
+
+      
 
       <View style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}>
         <BottomTab
@@ -384,6 +639,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignSelf: "flex-start",
   },
+  reviewBtn: {
+  marginTop: 6,
+  paddingVertical: 4,
+  paddingHorizontal: 6,
+  borderRadius: 6,
+  alignSelf: "flex-start",
+},
+
   modalBg: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 16 },
   modalContent: { backgroundColor: "#fff", borderRadius: 10, padding: 16, maxHeight: "80%" },
   chatBubble: { padding: 8, borderRadius: 10, maxWidth: "70%" },

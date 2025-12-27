@@ -96,6 +96,31 @@ const { user = {}, stats = {}, jobsCreated = [], jobsApplied = [] } = profile ||
             </Text>
           </View>
         </View>
+{/* REVIEWS SECTION */}
+{profile.reviews && profile.reviews.length > 0 ? (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>Reviews</Text>
+    {profile.reviews.map((review: any, index: number) => (
+      <View key={index} style={styles.reviewCard}>
+        <Text style={styles.reviewerEmail}>{review.reviewerEmail}</Text>
+        <Text style={styles.reviewRating}>
+          {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
+        </Text>
+        {review.feedback ? (
+          <Text style={styles.reviewFeedback}>{review.feedback}</Text>
+        ) : null}
+        <Text style={styles.reviewDate}>
+          {new Date(review.createdAt).toDateString()}
+        </Text>
+      </View>
+    ))}
+  </View>
+) : (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>Reviews</Text>
+    <Text style={styles.empty}>No reviews yet.</Text>
+  </View>
+)}
 
         {/* STATS */}
         <View style={styles.statsContainer}>
@@ -234,6 +259,36 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 13,
   },
+  reviewCard: {
+  backgroundColor: "#fff",
+  padding: 15,
+  borderRadius: 15,
+  marginBottom: 12,
+  shadowColor: "#000",
+  shadowOpacity: 0.08,
+  shadowRadius: 10,
+  elevation: 3,
+},
+reviewerEmail: {
+  fontWeight: "bold",
+  color: "#222",
+  marginBottom: 4,
+},
+reviewRating: {
+  color: "#facc15",
+  fontSize: 16,
+},
+reviewFeedback: {
+  color: "#555",
+  marginTop: 4,
+  fontSize: 14,
+},
+reviewDate: {
+  fontSize: 12,
+  color: "#999",
+  marginTop: 4,
+},
+
   memberSince: {
     marginTop: 10,
     fontSize: 14,
