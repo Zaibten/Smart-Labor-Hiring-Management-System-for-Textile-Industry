@@ -8,15 +8,15 @@ import { useRef } from "react";
 
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -281,25 +281,45 @@ const handleSubmit = async () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
 
 
-        {showGuide && (
+{showGuide && (
   <Modal transparent animationType="fade" visible={showGuide}>
     <Animated.View style={[styles.guideOverlay, { opacity: guideOpacity }]}>
       <View style={styles.guideContainer}>
-        <Text style={styles.guideTitle}>Welcome to Create Job!</Text>
-        <Text style={styles.guideText}>
-          1. Enter the job title and description.{"\n"}
-          2. Select the location on the map or type it.{"\n"}
-          3. Specify number of workers, required skill, and budget.{"\n"}
-          4. Choose shift, job time, start and end dates.{"\n"}
-          5. Click "Post Job" to submit.
+        <Text style={styles.guideTitle}>
+          Welcome to Create Job
         </Text>
+
+        {/* English Guide */}
+        <Text style={styles.guideText}>
+          1. Enter the job title and job description.{"\n"}
+          2. Type location or select it from the map.{"\n"}
+          3. Enter number of workers, required skill and budget.{"\n"}
+          4. Select job time, shift, start date and end date.{"\n"}
+          5. Press "Post Job" to publish your job.
+        </Text>
+
+        {/* Divider */}
+        <View style={{ height: 1, backgroundColor: "#e5e7eb", width: "100%", marginVertical: 15 }} />
+
+        {/* Urdu Guide */}
+        <Text style={[styles.guideText, { textAlign: "right" }]}>
+          ۱۔ کام کا عنوان اور تفصیل درج کریں۔{"\n"}
+          ۲۔ مقام لکھیں یا نقشے پر منتخب کریں۔{"\n"}
+          ۳۔ مزدوروں کی تعداد، مہارت اور بجٹ درج کریں۔{"\n"}
+          ۴۔ کام کا وقت، شفٹ اور تاریخ منتخب کریں۔{"\n"}
+          ۵۔ آخر میں "Post Job" پر کلک کریں۔
+        </Text>
+
         <TouchableOpacity style={styles.guideButton} onPress={closeGuide}>
-          <Text style={styles.guideButtonText}>Got it!</Text>
+          <Text style={styles.guideButtonText}>
+            Got it / سمجھ گیا
+          </Text>
         </TouchableOpacity>
       </View>
     </Animated.View>
   </Modal>
 )}
+
 
         {/* Job Inputs */}
         <TextInput style={styles.input} placeholder="Job Title" value={jobTitle} onChangeText={setJobTitle} />
@@ -579,10 +599,11 @@ guideTitle: {
 guideText: {
   fontSize: 16,
   color: "#333",
-  marginBottom: 25,
-  textAlign: "left",
+  marginBottom: 15,
   lineHeight: 22,
+  writingDirection: "rtl",
 },
+
 guideButton: {
   backgroundColor: "#fb923c",
   paddingVertical: 12,
