@@ -39,7 +39,7 @@
 //         const localUser = userData ? JSON.parse(userData) : null;
 //         if (!localUser?.id) return;
 
-//         const response = await fetch(`http://172.23.212.221:3000/api/user/${localUser.id}`);
+//         const response = await fetch(`http://192.168.100.39:3000/api/user/${localUser.id}`);
 //         if (!response.ok) throw new Error("Failed to fetch user");
 
 //         const serverUser = await response.json();
@@ -215,7 +215,7 @@ const AppBar: React.FC<AppBarProps> = ({ title }) => {
         const localUser = userData ? JSON.parse(userData) : null;
         if (!localUser?.id) return;
 
-        const response = await fetch(`http://172.23.212.221:3000/api/user/${localUser.id}`);
+        const response = await fetch(`http://192.168.100.39:3000/api/user/${localUser.id}`);
         if (!response.ok) throw new Error("Failed to fetch user");
 
         const serverUser = await response.json();

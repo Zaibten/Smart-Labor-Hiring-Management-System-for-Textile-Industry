@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  Easing,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Animated,
+    Easing,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
-const API_URL = "http://172.23.212.221:3000/api/profile";
+const API_URL = "http://192.168.100.39:3000/api/profile";
 const HARD_CODED_EMAIL = "silver@gmail.com";
 
 interface ProfileProps {

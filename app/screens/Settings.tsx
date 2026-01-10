@@ -5,16 +5,16 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions, Image, Modal,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions, Image, Modal,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -84,7 +84,7 @@ const uploadProfileImage = async () => {
     formData.append("email", email); // <-- send email
 
     const response = await axios.post(
-      "http://172.23.212.221:3000/api/update-profile-image",
+      "http://192.168.100.39:3000/api/update-profile-image",
       formData,
       { headers: { "Content-Type": "multipart/form-data" } }
     );

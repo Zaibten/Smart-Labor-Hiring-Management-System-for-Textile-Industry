@@ -109,7 +109,7 @@ export default function ChatBot() {
 
     try {
       const response = await fetch(
-        "http://172.23.212.221:3000/api/chat",
+        "http://192.168.100.39:3000/api/chat",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -175,7 +175,7 @@ export default function ChatBot() {
       });
 
       const response = await fetch(
-        "http://172.23.212.221:3000/api/transcribe",
+        "http://192.168.100.39:3000/api/transcribe",
         {
           method: "POST",
           body: formData,

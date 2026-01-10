@@ -80,7 +80,7 @@ const [userSkills, setUserSkills] = useState<string[]>([]);
 
 const checkIfApplied = async (jobId: string) => {
   try {
-    const res = await fetch(`http://172.23.212.221:3000/api/check-application/${jobId}?email=${user.email}`);
+    const res = await fetch(`http://192.168.100.39:3000/api/check-application/${jobId}?email=${user.email}`);
     const data = await res.json();
     setAppliedJobs(prev => ({ ...prev, [jobId]: data.applied }));
   } catch (err) {
@@ -165,7 +165,7 @@ const getTimeAgo = (dateString: string) => {
 const fetchUserImage = async (email: string) => {
   if (userImages[email]) return; // already fetched
   try {
-    const res = await fetch(`http://172.23.212.221:3000/api/user-by-email/${email}`);
+    const res = await fetch(`http://192.168.100.39:3000/api/user-by-email/${email}`);
     if (!res.ok) throw new Error("User not found");
     const data = await res.json();
     const imageUrl =
@@ -240,20 +240,20 @@ if (userData) {
 
   // ✅ Fetch logged-in user's skills
   try {
-    const skillsRes = await fetch(`http://172.23.212.221:3000/api/user/skills/${parsedUser.email}`);
+    const skillsRes = await fetch(`http://192.168.100.39:3000/api/user/skills/${parsedUser.email}`);
     const skillData = await skillsRes.json();
     if (skillData.success) setUserSkills(skillData.skills);
   } catch (err) {
     console.log("Error loading user skills:", err);
   }
 
-  const resAll = await fetch("http://172.23.212.221:3000/api/alljobs");
+  const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
   const jobsAll = await resAll.json();
   setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
 
   if (parsedUser.role === "Contractor") {
     const resMine = await fetch(
-      `http://172.23.212.221:3000/api/my-jobs-email/${parsedUser.email}`
+      `http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`
     );
     const jobsMine = await resMine.json();
     setMyJobs(jobsMine);
@@ -272,7 +272,7 @@ if (userData) {
   const searchJobsFromAPI = async (text: string) => {
   try {
     const res = await fetch(
-      `http://172.23.212.221:3000/api/search-jobs?name=${text}&skill=${text}`
+      `http://192.168.100.39:3000/api/search-jobs?name=${text}&skill=${text}`
     );
 
     const data = await res.json();
@@ -287,7 +287,7 @@ if (userData) {
 
 // const handleApply = async (job: Job) => {
 //   try {
-//     const response = await fetch(`http://172.23.212.221:3000/api/jobs/apply/${job._id}`, {
+//     const response = await fetch(`http://192.168.100.39:3000/api/jobs/apply/${job._id}`, {
 //       method: "POST",
 //       headers: { "Content-Type": "application/json" },
 //       body: JSON.stringify({ labourId: user._id, labourEmail: user.email }),
@@ -342,7 +342,7 @@ const handleApply = async (job: Job) => {
   try {
     // Use user.email from state instead of hardcoded value
     const response = await fetch(
-      `http://172.23.212.221:3000/api/apply/${job._id}`,
+      `http://192.168.100.39:3000/api/apply/${job._id}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -664,10 +664,17 @@ const filteredJobs = (
               <Text style={styles.jobTitle}>{job.title}</Text>
               <Text style={styles.jobText}>{job.description}</Text>
 
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Location:</Text>
-                <Text style={styles.infoValue}>{job.location}</Text>
-              </View>
+             <View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>Location:</Text>
+  <Text
+    style={styles.infoValue}
+    numberOfLines={2}
+    ellipsizeMode="tail"
+  >
+    {job.location}
+  </Text>
+</View>
+
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Skill:</Text>
                 <Text style={styles.infoValue}>{job.skill}</Text>
@@ -883,6 +890,7 @@ searchInput: {
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
+  
   dateInput: {
     flex: 1,
     paddingVertical: 10,
@@ -942,7 +950,6 @@ searchInput: {
   },
   jobTitle: { fontSize: 18, fontWeight: "700", color: "#111827" },
   jobText: { fontSize: 14, color: "#374151", marginBottom: 8 },
-  infoValue: { color: "#374151", marginBottom: 10 },
   emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center" },
   
 
@@ -960,8 +967,23 @@ industryTag: { backgroundColor: "#3b82f6" },
   roleTagText: { color: "#fff", fontWeight: "700", fontSize: 12 },
 
 
-  infoRow: { flexDirection: "row", marginBottom: 4 },
-  infoLabel: { fontWeight: "600", color: "#4b5563", width: 100 },
+infoRow: {
+  flexDirection: "row",
+  marginBottom: 6,
+  alignItems: "flex-start",
+},
+
+infoLabel: {
+  fontWeight: "600",
+  color: "#4b5563",
+  width: 90,
+},
+
+infoValue: {
+  flex: 1,
+  flexWrap: "wrap",
+  color: "#374151",
+},
 
 
   applyButtonPressed: {

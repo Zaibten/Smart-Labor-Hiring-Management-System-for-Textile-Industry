@@ -109,7 +109,7 @@ const [userSkills, setUserSkills] = useState<string[]>([]);
 
 const checkIfApplied = async (jobId: string) => {
   try {
-    const res = await fetch(`http://172.23.212.221:3000/api/check-application/${jobId}?email=${user.email}`);
+    const res = await fetch(`http://192.168.100.39:3000/api/check-application/${jobId}?email=${user.email}`);
     const data = await res.json();
     setAppliedJobs(prev => ({ ...prev, [jobId]: data.applied }));
   } catch (err) {
@@ -206,7 +206,7 @@ const getTimeAgo = (dateString: string) => {
 const fetchUserImage = async (email: string) => {
   if (userImages[email]) return;
   try {
-    const res = await fetch(`http://172.23.212.221:3000/api/user-by-email/${email}`);
+    const res = await fetch(`http://192.168.100.39:3000/api/user-by-email/${email}`);
     if (!res.ok) {
       // silently fallback to default
       setUserImages(prev => ({
@@ -286,18 +286,18 @@ useEffect(() => {
       await AsyncStorage.setItem("userEmail", parsedUser.email);
 
       // fetch skills
-      const skillsRes = await fetch(`http://172.23.212.221:3000/api/user/skills/${parsedUser.email}`);
+      const skillsRes = await fetch(`http://192.168.100.39:3000/api/user/skills/${parsedUser.email}`);
       const skillData = await skillsRes.json();
       if (skillData.success) setUserSkills(skillData.skills);
 
       // fetch all jobs
-      const resAll = await fetch("http://172.23.212.221:3000/api/alljobs");
+      const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
       const jobsAll = await resAll.json();
       setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
 
       // fetch my jobs if contractor
       if (parsedUser.role === "Contractor") {
-        const resMine = await fetch(`http://172.23.212.221:3000/api/my-jobs-email/${parsedUser.email}`);
+        const resMine = await fetch(`http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`);
         const jobsMine = await resMine.json();
         setMyJobs(jobsMine);
       }
@@ -315,7 +315,7 @@ useEffect(() => {
   const searchJobsFromAPI = async (text: string) => {
   try {
     const res = await fetch(
-      `http://172.23.212.221:3000/api/search-jobs?name=${text}&skill=${text}`
+      `http://192.168.100.39:3000/api/search-jobs?name=${text}&skill=${text}`
     );
 
     const data = await res.json();
@@ -342,7 +342,7 @@ const handleTabPress = (label: string) => {
 
 const handleApply = async (job: Job) => {
   try {
-    const response = await fetch(`http://172.23.212.221:3000/api/jobs/apply/${job._id}`, {
+    const response = await fetch(`http://192.168.100.39:3000/api/jobs/apply/${job._id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ labourId: user._id, labourEmail: user.email }),
@@ -673,9 +673,16 @@ const filteredJobs = (
               <Text style={styles.jobText}>{job.description}</Text>
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Location:</Text>
-                <Text style={styles.infoValue}>{job.location}</Text>
-              </View>
+  <Text style={styles.infoLabel}>Location:</Text>
+  <Text
+    style={styles.infoValue}
+    numberOfLines={2}
+    ellipsizeMode="tail"
+  >
+    {job.location}
+  </Text>
+</View>
+
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Skill:</Text>
                 <Text style={styles.infoValue}>{job.skill}</Text>
@@ -947,7 +954,6 @@ searchInput: {
   },
   jobTitle: { fontSize: 18, fontWeight: "700", color: "#111827" },
   jobText: { fontSize: 14, color: "#374151", marginBottom: 8 },
-  infoValue: { color: "#374151", marginBottom: 10 },
   emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center" },
   
 
@@ -964,9 +970,23 @@ industryTag: { backgroundColor: "#3b82f6" },
   labourTag: { backgroundColor: "#10b981" },
   roleTagText: { color: "#fff", fontWeight: "700", fontSize: 12 },
 
+infoRow: {
+  flexDirection: "row",
+  marginBottom: 6,
+  alignItems: "flex-start",
+},
 
-  infoRow: { flexDirection: "row", marginBottom: 4 },
-  infoLabel: { fontWeight: "600", color: "#4b5563", width: 100 },
+infoLabel: {
+  fontWeight: "600",
+  color: "#4b5563",
+  width: 90,
+},
+
+infoValue: {
+  flex: 1,
+  flexWrap: "wrap",
+  color: "#374151",
+},
 
 
   applyButtonPressed: {

@@ -36,7 +36,7 @@ useEffect(() => {
 
   const fetchSkills = async (email: string) => {
     try {
-      const res = await fetch(`http://172.23.212.221:3000/api/user/skills/${email}`);
+      const res = await fetch(`http://192.168.100.39:3000/api/user/skills/${email}`);
       const data = await res.json();
       if (data.success) setSkills(data.skills);
     } catch (err) {
@@ -47,7 +47,7 @@ useEffect(() => {
   const addSkill = async () => {
     if (!newSkill.trim()) return;
     try {
-      await fetch(`http://172.23.212.221:3000/api/user/${userEmail}/skills`, {
+      await fetch(`http://192.168.100.39:3000/api/user/${userEmail}/skills`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ skill: newSkill }),
@@ -69,7 +69,7 @@ useEffect(() => {
         onPress: async () => {
           try {
             await fetch(
-  `http://172.23.212.221:3000/api/user/${userEmail}/skills/${index}`,
+  `http://192.168.100.39:3000/api/user/${userEmail}/skills/${index}`,
   { method: "DELETE" }
 );
 

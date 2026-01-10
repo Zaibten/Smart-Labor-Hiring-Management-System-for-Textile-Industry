@@ -5,23 +5,23 @@ import { Audio } from 'expo-av';
 
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 
-const BACKEND_URL = "http://172.23.212.221:3000/api/chat";
+const BACKEND_URL = "http://192.168.100.39:3000/api/chat";
 
 interface ChatItem {
   email: string;

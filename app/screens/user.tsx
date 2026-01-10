@@ -2,17 +2,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  FlatList,
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    FlatList,
+    Image,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import AppBar from "../components/AppBar";
@@ -62,7 +62,7 @@ interface Profile {
   };
 }
 
-const API_URL = "http://172.23.212.221:3000/api/users";
+const API_URL = "http://192.168.100.39:3000/api/users";
 
 export default function UsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
@@ -98,7 +98,7 @@ const submitReview = async () => {
   }
 
   try {
-    const res = await axios.post(`http://172.23.212.221:3000/api/users/${reviewTargetEmail}/review`, {
+    const res = await axios.post(`http://192.168.100.39:3000/api/users/${reviewTargetEmail}/review`, {
       reviewerEmail: userEmail, // logged-in user
       rating: reviewRating,
       feedback: reviewFeedback,
@@ -185,7 +185,7 @@ const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     try {
       const res = await axios.get(
-        `http://172.23.212.221:3000/api/chat/${userEmail}/${receiverEmail}`
+        `http://192.168.100.39:3000/api/chat/${userEmail}/${receiverEmail}`
       );
       setChatMessages(res.data);
     } catch (err) {
@@ -197,7 +197,7 @@ const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     if (!newMessage.trim()) return;
     try {
       const res = await axios.post(
-        "http://172.23.212.221:3000/api/chat/send",
+        "http://192.168.100.39:3000/api/chat/send",
         {
           senderEmail: userEmail,
           receiverEmail: currentReceiver,
@@ -214,7 +214,7 @@ const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Open profile
 const openProfile = async (email: string) => {
   try {
-    const res = await axios.get(`http://172.23.212.221:3000/api/profile/${email}`);
+    const res = await axios.get(`http://192.168.100.39:3000/api/profile/${email}`);
     setUserProfiles(prev => ({ ...prev, [email]: res.data }));
     setProfileModalVisible(true);
     setProfileData(res.data); // optional, if you want modal to work

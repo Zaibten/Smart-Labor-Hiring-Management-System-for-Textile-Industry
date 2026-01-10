@@ -76,7 +76,7 @@ useEffect(() => {
     }
     try {
       setLoading(true);
-      const res = await fetch("http://172.23.212.221:3000/api/forgot-password", {
+      const res = await fetch("http://192.168.100.39:3000/api/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -103,7 +103,7 @@ useEffect(() => {
     }
     try {
       setLoading(true);
-      const res = await fetch("http://172.23.212.221:3000/api/reset-password", {
+      const res = await fetch("http://192.168.100.39:3000/api/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, newPassword }),
