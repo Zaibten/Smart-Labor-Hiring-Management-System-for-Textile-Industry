@@ -5,16 +5,16 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions, Image, Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions, Image, Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -50,6 +50,98 @@ const [profileImage, setProfileImage] = useState<string | null>(null);
 const [email, setEmail] = useState<string | null>(null); // <-- add this
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
+
+  const faqDataUrdu = [
+  {
+    question: "یہ ایپ کس مقصد کے لیے ہے؟",
+    answer:
+      "یہ ایپ لیبر اور کنٹریکٹرز کو آپس میں جوڑنے کے لیے بنائی گئی ہے تاکہ نوکریاں آسانی سے تلاش اور پوسٹ کی جا سکیں۔",
+  },
+  {
+    question: "میں نوکری کیسے پوسٹ کر سکتا ہوں؟",
+    answer:
+      "Create Jobs پر جا کر نوکری کی مکمل تفصیل، جگہ، مہارت، بجٹ اور تاریخ درج کریں اور پوسٹ کریں۔",
+  },
+  {
+    question: "میں نوکری کے لیے درخواست کیسے دوں؟",
+    answer:
+      "Find Jobs میں جا کر اپنی مہارت کے مطابق نوکری منتخب کریں اور Apply بٹن پر کلک کریں۔",
+  },
+  {
+    question: "میں اپنا پروفائل کیسے اپڈیٹ کر سکتا ہوں؟",
+    answer:
+      "Settings میں جا کر پروفائل تصویر، مہارتیں اور دیگر معلومات اپڈیٹ کی جا سکتی ہیں۔",
+  },
+  {
+    question: "پاس ورڈ کیسے تبدیل کیا جا سکتا ہے؟",
+    answer:
+      "Settings > Change Password میں جا کر نیا پاس ورڈ سیٹ کریں۔",
+  },
+  {
+    question: "مہارتیں (Skills) کیسے شامل کریں؟",
+    answer:
+      "Settings > Manage Skills میں جا کر اپنی مہارتیں شامل یا اپڈیٹ کریں۔",
+  },
+  {
+    question: "کنٹریکٹر اور لیبر میں کیا فرق ہے؟",
+    answer:
+      "کنٹریکٹر نوکریاں پوسٹ کرتا ہے جبکہ لیبر نوکریوں کے لیے درخواست دیتا ہے۔",
+  },
+  {
+    question: "میری لوکیشن کیوں ضروری ہے؟",
+    answer:
+      "لوکیشن کی مدد سے آپ کے قریب موجود نوکریاں اور لیبر دکھائی جاتی ہیں۔",
+  },
+  {
+    question: "اگر کوئی مسئلہ ہو تو کیا کریں؟",
+    answer:
+      "Settings > Contact Support کے ذریعے سپورٹ ٹیم سے رابطہ کریں۔",
+  },
+  {
+    question: "کیا یہ ایپ محفوظ ہے؟",
+    answer:
+      "جی ہاں، آپ کی معلومات محفوظ رکھی جاتی ہیں اور صرف ضرورت کے مطابق استعمال ہوتی ہیں۔",
+  },
+];
+
+const FAQItemUrdu = ({ item }: any) => {
+  const [open, setOpen] = useState(false);
+  const animatedHeight = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedHeight, {
+      toValue: open ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [open]);
+
+  return (
+    <TouchableOpacity
+      style={styles.faqItem}
+      onPress={() => setOpen(!open)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.faqQuestionRow}>
+        <Text style={styles.faqQuestionUrdu}>{item.question}</Text>
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={22}
+          color="#fb7c3c"
+        />
+      </View>
+
+      {open && (
+        <Animated.View>
+          <Text style={styles.faqAnswerUrdu}>{item.answer}</Text>
+        </Animated.View>
+      )}
+    </TouchableOpacity>
+  );
+};
+
+
 
 useEffect(() => {
   const fetchUser = async () => {
@@ -231,6 +323,34 @@ const pickImage = async () => {
           <Text style={styles.menuLabel}>Contact Support</Text>
         </TouchableOpacity>
 
+
+        <Modal transparent visible={faqVisible} animationType="fade">
+  <Animated.View
+    style={[
+      styles.faqOverlay,
+      { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+    ]}
+  >
+    <View style={styles.faqContainer}>
+      <Text style={styles.faqTitle}>اکثر پوچھے جانے والے سوالات</Text>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {faqDataUrdu.map((item, index) => (
+          <FAQItemUrdu key={index} item={item} />
+        ))}
+      </ScrollView>
+
+      <TouchableOpacity
+        style={styles.faqCloseBtn}
+        onPress={() => closeModal(setFaqVisible)}
+      >
+        <Text style={styles.faqCloseText}>بند کریں</Text>
+      </TouchableOpacity>
+    </View>
+  </Animated.View>
+</Modal>
+
+
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>
@@ -259,4 +379,69 @@ const styles = StyleSheet.create({
   tabWrapper: { position: "absolute", bottom: 0, left: 0, right: 0 },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { color: "#fb923c", marginTop: 8, fontSize: 16, fontWeight: "600" },
+  faqQuestionUrdu: {
+  fontSize: 16,
+  fontWeight: "600",
+  color: "#111",
+  textAlign: "right",
+  flex: 1,
+  paddingRight: 10,
+},
+
+faqAnswerUrdu: {
+  marginTop: 10,
+  fontSize: 15,
+  color: "#444",
+  lineHeight: 24,
+  textAlign: "right",
+},
+faqOverlay: {
+  flex: 1,
+  backgroundColor: "rgba(0,0,0,0.6)",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+faqContainer: {
+  width: "90%",
+  maxHeight: height * 0.75,
+  backgroundColor: "#fff",
+  borderRadius: 16,
+  padding: 20,
+},
+
+faqTitle: {
+  fontSize: 20,
+  fontWeight: "800",
+  color: "#fb7c3c",
+  marginBottom: 12,
+  textAlign: "center",
+},
+
+faqItem: {
+  paddingVertical: 14,
+  borderBottomWidth: 1,
+  borderBottomColor: "#e5e7eb",
+},
+
+faqQuestionRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+faqCloseBtn: {
+  marginTop: 16,
+  backgroundColor: "#fb7c3c",
+  paddingVertical: 12,
+  borderRadius: 12,
+  alignItems: "center",
+},
+
+faqCloseText: {
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: "700",
+},
+
 });
