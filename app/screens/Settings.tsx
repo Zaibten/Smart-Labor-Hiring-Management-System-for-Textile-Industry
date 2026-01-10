@@ -41,6 +41,8 @@ const contractorTabs = [
 export default function SettingsPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [faqLanguage, setFaqLanguage] = useState<"en" | "ur">("ur");
+
   const [skillsVisible, setSkillsVisible] = useState(false);
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [aboutVisible, setAboutVisible] = useState(false);
@@ -50,6 +52,58 @@ const [profileImage, setProfileImage] = useState<string | null>(null);
 const [email, setEmail] = useState<string | null>(null); // <-- add this
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
+const faqDataEnglish = [
+  {
+    question: "What is this app used for?",
+    answer:
+      "This app connects labour workers with contractors to easily find and post jobs.",
+  },
+  {
+    question: "How can I create a job?",
+    answer:
+      "Go to Create Jobs, enter job details such as location, skills, budget, and post it.",
+  },
+  {
+    question: "How do I apply for a job?",
+    answer:
+      "Open Find Jobs, select a suitable job, and tap the Apply button.",
+  },
+  {
+    question: "How can I update my profile?",
+    answer:
+      "You can update your profile image, skills, and details from Settings.",
+  },
+  {
+    question: "How do I change my password?",
+    answer:
+      "Go to Settings > Change Password and set a new password.",
+  },
+  {
+    question: "How can I add skills?",
+    answer:
+      "Open Settings > Manage Skills and add or update your skills.",
+  },
+  {
+    question: "What is the difference between Contractor and Labour?",
+    answer:
+      "Contractors post jobs, while labour users apply for jobs.",
+  },
+  {
+    question: "Why is location important?",
+    answer:
+      "Location helps show nearby jobs and workers for better matching.",
+  },
+  {
+    question: "What should I do if I face an issue?",
+    answer:
+      "You can contact support through Settings > Contact Support.",
+  },
+  {
+    question: "Is my data secure?",
+    answer:
+      "Yes, your data is stored securely and used only when necessary.",
+  },
+];
 
 
   const faqDataUrdu = [
@@ -104,6 +158,44 @@ const [email, setEmail] = useState<string | null>(null); // <-- add this
       "جی ہاں، آپ کی معلومات محفوظ رکھی جاتی ہیں اور صرف ضرورت کے مطابق استعمال ہوتی ہیں۔",
   },
 ];
+const FAQItem = ({ item, isUrdu }: any) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <TouchableOpacity
+      style={styles.faqItem}
+      onPress={() => setOpen(!open)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.faqQuestionRow}>
+        <Text
+          style={[
+            styles.faqQuestion,
+            { textAlign: isUrdu ? "right" : "left" },
+          ]}
+        >
+          {item.question}
+        </Text>
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={22}
+          color="#fb7c3c"
+        />
+      </View>
+
+      {open && (
+        <Text
+          style={[
+            styles.faqAnswer,
+            { textAlign: isUrdu ? "right" : "left" },
+          ]}
+        >
+          {item.answer}
+        </Text>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 const FAQItemUrdu = ({ item }: any) => {
   const [open, setOpen] = useState(false);
@@ -296,6 +388,68 @@ const pickImage = async () => {
           </TouchableOpacity>
         </Modal>
 
+        <Modal transparent visible={faqVisible} animationType="fade">
+  <Animated.View
+    style={[
+      styles.faqOverlay,
+      { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+    ]}
+  >
+    <View style={styles.faqContainer}>
+      <Text style={styles.faqTitle}>
+        {faqLanguage === "ur"
+          ? "اکثر پوچھے جانے والے سوالات"
+          : "Frequently Asked Questions"}
+      </Text>
+
+      {/* Language Toggle */}
+      <View style={styles.languageToggle}>
+        <TouchableOpacity
+          style={[
+            styles.langBtn,
+            faqLanguage === "en" && styles.langActive,
+          ]}
+          onPress={() => setFaqLanguage("en")}
+        >
+          <Text style={styles.langText}>English</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.langBtn,
+            faqLanguage === "ur" && styles.langActive,
+          ]}
+          onPress={() => setFaqLanguage("ur")}
+        >
+          <Text style={styles.langText}>اردو</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {(faqLanguage === "ur" ? faqDataUrdu : faqDataEnglish).map(
+          (item, index) => (
+            <FAQItem
+              key={index}
+              item={item}
+              isUrdu={faqLanguage === "ur"}
+            />
+          )
+        )}
+      </ScrollView>
+
+      <TouchableOpacity
+        style={styles.faqCloseBtn}
+        onPress={() => closeModal(setFaqVisible)}
+      >
+        <Text style={styles.faqCloseText}>
+          {faqLanguage === "ur" ? "بند کریں" : "Close"}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </Animated.View>
+</Modal>
+
+
         {/* Preferences Section */}
         <Text style={styles.sectionTitle}>Preferences</Text>
         {/* <TouchableOpacity style={styles.menuItem}>
@@ -443,5 +597,44 @@ faqCloseText: {
   fontSize: 16,
   fontWeight: "700",
 },
+faqQuestion: {
+  fontSize: 16,
+  fontWeight: "600",
+  color: "#111",
+  flex: 1,
+  paddingRight: 10,
+},
+
+faqAnswer: {
+  marginTop: 10,
+  fontSize: 15,
+  color: "#444",
+  lineHeight: 24,
+},
+
+languageToggle: {
+  flexDirection: "row",
+  justifyContent: "center",
+  marginBottom: 12,
+  gap: 10,
+},
+
+langBtn: {
+  paddingVertical: 6,
+  paddingHorizontal: 18,
+  borderRadius: 20,
+  backgroundColor: "#e5e7eb",
+},
+
+langActive: {
+  backgroundColor: "#fb7c3c",
+},
+
+langText: {
+  fontSize: 14,
+  fontWeight: "700",
+  color: "#111",
+},
+
 
 });
