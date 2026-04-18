@@ -3,25 +3,25 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import BottomTab from "../components/BottomTab";
 import Profile from "./Profile";
 
-const BACKEND_URL = "http://192.168.100.39:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "http://10.40.23.221:3000/api/chat"; // replace with your backend
 
 interface Contractor {
   firstName: string;
@@ -93,9 +93,12 @@ export default function Response() {
           sender: msg.senderEmail === user.email ? "me" : "other",
           text: msg.message,
           timestamp: msg.timestamp,
-        }))
+        })),
       );
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      setTimeout(
+        () => flatListRef.current?.scrollToEnd({ animated: true }),
+        100,
+      );
     } catch (err) {
       console.error(err);
     }
@@ -109,12 +112,15 @@ export default function Response() {
         receiverEmail: chatUserEmail,
         message: newMessage,
       });
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         { sender: "me", text: newMessage, timestamp: res.data.timestamp },
       ]);
       setNewMessage("");
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      setTimeout(
+        () => flatListRef.current?.scrollToEnd({ animated: true }),
+        100,
+      );
     } catch (err) {
       console.error(err);
     }
@@ -149,7 +155,7 @@ export default function Response() {
         if (!localUser?.email) return;
 
         const response = await fetch(
-          `http://192.168.100.39:3000/api/jobs/user/${localUser.email}`
+          `http://10.40.23.221:3000/api/jobs/user/${localUser.email}`,
         );
         if (!response.ok) throw new Error("Failed to fetch user jobs");
         const data = await response.json();
@@ -203,7 +209,9 @@ export default function Response() {
         {jobsApplied.length > 0 ? (
           jobsApplied.map((job, index) => (
             <View key={index} style={styles.card}>
-              <TouchableOpacity onPress={() => openProfileModal(job.contractor.email)}>
+              <TouchableOpacity
+                onPress={() => openProfileModal(job.contractor.email)}
+              >
                 <Image
                   source={
                     job.contractor.image
@@ -227,12 +235,18 @@ export default function Response() {
                 onPress={() => handleChatPress(job.contractor.email)}
                 style={styles.chatBtn}
               >
-                <Ionicons name="chatbubble-ellipses-outline" size={24} color="#fff" />
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={24}
+                  color="#fff"
+                />
               </TouchableOpacity>
             </View>
           ))
         ) : (
-          <Text style={styles.emptyText}>You have not applied to any jobs yet.</Text>
+          <Text style={styles.emptyText}>
+            You have not applied to any jobs yet.
+          </Text>
         )}
       </ScrollView>
 
@@ -368,11 +382,26 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginLeft: 10,
   },
-  emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center", marginTop: 20 },
+  emptyText: {
+    fontSize: 14,
+    color: "#6b7280",
+    textAlign: "center",
+    marginTop: 20,
+  },
   messageContainer: { flexDirection: "row", marginBottom: 10 },
   sender: { justifyContent: "flex-end", alignSelf: "flex-end" },
   receiver: { justifyContent: "flex-start", alignSelf: "flex-start" },
-  messageBubble: { maxWidth: "75%", backgroundColor: "#fb923c", padding: 10, borderRadius: 12 },
+  messageBubble: {
+    maxWidth: "75%",
+    backgroundColor: "#fb923c",
+    padding: 10,
+    borderRadius: 12,
+  },
   messageText: { color: "#fff" },
-  timestamp: { color: "#fff", fontSize: 10, marginTop: 4, alignSelf: "flex-end" },
+  timestamp: {
+    color: "#fff",
+    fontSize: 10,
+    marginTop: 4,
+    alignSelf: "flex-end",
+  },
 });

@@ -1,17 +1,24 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
-const BACKEND_URL = "http://192.168.100.39:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "http://10.40.23.221:3000/api/chat"; // replace with your backend
 
 interface Message {
   sender: "me" | "other";
   text: string;
   timestamp: string;
 }
-
-
 
 export default function ChatModal() {
   const [messages, setMessages] = useState<Message[]>([]); // <--- Explicit type
@@ -29,11 +36,13 @@ export default function ChatModal() {
 
       // Fetch chats
       const res = await axios.get(`${BACKEND_URL}/${storedUser}/${user2}`);
-      setMessages(res.data.map((msg: any) => ({
-        sender: msg.senderEmail === storedUser ? "me" : "other",
-        text: msg.message,
-        timestamp: msg.timestamp,
-      })));
+      setMessages(
+        res.data.map((msg: any) => ({
+          sender: msg.senderEmail === storedUser ? "me" : "other",
+          text: msg.message,
+          timestamp: msg.timestamp,
+        })),
+      );
     };
 
     fetchUserAndMessages();
@@ -59,10 +68,22 @@ export default function ChatModal() {
   };
 
   const renderItem = ({ item }: { item: Message }) => (
-    <View style={[styles.messageContainer, item.sender === "me" ? styles.sender : styles.receiver]}>
-      <View style={[styles.messageBubble, item.sender === "me" && { backgroundColor: "#34d399" }]}>
+    <View
+      style={[
+        styles.messageContainer,
+        item.sender === "me" ? styles.sender : styles.receiver,
+      ]}
+    >
+      <View
+        style={[
+          styles.messageBubble,
+          item.sender === "me" && { backgroundColor: "#34d399" },
+        ]}
+      >
         <Text style={styles.messageText}>{item.text}</Text>
-        <Text style={styles.timestamp}>{new Date(item.timestamp).toLocaleTimeString()}</Text>
+        <Text style={styles.timestamp}>
+          {new Date(item.timestamp).toLocaleTimeString()}
+        </Text>
       </View>
     </View>
   );
@@ -76,7 +97,9 @@ export default function ChatModal() {
         renderItem={renderItem}
         contentContainerStyle={{ padding: 10 }}
       />
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View style={styles.inputContainer}>
           <TextInput
             value={newMessage}
@@ -97,10 +120,33 @@ const styles = StyleSheet.create({
   messageContainer: { flexDirection: "row", marginBottom: 10 },
   sender: { justifyContent: "flex-end", alignSelf: "flex-end" },
   receiver: { justifyContent: "flex-start", alignSelf: "flex-start" },
-  messageBubble: { maxWidth: "75%", backgroundColor: "#fb923c", padding: 10, borderRadius: 12 },
+  messageBubble: {
+    maxWidth: "75%",
+    backgroundColor: "#fb923c",
+    padding: 10,
+    borderRadius: 12,
+  },
   messageText: { color: "#fff" },
-  timestamp: { color: "#fff", fontSize: 10, marginTop: 4, alignSelf: "flex-end" },
-  inputContainer: { flexDirection: "row", padding: 10, backgroundColor: "#fff", alignItems: "center" },
-  input: { flex: 1, borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 20, paddingHorizontal: 15, paddingVertical: 8, marginRight: 10 },
+  timestamp: {
+    color: "#fff",
+    fontSize: 10,
+    marginTop: 4,
+    alignSelf: "flex-end",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    padding: 10,
+    backgroundColor: "#fff",
+    alignItems: "center",
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginRight: 10,
+  },
   sendBtn: { backgroundColor: "#fb923c", padding: 10, borderRadius: 20 },
 });

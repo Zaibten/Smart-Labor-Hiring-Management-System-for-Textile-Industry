@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Modal,
   Platform,
@@ -7,7 +7,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
 
@@ -27,7 +27,80 @@ const Contractor: React.FC = () => {
   const [showContract, setShowContract] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [labourSignature, setLabourSignature] = useState<string | null>(null);
-  const [contractorSignature, setContractorSignature] = useState<string | null>(null);
+  const [contractorSignature, setContractorSignature] = useState<string | null>(
+    null,
+  );
+
+  const labourRef = useRef<any>(null);
+  const contractorRef = useRef<any>(null);
+
+  // Signature pad style for proper touch and drag drawing
+  const signatureWebStyle = `.m-signature-pad {
+    position: relative;
+    font-size: 10px;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    border-radius: 8px;
+  }
+  .m-signature-pad--body {
+    position: relative;
+    flex: 1;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    touch-action: none;
+  }
+  .m-signature-pad--body canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .m-signature-pad--footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    gap: 10px;
+  }
+  .m-signature-pad--footer .description {
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+  }
+  .m-signature-pad--footer .button {
+    background-color: #1e3a8a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .m-signature-pad--footer .button.clear {
+    background-color: #dc2626;
+  }
+  .m-signature-pad--footer .button.clear:hover {
+    background-color: #b91c1c;
+  }
+  .m-signature-pad--footer .button.save:hover {
+    background-color: #1e40af;
+  }
+  button {
+    font-family: Arial, sans-serif;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }`;
 
   const downloadPDF = () => {
     if (Platform.OS === "web") {
@@ -58,11 +131,32 @@ const Contractor: React.FC = () => {
     }
   };
 
+  const handleLabourSignature = (signature: string) => {
+    setLabourSignature(signature);
+  };
+
+  const handleContractorSignature = (signature: string) => {
+    setContractorSignature(signature);
+  };
+
+  const clearLabourSignature = () => {
+    setLabourSignature(null);
+    // Clear the signature pad canvas
+    if (labourRef.current) {
+      labourRef.current.clearSignature();
+    }
+  };
+
+  const clearContractorSignature = () => {
+    setContractorSignature(null);
+    // Clear the signature pad canvas
+    if (contractorRef.current) {
+      contractorRef.current.clearSignature();
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#f1f5f9" }}>
-      {/* App Bar */}
-      {/* <AppBar title="Contract Agreement" /> */}
-
       <ScrollView contentContainerStyle={styles.container}>
         {/* FORM CARD */}
         <View style={styles.card}>
@@ -161,14 +255,14 @@ const Contractor: React.FC = () => {
 
               <Text style={styles.section}>2. Responsibilities</Text>
               <Text>
-                The service provider shall comply with labour laws, safety policies,
-                and professional conduct requirements.
+                The service provider shall comply with labour laws, safety
+                policies, and professional conduct requirements.
               </Text>
 
               <Text style={styles.section}>3. Payment Terms</Text>
               <Text>
-                Payments shall be processed as mutually agreed. Labour Hub holds no
-                responsibility for payment disputes.
+                Payments shall be processed as mutually agreed. Labour Hub holds
+                no responsibility for payment disputes.
               </Text>
 
               <Text style={styles.section}>4. Confidentiality</Text>
@@ -179,63 +273,102 @@ const Contractor: React.FC = () => {
 
               <Text style={styles.section}>5. Termination</Text>
               <Text>
-                Either party may terminate this agreement with written notice upon
-                violation of terms.
+                Either party may terminate this agreement with written notice
+                upon violation of terms.
               </Text>
 
               <Text style={styles.section}>6. Governing Law</Text>
-              <Text>This agreement shall be governed under the laws of Pakistan.</Text>
+              <Text>
+                This agreement shall be governed under the laws of Pakistan.
+              </Text>
 
               <Text style={styles.section}>7. Digital Acceptance</Text>
-              <Text>This document is legally binding upon digital confirmation.</Text>
+              <Text>
+                This document is legally binding upon digital confirmation.
+              </Text>
 
-              {/* Signatures */}
-              <View style={styles.signatureBox}>
-                <Text style={styles.bold}>Labour Signature</Text>
-                {!labourSignature ? (
-                  <SignatureScreen
-                    onOK={setLabourSignature}
-                    onEmpty={() => alert("Please provide Labour signature")}
-                    descriptionText="Sign above"
-                    clearText="Clear"
-                    confirmText="Save"
-                    webStyle={`.m-signature-pad--footer {display: none; margin: 0;}`}
-                  />
-                ) : (
-                  <View style={{ alignItems: "center" }}>
-                    <Text>Labour Signature Saved ✅</Text>
-                    <TouchableOpacity
-                      style={styles.button}
-                      onPress={() => setLabourSignature(null)}
-                    >
-                      <Text style={{ color: "#fff" }}>Reset Signature</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+              {/* Labour Signature Section */}
+              <View style={styles.signatureWrapper}>
+                <Text style={styles.signatureLabel}>Labour Signature</Text>
+                <Text style={styles.signatureHint}>
+                  Tap and drag to draw your signature
+                </Text>
+                <View style={styles.signatureContainer}>
+                  {!labourSignature ? (
+                    <View style={styles.signaturePadContainer}>
+                      <SignatureScreen
+                        ref={labourRef}
+                        onOK={handleLabourSignature}
+                        onEmpty={() => alert("Please provide Labour signature")}
+                        descriptionText="Draw your signature here"
+                        clearText="Clear"
+                        confirmText="Save"
+                        webStyle={signatureWebStyle}
+                        autoClear={false}
+                        imageType="image/png"
+                        penColor="black"
+                        backgroundColor="#ffffff"
+                        minWidth={2}
+                        maxWidth={4}
+                      />
+                    </View>
+                  ) : (
+                    <View style={styles.savedSignatureContainer}>
+                      <Text style={styles.savedText}>✓ Signature Saved</Text>
+                      <TouchableOpacity
+                        style={styles.clearButton}
+                        onPress={clearLabourSignature}
+                      >
+                        <Text style={styles.clearButtonText}>
+                          Draw New Signature
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               </View>
 
-              <View style={styles.signatureBox}>
-                <Text style={styles.bold}>Contractor Signature</Text>
-                {!contractorSignature ? (
-                  <SignatureScreen
-                    onOK={setContractorSignature}
-                    onEmpty={() => alert("Please provide Contractor signature")}
-                    descriptionText="Sign above"
-                    clearText="Clear"
-                    confirmText="Save"
-                    webStyle={`.m-signature-pad--footer {display: none; margin: 0;}`}
-                  />
-                ) : (
-                  <View style={{ alignItems: "center" }}>
-                    <Text>Contractor Signature Saved ✅</Text>
-                    <TouchableOpacity
-                      style={styles.button}
-                      onPress={() => setContractorSignature(null)}
-                    >
-                      <Text style={{ color: "#fff" }}>Reset Signature</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+              {/* Contractor Signature Section */}
+              <View style={styles.signatureWrapper}>
+                <Text style={styles.signatureLabel}>Contractor Signature</Text>
+                <Text style={styles.signatureHint}>
+                  Tap and drag to draw your signature
+                </Text>
+                <View style={styles.signatureContainer}>
+                  {!contractorSignature ? (
+                    <View style={styles.signaturePadContainer}>
+                      <SignatureScreen
+                        ref={contractorRef}
+                        onOK={handleContractorSignature}
+                        onEmpty={() =>
+                          alert("Please provide Contractor signature")
+                        }
+                        descriptionText="Draw your signature here"
+                        clearText="Clear"
+                        confirmText="Save"
+                        webStyle={signatureWebStyle}
+                        autoClear={false}
+                        imageType="image/png"
+                        penColor="black"
+                        backgroundColor="#ffffff"
+                        minWidth={2}
+                        maxWidth={4}
+                      />
+                    </View>
+                  ) : (
+                    <View style={styles.savedSignatureContainer}>
+                      <Text style={styles.savedText}>✓ Signature Saved</Text>
+                      <TouchableOpacity
+                        style={styles.clearButton}
+                        onPress={clearContractorSignature}
+                      >
+                        <Text style={styles.clearButtonText}>
+                          Draw New Signature
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               </View>
 
               <View style={styles.footer}>
@@ -255,11 +388,6 @@ const Contractor: React.FC = () => {
           </ScrollView>
         </Modal>
       </ScrollView>
-
-      {/* Bottom Tab */}
-      {/* <View style={styles.tabWrapper}>
-        <BottomTab tabs={contractorTabs} activeTab="" userRole="Contractor" />
-      </View> */}
     </View>
   );
 };
@@ -276,10 +404,16 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 10,
+    elevation: 3,
   },
-  heading: { fontWeight: "bold", fontSize: 20, textAlign: "center" },
-  subText: { textAlign: "center", color: "#475569", marginBottom: 10 },
-  label: { fontWeight: "bold", marginTop: 10 },
+  heading: {
+    fontWeight: "bold",
+    fontSize: 20,
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  subText: { textAlign: "center", color: "#475569", marginBottom: 15 },
+  label: { fontWeight: "bold", marginTop: 10, marginBottom: 5 },
   input: {
     borderWidth: 1,
     borderColor: "#cbd5e1",
@@ -309,9 +443,20 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: "center",
   },
-  modalContainer: { flex: 1, padding: 20 },
-  closeButton: { alignSelf: "flex-end", marginBottom: 10 },
-  closeText: { fontSize: 18, color: "#1e3a8a", fontWeight: "bold" },
+  modalContainer: { flex: 1, padding: 20, backgroundColor: "#f1f5f9" },
+  closeButton: {
+    alignSelf: "flex-end",
+    marginBottom: 10,
+    backgroundColor: "#fff",
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  closeText: { fontSize: 16, color: "#1e3a8a", fontWeight: "bold" },
   contract: {
     backgroundColor: "#fff",
     padding: 25,
@@ -319,14 +464,78 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    elevation: 3,
   },
-  pdfHeader: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 15 },
+  pdfHeader: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 15,
+  },
   centerText: { textAlign: "center", marginBottom: 20 },
   infoTable: { marginBottom: 20 },
   bold: { fontWeight: "bold" },
-  section: { marginTop: 15, fontWeight: "bold" },
-  signatureBox: { marginTop: 20, borderWidth: 1, borderColor: "#000", padding: 10, height: 250 },
-  footer: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
+  section: { marginTop: 15, fontWeight: "bold", fontSize: 16 },
+  signatureWrapper: {
+    marginTop: 25,
+    marginBottom: 10,
+  },
+  signatureLabel: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginBottom: 5,
+    color: "#1e3a8a",
+  },
+  signatureHint: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 10,
+    fontStyle: "italic",
+  },
+  signatureContainer: {
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 8,
+    backgroundColor: "#fff",
+    overflow: "hidden",
+  },
+  signaturePadContainer: {
+    height: 250,
+    width: "100%",
+    backgroundColor: "#fff",
+  },
+  savedSignatureContainer: {
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 100,
+  },
+  savedText: {
+    fontSize: 16,
+    color: "#10b981",
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  clearButton: {
+    backgroundColor: "#dc2626",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 6,
+    marginTop: 8,
+  },
+  clearButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 30,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+  },
   tabWrapper: {
     position: "absolute",
     bottom: 0,

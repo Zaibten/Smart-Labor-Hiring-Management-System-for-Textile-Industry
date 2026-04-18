@@ -18,25 +18,24 @@ export default function UserSkillsScreen() {
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
 
-  
+  useEffect(() => {
+    const loadUser = async () => {
+      const userData = await AsyncStorage.getItem("user");
+      const localUser = userData ? JSON.parse(userData) : null;
 
-useEffect(() => {
-  const loadUser = async () => {
-    const userData = await AsyncStorage.getItem("user");
-    const localUser = userData ? JSON.parse(userData) : null;
-
-    if (localUser?.email) {
-      setUserEmail(localUser.email.toLowerCase());
-      fetchSkills(localUser.email.toLowerCase());
-    }
-  };
-  loadUser();
-}, []);
-
+      if (localUser?.email) {
+        setUserEmail(localUser.email.toLowerCase());
+        fetchSkills(localUser.email.toLowerCase());
+      }
+    };
+    loadUser();
+  }, []);
 
   const fetchSkills = async (email: string) => {
     try {
-      const res = await fetch(`http://192.168.100.39:3000/api/user/skills/${email}`);
+      const res = await fetch(
+        `http://10.40.23.221:3000/api/user/skills/${email}`,
+      );
       const data = await res.json();
       if (data.success) setSkills(data.skills);
     } catch (err) {
@@ -47,11 +46,11 @@ useEffect(() => {
   const addSkill = async () => {
     if (!newSkill.trim()) return;
     try {
-      await fetch(`http://192.168.100.39:3000/api/user/${userEmail}/skills`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ skill: newSkill }),
-});
+      await fetch(`http://10.40.23.221:3000/api/user/${userEmail}/skills`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skill: newSkill }),
+      });
 
       setSkills([...skills, newSkill]);
       setNewSkill("");
@@ -69,9 +68,9 @@ useEffect(() => {
         onPress: async () => {
           try {
             await fetch(
-  `http://192.168.100.39:3000/api/user/${userEmail}/skills/${index}`,
-  { method: "DELETE" }
-);
+              `http://10.40.23.221:3000/api/user/${userEmail}/skills/${index}`,
+              { method: "DELETE" },
+            );
 
             setSkills(skills.filter((_, i) => i !== index));
           } catch (err) {
@@ -83,13 +82,10 @@ useEffect(() => {
   };
   const router = useRouter();
 
-
   return (
-    
     <View style={styles.container}>
-
-        {/* Close Icon */}
-{/* <TouchableOpacity 
+      {/* Close Icon */}
+      {/* <TouchableOpacity 
   style={styles.closeBtn}
   onPress={() => router.push("../screens/Settings")}
 >
@@ -97,9 +93,9 @@ useEffect(() => {
 </TouchableOpacity> */}
 
       {/* Display User Email */}
-<View style={styles.userEmailBox}>
-  <Text style={styles.userEmailText}>{userEmail}</Text>
-</View>
+      <View style={styles.userEmailBox}>
+        <Text style={styles.userEmailText}>{userEmail}</Text>
+      </View>
 
       <Text style={styles.title}>My Skills</Text>
 
@@ -137,8 +133,20 @@ useEffect(() => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f9f9", padding: 20 },
-  emailText: { fontSize: 16, fontWeight: "600", color: "#555", textAlign: "center", marginBottom: 10 },
-  title: { fontSize: 24, fontWeight: "700", color: "#fb7c3c", textAlign: "center", marginBottom: 20 },
+  emailText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#555",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#fb7c3c",
+    textAlign: "center",
+    marginBottom: 20,
+  },
   addSkillBox: { flexDirection: "row", alignItems: "center" },
   input: {
     flex: 1,
@@ -167,29 +175,33 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   skillText: { fontSize: 16, color: "#111" },
-  noSkillsText: { textAlign: "center", marginTop: 30, color: "#777", fontSize: 16 },
+  noSkillsText: {
+    textAlign: "center",
+    marginTop: 30,
+    color: "#777",
+    fontSize: 16,
+  },
   userEmailBox: {
-  alignSelf: "center",
-  backgroundColor: "#fb7c3c",
-  paddingVertical: 8,
-  paddingHorizontal: 18,
-  borderRadius: 20,
-  marginBottom: 10,
-  elevation: 4,
-},
-userEmailText: {
-  color: "#fff",
-  fontSize: 16,
-  fontWeight: "700",
-},
-closeBtn: {
-  position: "absolute",
-  top: 20,
-  right: 20,
-  padding: 6,
-  backgroundColor: "#fff",
-  borderRadius: 20,
-  elevation: 4,
-},
-
+    alignSelf: "center",
+    backgroundColor: "#fb7c3c",
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    marginBottom: 10,
+    elevation: 4,
+  },
+  userEmailText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  closeBtn: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    padding: 6,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    elevation: 4,
+  },
 });

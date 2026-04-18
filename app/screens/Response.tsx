@@ -22,7 +22,7 @@ import {
 import BottomTab from "../components/BottomTab";
 import Profile from "./Profile"; // Profile modal component
 
-const BACKEND_URL = "http://192.168.100.39:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "http://10.40.23.221:3000/api/chat"; // replace with your backend
 
 interface Labour {
   labourId: string | null;
@@ -75,12 +75,16 @@ export default function Response() {
   const fetchMessages = async (otherUser: string) => {
     if (!contractorEmail) return;
     try {
-      const res = await axios.get(`${BACKEND_URL}/${contractorEmail}/${otherUser}`);
-      setMessages(res.data.map((msg: any) => ({
-        sender: msg.senderEmail === contractorEmail ? "me" : "other",
-        text: msg.message,
-        timestamp: msg.timestamp,
-      })));
+      const res = await axios.get(
+        `${BACKEND_URL}/${contractorEmail}/${otherUser}`,
+      );
+      setMessages(
+        res.data.map((msg: any) => ({
+          sender: msg.senderEmail === contractorEmail ? "me" : "other",
+          text: msg.message,
+          timestamp: msg.timestamp,
+        })),
+      );
     } catch (err) {
       console.error(err);
     }
@@ -96,22 +100,37 @@ export default function Response() {
         message: newMessage,
       });
 
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         { sender: "me", text: newMessage, timestamp: res.data.timestamp },
       ]);
       setNewMessage("");
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      setTimeout(
+        () => flatListRef.current?.scrollToEnd({ animated: true }),
+        100,
+      );
     } catch (err) {
       console.error(err);
     }
   };
 
   const renderMessageItem = ({ item }: { item: Message }) => (
-    <View style={[styles.messageContainer, item.sender === "me" ? styles.sender : styles.receiver]}>
-      <View style={[styles.messageBubble, item.sender === "me" && { backgroundColor: "#34d399" }]}>
+    <View
+      style={[
+        styles.messageContainer,
+        item.sender === "me" ? styles.sender : styles.receiver,
+      ]}
+    >
+      <View
+        style={[
+          styles.messageBubble,
+          item.sender === "me" && { backgroundColor: "#34d399" },
+        ]}
+      >
         <Text style={styles.messageText}>{item.text}</Text>
-        <Text style={styles.timestamp}>{new Date(item.timestamp).toLocaleTimeString()}</Text>
+        <Text style={styles.timestamp}>
+          {new Date(item.timestamp).toLocaleTimeString()}
+        </Text>
       </View>
     </View>
   );
@@ -133,7 +152,7 @@ export default function Response() {
     const fetchResponses = async () => {
       try {
         const response = await fetch(
-          `http://192.168.100.39:3000/api/responses-by-contractor/${contractorEmail}`
+          `http://10.40.23.221:3000/api/responses-by-contractor/${contractorEmail}`,
         );
         if (!response.ok) throw new Error("Failed to fetch responses");
         const data = await response.json();
@@ -170,15 +189,32 @@ export default function Response() {
     setSelectedEmail(email);
     setModalVisible(true);
     Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, friction: 8, tension: 40 }),
-      Animated.timing(opacityAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 40,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
     ]).start();
   };
 
   const closeModal = () => {
     Animated.parallel([
-      Animated.timing(opacityAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.timing(scaleAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
     ]).start(() => {
       setModalVisible(false);
       setSelectedEmail(null);
@@ -201,20 +237,31 @@ export default function Response() {
       {/* <AppBar title="Job Responses" /> */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {jobs.length === 0 ? (
-          <Text style={styles.emptyText}>No responses found for your jobs.</Text>
+          <Text style={styles.emptyText}>
+            No responses found for your jobs.
+          </Text>
         ) : (
           jobs.map((job, idx) => (
             <View key={idx} style={styles.jobCard}>
               <Text style={styles.jobTitle}>{job.jobTitle}</Text>
               <Text style={styles.jobDesc}>{job.jobDescription}</Text>
               <Text style={styles.jobInfo}>Location: {job.location}</Text>
-              <Text style={styles.jobInfo}>Workers Required: {job.workersRequired}</Text>
-              <Text style={styles.jobInfo}>Total Responses: {job.labours.length}</Text>
+              <Text style={styles.jobInfo}>
+                Workers Required: {job.workersRequired}
+              </Text>
+              <Text style={styles.jobInfo}>
+                Total Responses: {job.labours.length}
+              </Text>
 
               {job.labours.map((labour, aidx) => (
                 <View key={aidx} style={styles.applicantCard}>
-                  <TouchableOpacity onPress={() => openProfileModal(labour.email)}>
-                    <Image source={{ uri: labour.image }} style={styles.avatar} />
+                  <TouchableOpacity
+                    onPress={() => openProfileModal(labour.email)}
+                  >
+                    <Image
+                      source={{ uri: labour.image }}
+                      style={styles.avatar}
+                    />
                   </TouchableOpacity>
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={styles.name}>
@@ -223,14 +270,19 @@ export default function Response() {
                     <Text style={styles.email}>{labour.email}</Text>
                     <Text style={styles.status}>Role: {labour.role}</Text>
                     <Text style={styles.appliedAt}>
-                      Applied At: {new Date(job.appliedAtList[aidx]).toLocaleString()}
+                      Applied At:{" "}
+                      {new Date(job.appliedAtList[aidx]).toLocaleString()}
                     </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => handleChatPress(labour.email)}
                     style={styles.chatBtn}
                   >
-                    <Ionicons name="chatbubble-ellipses-outline" size={24} color="#fff" />
+                    <Ionicons
+                      name="chatbubble-ellipses-outline"
+                      size={24}
+                      color="#fff"
+                    />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -391,11 +443,26 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginLeft: 10,
   },
-  emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center", marginTop: 20 },
+  emptyText: {
+    fontSize: 14,
+    color: "#6b7280",
+    textAlign: "center",
+    marginTop: 20,
+  },
   messageContainer: { flexDirection: "row", marginBottom: 10 },
   sender: { justifyContent: "flex-end", alignSelf: "flex-end" },
   receiver: { justifyContent: "flex-start", alignSelf: "flex-start" },
-  messageBubble: { maxWidth: "75%", backgroundColor: "#fb923c", padding: 10, borderRadius: 12 },
+  messageBubble: {
+    maxWidth: "75%",
+    backgroundColor: "#fb923c",
+    padding: 10,
+    borderRadius: 12,
+  },
   messageText: { color: "#fff" },
-  timestamp: { color: "#fff", fontSize: 10, marginTop: 4, alignSelf: "flex-end" },
+  timestamp: {
+    color: "#fff",
+    fontSize: 10,
+    marginTop: 4,
+    alignSelf: "flex-end",
+  },
 });

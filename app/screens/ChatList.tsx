@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { Audio } from 'expo-av';
+import { Audio } from "expo-av";
 
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -21,15 +21,13 @@ import {
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 
-const BACKEND_URL = "http://192.168.100.39:3000/api/chat";
+const BACKEND_URL = "http://10.40.23.221:3000/api/chat";
 
 interface ChatItem {
   email: string;
   lastMessage: string;
   timestamp: string;
 }
-
-
 
 const labourTabs = [
   { label: "Home", icon: "home" },
@@ -38,15 +36,13 @@ const labourTabs = [
   { label: "Settings", icon: "settings" },
 ];
 
-
-
-  const contractorTabs = [
-    { label: "Home", icon: "home" },
-    { label: "Create Jobs", icon: "add-circle" },
-    { label: "All Jobs", icon: "list" },
-    { label: "Chats", icon: "chatbubbles" },
-    { label: "Settings", icon: "settings" },
-  ];
+const contractorTabs = [
+  { label: "Home", icon: "home" },
+  { label: "Create Jobs", icon: "add-circle" },
+  { label: "All Jobs", icon: "list" },
+  { label: "Chats", icon: "chatbubbles" },
+  { label: "Settings", icon: "settings" },
+];
 
 interface Message {
   sender: "me" | "other";
@@ -65,23 +61,22 @@ export default function ChatList() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const flatListRef = useRef<FlatList>(null);
-const [callVisible, setCallVisible] = useState(false);
-const audioRef = useRef<any>(null);
-
+  const [callVisible, setCallVisible] = useState(false);
+  const audioRef = useRef<any>(null);
 
   const [userRole, setUserRole] = useState<"Contractor" | "Labour">("Labour");
 
-const loadUser = async () => {
-  const userData = await AsyncStorage.getItem("user");
-  const user = userData ? JSON.parse(userData) : null;
+  const loadUser = async () => {
+    const userData = await AsyncStorage.getItem("user");
+    const user = userData ? JSON.parse(userData) : null;
 
-  if (user?.role) setUserRole(user.role);   // <-- SAVE ROLE
+    if (user?.role) setUserRole(user.role); // <-- SAVE ROLE
 
-  if (user?.email) {
-    setUserEmail(user.email);
-    fetchChatList(user.email);
-  }
-};
+    if (user?.email) {
+      setUserEmail(user.email);
+      fetchChatList(user.email);
+    }
+  };
 
   useEffect(() => {
     loadUser();
@@ -102,25 +97,23 @@ const loadUser = async () => {
   // };
 
   const startCall = async () => {
-  setCallVisible(true);
+    setCallVisible(true);
 
-  const { sound } = await Audio.Sound.createAsync(
-    require('../../assets/sound/call.mp3')
-  );
-  audioRef.current = sound;
-  await sound.setIsLoopingAsync(true);
-  await sound.playAsync();
-};
+    const { sound } = await Audio.Sound.createAsync(
+      require("../../assets/sound/call.mp3"),
+    );
+    audioRef.current = sound;
+    await sound.setIsLoopingAsync(true);
+    await sound.playAsync();
+  };
 
-
-const endCall = async () => {
-  setCallVisible(false);
-  if (audioRef.current) {
-    await audioRef.current.stopAsync();
-    await audioRef.current.unloadAsync();
-  }
-};
-
+  const endCall = async () => {
+    setCallVisible(false);
+    if (audioRef.current) {
+      await audioRef.current.stopAsync();
+      await audioRef.current.unloadAsync();
+    }
+  };
 
   const fetchChatList = async (email: string) => {
     try {
@@ -150,7 +143,7 @@ const endCall = async () => {
           sender: msg.senderEmail === userEmail ? "me" : "other",
           text: msg.message,
           timestamp: msg.timestamp,
-        }))
+        })),
       );
 
       setTimeout(() => {
@@ -171,7 +164,7 @@ const endCall = async () => {
         message: newMessage,
       });
 
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         { sender: "me", text: newMessage, timestamp: res.data.timestamp },
       ]);
@@ -195,13 +188,10 @@ const endCall = async () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
-  
-  {/* 🔥 TOP APP BAR ADDED HERE */}
-  <AppBar title="Chats" />
+      {/* 🔥 TOP APP BAR ADDED HERE */}
+      <AppBar title="Chats" />
 
-  <View style={{ paddingHorizontal: 15, paddingTop: 10 }}>
-  </View>
-
+      <View style={{ paddingHorizontal: 15, paddingTop: 10 }}></View>
 
       <FlatList
         data={chatUsers}
@@ -231,100 +221,112 @@ const endCall = async () => {
       {/* CHAT MODAL */}
       <Modal visible={chatModalVisible} animationType="slide">
         <View style={{ flex: 1, backgroundColor: "#fff" }}>
-
           {/* CHAT HEADER */}
           <View style={styles.chatHeader}>
             <Pressable onPress={() => setChatModalVisible(false)}>
               <Ionicons name="close" size={30} color="#fb923c" />
             </Pressable>
 
-            <Text style={styles.chatHeaderText}>
-              Chat with {chatUserEmail}
-            </Text>
+            <Text style={styles.chatHeaderText}>Chat with {chatUserEmail}</Text>
 
-  {/* 🔊 Voice Call Button */}
-<Pressable onPress={startCall}>
-  <Ionicons name="call" size={28} color="#10b981" />
-</Pressable>
-<Modal visible={callVisible} animationType="slide" transparent>
-  <View style={{
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 60,
-  }}>
-    
-    {/* Caller Info */}
-    <View style={{ alignItems: 'center', marginTop: 50 }}>
-      <Image
-        source={require('../../assets/images/logo.png')} // replace with caller image
-        style={{
-          width: 120,
-          height: 120,
-          borderRadius: 60,
-          borderWidth: 2,
-          borderColor: '#fff',
-          marginBottom: 20,
-        }}
-      />
-      <Text style={{
-        fontSize: 24,
-        color: '#fff',
-        fontWeight: '700',
-        marginBottom: 5,
-      }}>
-        {chatUserEmail}
-      </Text>
-      <Text style={{
-        fontSize: 16,
-        color: '#d1d5db',
-      }}>
-        Calling...
-      </Text>
-    </View>
+            {/* 🔊 Voice Call Button */}
+            <Pressable onPress={startCall}>
+              <Ionicons name="call" size={28} color="#10b981" />
+            </Pressable>
+            <Modal visible={callVisible} animationType="slide" transparent>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: "#000",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingVertical: 60,
+                }}
+              >
+                {/* Caller Info */}
+                <View style={{ alignItems: "center", marginTop: 50 }}>
+                  <Image
+                    source={require("../../assets/images/logo.png")} // replace with caller image
+                    style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: 60,
+                      borderWidth: 2,
+                      borderColor: "#fff",
+                      marginBottom: 20,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      color: "#fff",
+                      fontWeight: "700",
+                      marginBottom: 5,
+                    }}
+                  >
+                    {chatUserEmail}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: "#d1d5db",
+                    }}
+                  >
+                    Calling...
+                  </Text>
+                </View>
 
-    {/* Animated Ring */}
-    <View style={{
-      width: 200,
-      height: 200,
-      borderRadius: 100,
-      borderWidth: 2,
-      borderColor: '#10b981',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 50,
-      shadowColor: '#10b981',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.8,
-      shadowRadius: 10,
-      elevation: 10,
-    }}>
-      <Ionicons name="call" size={60} color="#10b981" />
-    </View>
+                {/* Animated Ring */}
+                <View
+                  style={{
+                    width: 200,
+                    height: 200,
+                    borderRadius: 100,
+                    borderWidth: 2,
+                    borderColor: "#10b981",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: 50,
+                    shadowColor: "#10b981",
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.8,
+                    shadowRadius: 10,
+                    elevation: 10,
+                  }}
+                >
+                  <Ionicons name="call" size={60} color="#10b981" />
+                </View>
 
-    {/* End Call Button */}
-    <TouchableOpacity
-      style={{
-        backgroundColor: '#ef4444',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 40,
-        paddingVertical: 14,
-        borderRadius: 50,
-        marginBottom: 60,
-      }}
-      onPress={endCall}
-    >
-      <Ionicons name="call" size={28} color="#fff" />
-      <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600', marginLeft: 10 }}>End Call</Text>
-    </TouchableOpacity>
-  </View>
-</Modal>
+                {/* End Call Button */}
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: "#ef4444",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 40,
+                    paddingVertical: 14,
+                    borderRadius: 50,
+                    marginBottom: 60,
+                  }}
+                  onPress={endCall}
+                >
+                  <Ionicons name="call" size={28} color="#fff" />
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: 18,
+                      fontWeight: "600",
+                      marginLeft: 10,
+                    }}
+                  >
+                    End Call
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Modal>
 
-
-            <View style={{ width: 30 }} /> 
+            <View style={{ width: 30 }} />
           </View>
 
           {/* MESSAGES */}
@@ -335,9 +337,7 @@ const endCall = async () => {
               <View
                 style={[
                   styles.messageRow,
-                  item.sender === "me"
-                    ? styles.myMsg
-                    : styles.otherMsg,
+                  item.sender === "me" ? styles.myMsg : styles.otherMsg,
                 ]}
               >
                 <Text style={styles.msgText}>{item.text}</Text>
@@ -369,13 +369,12 @@ const endCall = async () => {
       </Modal>
 
       <View style={styles.tabWrapper}>
-  <BottomTab
-    tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
-    activeTab="Chats"
-    userRole={userRole}
-  />
-</View>
-
+        <BottomTab
+          tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
+          activeTab="Chats"
+          userRole={userRole}
+        />
+      </View>
     </View>
   );
 }
@@ -422,25 +421,25 @@ const styles = StyleSheet.create({
   otherMsg: { backgroundColor: "#fb923c", alignSelf: "flex-start" },
   msgText: { color: "#fff" },
   msgTime: { fontSize: 10, color: "#fff", marginTop: 4 },
-callWrapper: {
-  flex: 1,
-  backgroundColor: '#000000cc',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-callText: {
-  fontSize: 22,
-  color: '#fff',
-  marginBottom: 40,
-},
-endCallBtn: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#ef4444',
-  paddingHorizontal: 20,
-  paddingVertical: 12,
-  borderRadius: 30,
-},
+  callWrapper: {
+    flex: 1,
+    backgroundColor: "#000000cc",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  callText: {
+    fontSize: 22,
+    color: "#fff",
+    marginBottom: 40,
+  },
+  endCallBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ef4444",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 30,
+  },
 
   /* Input Box */
   inputWrapper: {

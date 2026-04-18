@@ -41,7 +41,10 @@ export default function SignupScreen() {
       return false;
     }
     if (!/^\d{11}$/.test(phone)) {
-      Alert.alert("Validation Error", "Phone number must be exactly 11 digits.");
+      Alert.alert(
+        "Validation Error",
+        "Phone number must be exactly 11 digits.",
+      );
       return false;
     }
     if (!emailRegex.test(email)) {
@@ -62,7 +65,7 @@ export default function SignupScreen() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://192.168.100.39:3000/api/signup", {
+      const res = await fetch("http://10.40.23.221:3000/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -79,7 +82,10 @@ export default function SignupScreen() {
       setLoading(false);
 
       if (!res.ok) {
-        Alert.alert("Signup Failed", data.error || data.errors?.join("\n") || "Unknown error");
+        Alert.alert(
+          "Signup Failed",
+          data.error || data.errors?.join("\n") || "Unknown error",
+        );
         return;
       }
 
@@ -115,7 +121,9 @@ export default function SignupScreen() {
 
           {/* Title */}
           <Text style={styles.welcomeTitle}>Create Account</Text>
-          <Text style={styles.subtitle}>Join us by creating your account below.</Text>
+          <Text style={styles.subtitle}>
+            Join us by creating your account below.
+          </Text>
 
           {/* Form */}
           <View style={styles.form}>
@@ -174,22 +182,34 @@ export default function SignupScreen() {
             {/* Role Selector */}
             <View style={styles.roleContainer}>
               <TouchableOpacity
-                style={[styles.roleButton, role === "Labour" && styles.activeRoleButton]}
+                style={[
+                  styles.roleButton,
+                  role === "Labour" && styles.activeRoleButton,
+                ]}
                 onPress={() => setRole("Labour")}
               >
                 <Text
-                  style={[styles.roleText, role === "Labour" && styles.activeRoleText]}
+                  style={[
+                    styles.roleText,
+                    role === "Labour" && styles.activeRoleText,
+                  ]}
                 >
                   Labour
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.roleButton, role === "Contractor" && styles.activeRoleButton]}
+                style={[
+                  styles.roleButton,
+                  role === "Contractor" && styles.activeRoleButton,
+                ]}
                 onPress={() => setRole("Contractor")}
               >
                 <Text
-                  style={[styles.roleText, role === "Contractor" && styles.activeRoleText]}
+                  style={[
+                    styles.roleText,
+                    role === "Contractor" && styles.activeRoleText,
+                  ]}
                 >
                   Contractor
                 </Text>
@@ -218,7 +238,9 @@ export default function SignupScreen() {
             </View>
 
             {/* Back to Login */}
-            <TouchableOpacity onPress={() => router.push("/screens/LoginScreen")}>
+            <TouchableOpacity
+              onPress={() => router.push("/screens/LoginScreen")}
+            >
               <Text style={styles.createAccount}>
                 Already have an account? Log in
               </Text>

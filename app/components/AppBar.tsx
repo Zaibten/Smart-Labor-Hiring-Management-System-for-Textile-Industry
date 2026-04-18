@@ -39,7 +39,7 @@
 //         const localUser = userData ? JSON.parse(userData) : null;
 //         if (!localUser?.id) return;
 
-//         const response = await fetch(`http://192.168.100.39:3000/api/user/${localUser.id}`);
+//         const response = await fetch(`http://10.40.23.221:3000/api/user/${localUser.id}`);
 //         if (!response.ok) throw new Error("Failed to fetch user");
 
 //         const serverUser = await response.json();
@@ -172,7 +172,6 @@
 //   },
 // });
 
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import React, { useEffect, useRef, useState } from "react";
@@ -203,9 +202,21 @@ const AppBar: React.FC<AppBarProps> = ({ title }) => {
   useEffect(() => {
     // Animate AppBar appearance
     Animated.parallel([
-      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
-      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
-      Animated.spring(scaleAnim, { toValue: 1, friction: 5, useNativeDriver: true }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 5,
+        useNativeDriver: true,
+      }),
     ]).start();
 
     // Fetch user data
@@ -215,7 +226,9 @@ const AppBar: React.FC<AppBarProps> = ({ title }) => {
         const localUser = userData ? JSON.parse(userData) : null;
         if (!localUser?.id) return;
 
-        const response = await fetch(`http://192.168.100.39:3000/api/user/${localUser.id}`);
+        const response = await fetch(
+          `http://10.40.23.221:3000/api/user/${localUser.id}`,
+        );
         if (!response.ok) throw new Error("Failed to fetch user");
 
         const serverUser = await response.json();
@@ -242,7 +255,9 @@ const AppBar: React.FC<AppBarProps> = ({ title }) => {
           return;
         }
 
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
         const { latitude, longitude } = loc.coords;
 
         const res = await fetch(
@@ -252,13 +267,16 @@ const AppBar: React.FC<AppBarProps> = ({ title }) => {
               "User-Agent": "labourshub/1.0 (muzamilkhanofficials@gmail.com)",
               "Accept-Language": "en",
             },
-          }
+          },
         );
         const data = await res.json();
 
         // Prepare location without country
         const parts = [
-          data.address.suburb || data.address.neighbourhood || data.address.city_district || "",
+          data.address.suburb ||
+            data.address.neighbourhood ||
+            data.address.city_district ||
+            "",
           data.address.city || data.address.town || data.address.village || "",
           data.address.state || "",
         ];
@@ -300,7 +318,9 @@ const AppBar: React.FC<AppBarProps> = ({ title }) => {
       {/* Current Location */}
       <View style={styles.locationWrapper}>
         <Image
-          source={{ uri: "https://cdn-icons-png.flaticon.com/512/684/684908.png" }}
+          source={{
+            uri: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+          }}
           style={styles.locationIcon}
         />
         <Text style={styles.locationText}>{location}</Text>
@@ -341,5 +361,10 @@ const styles = StyleSheet.create({
     maxWidth: 150,
   },
   locationIcon: { width: 18, height: 18, marginRight: 5, tintColor: "#fff" },
-  locationText: { color: "#fff", fontSize: 12, flexShrink: 1, flexWrap: "wrap" },
+  locationText: {
+    color: "#fff",
+    fontSize: 12,
+    flexShrink: 1,
+    flexWrap: "wrap",
+  },
 });

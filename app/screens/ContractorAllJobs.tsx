@@ -4,20 +4,20 @@ import React, { useEffect, useRef, useState } from "react";
 import Profile from "./Profile";
 
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Image,
-  Modal,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Image,
+    Modal,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -52,8 +52,6 @@ interface Job {
   applicants: Applicant[]; // <-- Add this
 }
 
-
-
 export default function AllJobs() {
   const [user, setUser] = useState({
     _id: "",
@@ -69,56 +67,73 @@ export default function AllJobs() {
   const [activeTab, setActiveTab] = useState<"myJobs" | "allJobs">("allJobs");
   const [userImages, setUserImages] = useState<{ [email: string]: string }>({});
   const [modalVisible, setModalVisible] = useState(false);
-  
-const [modalText, setModalText] = useState("");
-const scaleAnim = useRef(new Animated.Value(0)).current;
-const opacityAnim = useRef(new Animated.Value(0)).current;
 
-const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
-const [appliedJobs, setAppliedJobs] = useState<{ [jobId: string]: boolean }>({});
-const [userSkills, setUserSkills] = useState<string[]>([]);
+  const [modalText, setModalText] = useState("");
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
-const checkIfApplied = async (jobId: string) => {
-  try {
-    const res = await fetch(`http://192.168.100.39:3000/api/check-application/${jobId}?email=${user.email}`);
-    const data = await res.json();
-    setAppliedJobs(prev => ({ ...prev, [jobId]: data.applied }));
-  } catch (err) {
-    console.error("Error checking application:", err);
-  }
-};
+  const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+  const [appliedJobs, setAppliedJobs] = useState<{ [jobId: string]: boolean }>(
+    {},
+  );
+  const [userSkills, setUserSkills] = useState<string[]>([]);
 
-useEffect(() => {
-  if (allJobs.length > 0 && user.email) {
-    allJobs.forEach(job => {
-      checkIfApplied(job._id);
+  const checkIfApplied = async (jobId: string) => {
+    try {
+      const res = await fetch(
+        `http://10.40.23.221:3000/api/check-application/${jobId}?email=${user.email}`,
+      );
+      const data = await res.json();
+      setAppliedJobs((prev) => ({ ...prev, [jobId]: data.applied }));
+    } catch (err) {
+      console.error("Error checking application:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (allJobs.length > 0 && user.email) {
+      allJobs.forEach((job) => {
+        checkIfApplied(job._id);
+      });
+    }
+  }, [allJobs, user.email]);
+
+  const openProfileModal = (email: string) => {
+    setSelectedEmail(email);
+    setModalVisible(true);
+
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 40,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const closeModal = () => {
+    Animated.parallel([
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setModalVisible(false);
+      setSelectedEmail(null);
     });
-  }
-}, [allJobs, user.email]);
-
-
-
-
-const openProfileModal = (email: string) => {
-  setSelectedEmail(email);
-  setModalVisible(true);
-
-  Animated.parallel([
-    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, friction: 8, tension: 40 }),
-    Animated.timing(opacityAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-  ]).start();
-};
-
-const closeModal = () => {
-  Animated.parallel([
-    Animated.timing(opacityAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    Animated.timing(scaleAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-  ]).start(() => {
-    setModalVisible(false);
-    setSelectedEmail(null);
-  });
-};
-
+  };
 
   const [filters, setFilters] = useState({
     location: "",
@@ -133,7 +148,6 @@ const closeModal = () => {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-
   // For filter toggle animation
   const [filtersVisible, setFiltersVisible] = useState(true);
   const animationValue = useRef(new Animated.Value(1)).current; // 1 means visible, 0 means hidden
@@ -147,58 +161,59 @@ const closeModal = () => {
     setFiltersVisible(!filtersVisible);
   };
 
-// Time formatter
-const getTimeAgo = (dateString: string) => {
-  const diffMs = Date.now() - new Date(dateString).getTime();
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  // Time formatter
+  const getTimeAgo = (dateString: string) => {
+    const diffMs = Date.now() - new Date(dateString).getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
-  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+    if (diffMinutes < 60) return `${diffMinutes} min ago`;
 
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours} hours ago`;
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours} hours ago`;
 
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays} days ago`;
-};
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} days ago`;
+  };
 
-// Fetch user image by email
-const fetchUserImage = async (email: string) => {
-  if (userImages[email]) return; // already fetched
-  try {
-    const res = await fetch(`http://192.168.100.39:3000/api/user-by-email/${email}`);
-    if (!res.ok) throw new Error("User not found");
-    const data = await res.json();
-    const imageUrl =
-      data.image && data.image.trim() !== ""
-        ? data.image.trim()
-        : "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png";
+  // Fetch user image by email
+  const fetchUserImage = async (email: string) => {
+    if (userImages[email]) return; // already fetched
+    try {
+      const res = await fetch(
+        `http://10.40.23.221:3000/api/user-by-email/${email}`,
+      );
+      if (!res.ok) throw new Error("User not found");
+      const data = await res.json();
+      const imageUrl =
+        data.image && data.image.trim() !== ""
+          ? data.image.trim()
+          : "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png";
 
-    setUserImages(prev => ({ ...prev, [email]: imageUrl }));
-  } catch (err) {
-    setUserImages(prev => ({
-      ...prev,
-      [email]: "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png"
-    }));
-  }
-};
-
-
-// Preload images after fetching jobs
-useEffect(() => {
-  const preloadImages = async () => {
-    const allEmails = [...new Set([...allJobs, ...myJobs].map(j => j.createdBy.email))];
-    for (let email of allEmails) {
-      await fetchUserImage(email);
+      setUserImages((prev) => ({ ...prev, [email]: imageUrl }));
+    } catch (err) {
+      setUserImages((prev) => ({
+        ...prev,
+        [email]:
+          "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
+      }));
     }
   };
 
-  if (allJobs.length > 0 || myJobs.length > 0) {
-    preloadImages();
-  }
-}, [allJobs, myJobs]);
+  // Preload images after fetching jobs
+  useEffect(() => {
+    const preloadImages = async () => {
+      const allEmails = [
+        ...new Set([...allJobs, ...myJobs].map((j) => j.createdBy.email)),
+      ];
+      for (let email of allEmails) {
+        await fetchUserImage(email);
+      }
+    };
 
-
-
+    if (allJobs.length > 0 || myJobs.length > 0) {
+      preloadImages();
+    }
+  }, [allJobs, myJobs]);
 
   const filterHeight = animationValue.interpolate({
     inputRange: [0, 1],
@@ -233,33 +248,34 @@ useEffect(() => {
     const fetchUserAndJobs = async () => {
       try {
         const userData = await AsyncStorage.getItem("user");
-if (userData) {
-  const parsedUser = JSON.parse(userData);
-  setUser(parsedUser);
-  await AsyncStorage.setItem("userEmail", parsedUser.email);
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          await AsyncStorage.setItem("userEmail", parsedUser.email);
 
-  // ✅ Fetch logged-in user's skills
-  try {
-    const skillsRes = await fetch(`http://192.168.100.39:3000/api/user/skills/${parsedUser.email}`);
-    const skillData = await skillsRes.json();
-    if (skillData.success) setUserSkills(skillData.skills);
-  } catch (err) {
-    console.log("Error loading user skills:", err);
-  }
+          // ✅ Fetch logged-in user's skills
+          try {
+            const skillsRes = await fetch(
+              `http://10.40.23.221:3000/api/user/skills/${parsedUser.email}`,
+            );
+            const skillData = await skillsRes.json();
+            if (skillData.success) setUserSkills(skillData.skills);
+          } catch (err) {
+            console.log("Error loading user skills:", err);
+          }
 
-  const resAll = await fetch("http://192.168.100.39:3000/api/alljobs");
-  const jobsAll = await resAll.json();
-  setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
+          const resAll = await fetch("http://10.40.23.221:3000/api/alljobs");
+          const jobsAll = await resAll.json();
+          setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
 
-  if (parsedUser.role === "Contractor") {
-    const resMine = await fetch(
-      `http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`
-    );
-    const jobsMine = await resMine.json();
-    setMyJobs(jobsMine);
-  }
-}
-
+          if (parsedUser.role === "Contractor") {
+            const resMine = await fetch(
+              `http://10.40.23.221:3000/api/my-jobs-email/${parsedUser.email}`,
+            );
+            const jobsMine = await resMine.json();
+            setMyJobs(jobsMine);
+          }
+        }
       } catch (err) {
         console.error("Error fetching jobs:", err);
       } finally {
@@ -270,120 +286,120 @@ if (userData) {
   }, []);
 
   const searchJobsFromAPI = async (text: string) => {
-  try {
-    const res = await fetch(
-      `http://192.168.100.39:3000/api/search-jobs?name=${text}&skill=${text}`
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      setAllJobs(data.jobs);   // update jobs list
-    }
-  } catch (err) {
-    console.log("Search API error:", err);
-  }
-};
-
-// const handleApply = async (job: Job) => {
-//   try {
-//     const response = await fetch(`http://192.168.100.39:3000/api/jobs/apply/${job._id}`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ labourId: user._id, labourEmail: user.email }),
-//     });
-
-//     const data = await response.json();
-
-//     if (response.ok) {
-//       Alert.alert("Success", `You applied for "${job.title}"`);
-
-//       // Update local state to reflect the application immediately
-//       setAllJobs(prev =>
-//         prev.map(j =>
-//           j._id === job._id
-//             ? {
-//                 ...j,
-//                 noOfWorkersApplied: j.noOfWorkersApplied + 1,
-//                 applicants: [
-//                   ...j.applicants,
-//                   { laborId: user._id, laborEmail: user.email, appliedAt: new Date().toISOString() },
-//                 ],
-//               }
-//             : j
-//         )
-//       );
-
-//       // Optionally refresh myJobs too if active tab is "myJobs"
-//       if (activeTab === "myJobs") {
-//         setMyJobs(prev => [
-//           ...prev,
-//           {
-//             ...job,
-//             noOfWorkersApplied: job.noOfWorkersApplied + 1,
-//             applicants: [
-//               ...job.applicants,
-//               { laborId: user._id, laborEmail: user.email, appliedAt: new Date().toISOString() },
-//             ],
-//           },
-//         ]);
-//       }
-
-//     } else {
-//       Alert.alert("Error", data.message);
-//     }
-//   } catch (err) {
-//     console.error(err);
-//     Alert.alert("Error", "Something went wrong");
-//   }
-// };
-
-const handleApply = async (job: Job) => {
-  try {
-    // Use user.email from state instead of hardcoded value
-    const response = await fetch(
-      `http://192.168.100.39:3000/api/apply/${job._id}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ labourEmail: user.email }), // ✅ use AsyncStorage user
-      }
-    );
-
-    const data = await response.json();
-
-    if (response.ok) {
-      Alert.alert("Success", `You applied for "${job.title}"`);
-
-      // Update local state immediately
-      setAppliedJobs(prev => ({ ...prev, [job._id]: true }));
-
-      setAllJobs(prev =>
-        prev.map(j =>
-          j._id === job._id
-            ? {
-                ...j,
-                noOfWorkersApplied: j.noOfWorkersApplied + 1,
-                applicants: [
-                  ...(j.applicants || []),
-                  {
-                    laborId: user._id,
-                    laborEmail: user.email, // ✅ replace hardcoded email
-                    appliedAt: new Date().toISOString(),
-                  },
-                ],
-              }
-            : j
-        )
+    try {
+      const res = await fetch(
+        `http://10.40.23.221:3000/api/search-jobs?name=${text}&skill=${text}`,
       );
-    } else {
-      Alert.alert("Error", data.message || "Could not apply");
+
+      const data = await res.json();
+
+      if (data.success) {
+        setAllJobs(data.jobs); // update jobs list
+      }
+    } catch (err) {
+      console.log("Search API error:", err);
     }
-  } catch (err) {
-    console.error(err);
-    Alert.alert("Error", "Something went wrong");
-  }
-};
+  };
+
+  // const handleApply = async (job: Job) => {
+  //   try {
+  //     const response = await fetch(`http://10.40.23.221:3000/api/jobs/apply/${job._id}`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ labourId: user._id, labourEmail: user.email }),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       Alert.alert("Success", `You applied for "${job.title}"`);
+
+  //       // Update local state to reflect the application immediately
+  //       setAllJobs(prev =>
+  //         prev.map(j =>
+  //           j._id === job._id
+  //             ? {
+  //                 ...j,
+  //                 noOfWorkersApplied: j.noOfWorkersApplied + 1,
+  //                 applicants: [
+  //                   ...j.applicants,
+  //                   { laborId: user._id, laborEmail: user.email, appliedAt: new Date().toISOString() },
+  //                 ],
+  //               }
+  //             : j
+  //         )
+  //       );
+
+  //       // Optionally refresh myJobs too if active tab is "myJobs"
+  //       if (activeTab === "myJobs") {
+  //         setMyJobs(prev => [
+  //           ...prev,
+  //           {
+  //             ...job,
+  //             noOfWorkersApplied: job.noOfWorkersApplied + 1,
+  //             applicants: [
+  //               ...job.applicants,
+  //               { laborId: user._id, laborEmail: user.email, appliedAt: new Date().toISOString() },
+  //             ],
+  //           },
+  //         ]);
+  //       }
+
+  //     } else {
+  //       Alert.alert("Error", data.message);
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     Alert.alert("Error", "Something went wrong");
+  //   }
+  // };
+
+  const handleApply = async (job: Job) => {
+    try {
+      // Use user.email from state instead of hardcoded value
+      const response = await fetch(
+        `http://10.40.23.221:3000/api/apply/${job._id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ labourEmail: user.email }), // ✅ use AsyncStorage user
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Success", `You applied for "${job.title}"`);
+
+        // Update local state immediately
+        setAppliedJobs((prev) => ({ ...prev, [job._id]: true }));
+
+        setAllJobs((prev) =>
+          prev.map((j) =>
+            j._id === job._id
+              ? {
+                  ...j,
+                  noOfWorkersApplied: j.noOfWorkersApplied + 1,
+                  applicants: [
+                    ...(j.applicants || []),
+                    {
+                      laborId: user._id,
+                      laborEmail: user.email, // ✅ replace hardcoded email
+                      appliedAt: new Date().toISOString(),
+                    },
+                  ],
+                }
+              : j,
+          ),
+        );
+      } else {
+        Alert.alert("Error", data.message || "Could not apply");
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Something went wrong");
+    }
+  };
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -403,31 +419,27 @@ const handleApply = async (job: Job) => {
     }
   };
 
- 
-const filteredJobs = (
-  activeTab === "myJobs"
-    ? myJobs
-    : allJobs
-).filter((job) => {
+  const filteredJobs = (activeTab === "myJobs" ? myJobs : allJobs).filter(
+    (job) => {
+      const { location, skill, startDate, endDate, minBudget, maxBudget } =
+        filters;
 
-  const { location, skill, startDate, endDate, minBudget, maxBudget } = filters;
+      const matchesSearch =
+        job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.skill.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const matchesSearch =
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.skill.toLowerCase().includes(searchQuery.toLowerCase());
-
-  return (
-    matchesSearch &&
-    (!location || job.location.toLowerCase().includes(location.toLowerCase())) &&
-    (!skill || job.skill.toLowerCase().includes(skill.toLowerCase())) &&
-    (!startDate || new Date(job.startDate) >= new Date(startDate)) &&
-    (!endDate || new Date(job.endDate) <= new Date(endDate)) &&
-    (!minBudget || job.budget >= parseFloat(minBudget)) &&
-    (!maxBudget || job.budget <= parseFloat(maxBudget))
+      return (
+        matchesSearch &&
+        (!location ||
+          job.location.toLowerCase().includes(location.toLowerCase())) &&
+        (!skill || job.skill.toLowerCase().includes(skill.toLowerCase())) &&
+        (!startDate || new Date(job.startDate) >= new Date(startDate)) &&
+        (!endDate || new Date(job.endDate) <= new Date(endDate)) &&
+        (!minBudget || job.budget >= parseFloat(minBudget)) &&
+        (!maxBudget || job.budget <= parseFloat(maxBudget))
+      );
+    },
   );
-});
-
-
 
   if (loading) {
     return (
@@ -483,23 +495,26 @@ const filteredJobs = (
       </TouchableOpacity>
 
       {/* Filters with animation */}
-      <Animated.View style={[styles.filtersContainer, { height: filterHeight, overflow: "hidden" }]}>
+      <Animated.View
+        style={[
+          styles.filtersContainer,
+          { height: filterHeight, overflow: "hidden" },
+        ]}
+      >
         <ScrollView>
-            <View style={styles.searchContainer}>
-<TextInput
-  style={styles.searchInput}
-  placeholder="Search jobs by title or skill..."
-  placeholderTextColor="#9ca3af"
-  value={searchQuery}
-  onChangeText={(text) => {
-    setSearchQuery(text);
-    searchJobsFromAPI(text);  // 🔥 call API live
-  }}
-/>
-
-</View>
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search jobs by title or skill..."
+              placeholderTextColor="#9ca3af"
+              value={searchQuery}
+              onChangeText={(text) => {
+                setSearchQuery(text);
+                searchJobsFromAPI(text); // 🔥 call API live
+              }}
+            />
+          </View>
           <View style={styles.row}>
-            
             <TextInput
               placeholder="Location"
               style={[styles.filterInput, { flex: 1, marginRight: 5 }]}
@@ -519,7 +534,9 @@ const filteredJobs = (
               style={styles.dateInput}
               onPress={() => setShowStartPicker(true)}
             >
-              <Text style={{ color: filters.startDate ? "#111827" : "#9ca3af" }}>
+              <Text
+                style={{ color: filters.startDate ? "#111827" : "#9ca3af" }}
+              >
                 {filters.startDate || "Start Date"}
               </Text>
             </TouchableOpacity>
@@ -535,7 +552,9 @@ const filteredJobs = (
 
           {showStartPicker && (
             <DateTimePicker
-              value={filters.startDate ? new Date(filters.startDate) : new Date()}
+              value={
+                filters.startDate ? new Date(filters.startDate) : new Date()
+              }
               mode="date"
               display="default"
               onChange={handleStartDateChange}
@@ -576,71 +595,71 @@ const filteredJobs = (
             </TouchableOpacity>
           </View>
         </ScrollView>
-
-
       </Animated.View>
-
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {filteredJobs.length > 0 ? (
           filteredJobs.map((job) => (
-           <View key={job._id} style={styles.jobCard}>
-
-            
-            
-            <Text style={{ color: "#6b7280", fontSize: 12, marginBottom: 5 }}>
-  {getTimeAgo(job.createdAt)}
-</Text>
+            <View key={job._id} style={styles.jobCard}>
+              <Text style={{ color: "#6b7280", fontSize: 12, marginBottom: 5 }}>
+                {getTimeAgo(job.createdAt)}
+              </Text>
 
               <View
-  style={[
-    styles.roleTag,
-    job.createdBy.role === "Contractor"
-      ? styles.contractorTag
-      : job.createdBy.role === "Labour"
-      ? styles.labourTag
-      : styles.industryTag,
-  ]}
->
-  <Text style={styles.roleTagText}>
-    {job.createdBy.role === "Contractor"
-      ? "Contractor"
-      : job.createdBy.role === "Labour"
-      ? "Labour"
-      : "Industry"}
-  </Text>
-</View>
+                style={[
+                  styles.roleTag,
+                  job.createdBy.role === "Contractor"
+                    ? styles.contractorTag
+                    : job.createdBy.role === "Labour"
+                      ? styles.labourTag
+                      : styles.industryTag,
+                ]}
+              >
+                <Text style={styles.roleTagText}>
+                  {job.createdBy.role === "Contractor"
+                    ? "Contractor"
+                    : job.createdBy.role === "Labour"
+                      ? "Labour"
+                      : "Industry"}
+                </Text>
+              </View>
 
-<View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-<Pressable onPress={() => openProfileModal(job.createdBy.email)}>
-  <Image
-    source={{
-      uri: userImages[job.createdBy.email]?.trim() ||
-        "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png"
-    }}
-    style={{ width: 50, height: 50, borderRadius: 25, marginRight: 10 }}
-  />
-</Pressable>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <Pressable
+                  onPress={() => openProfileModal(job.createdBy.email)}
+                >
+                  <Image
+                    source={{
+                      uri:
+                        userImages[job.createdBy.email]?.trim() ||
+                        "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
+                    }}
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 25,
+                      marginRight: 10,
+                    }}
+                  />
+                </Pressable>
 
+                <View>
+                  <Text style={{ fontWeight: "700", color: "#111827" }}>
+                    {job.createdBy.firstName} {job.createdBy.lastName}
+                  </Text>
+                  <Text style={{ color: "#6b7280", fontSize: 12 }}>
+                    {job.createdBy.email}
+                  </Text>
+                </View>
+              </View>
 
-
-
-
-
-
-
-
-  <View>
-    <Text style={{ fontWeight: "700", color: "#111827" }}>
-      {job.createdBy.firstName} {job.createdBy.lastName}
-    </Text>
-    <Text style={{ color: "#6b7280", fontSize: 12 }}>
-      {job.createdBy.email}
-    </Text>
-  </View>
-</View>
-
-{/* {job.applicants.some(app => app.laborId === user._id) && (
+              {/* {job.applicants.some(app => app.laborId === user._id) && (
       <Animated.View
         style={{
           position: "absolute",
@@ -664,16 +683,16 @@ const filteredJobs = (
               <Text style={styles.jobTitle}>{job.title}</Text>
               <Text style={styles.jobText}>{job.description}</Text>
 
-             <View style={styles.infoRow}>
-  <Text style={styles.infoLabel}>Location:</Text>
-  <Text
-    style={styles.infoValue}
-    numberOfLines={2}
-    ellipsizeMode="tail"
-  >
-    {job.location}
-  </Text>
-</View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Location:</Text>
+                <Text
+                  style={styles.infoValue}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
+                  {job.location}
+                </Text>
+              </View>
 
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Skill:</Text>
@@ -687,25 +706,36 @@ const filteredJobs = (
                 <Text style={styles.infoLabel}>Budget:</Text>
                 <Text style={styles.infoValue}>Rs: {job.budget}</Text>
               </View>
-             <View style={styles.infoRow}>
-  <Text style={styles.infoLabel}>Duration:</Text>
-  <View style={{ flexDirection: "column" }}>
-    <Text style={[styles.infoValue, { fontWeight: "700", color: "#fb923c" }]}>
-      {Math.max(
-        0,
-        Math.ceil(
-          (new Date(job.endDate).getTime() - new Date(job.startDate).getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )}{" "}
-      days
-    </Text>
-    <Text style={[styles.infoValue, { color: "#6b7280", fontSize: 13 }]}>
-      {new Date(job.startDate).toLocaleDateString()} →{" "}
-      {new Date(job.endDate).toLocaleDateString()}
-    </Text>
-  </View>
-</View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Duration:</Text>
+                <View style={{ flexDirection: "column" }}>
+                  <Text
+                    style={[
+                      styles.infoValue,
+                      { fontWeight: "700", color: "#fb923c" },
+                    ]}
+                  >
+                    {Math.max(
+                      0,
+                      Math.ceil(
+                        (new Date(job.endDate).getTime() -
+                          new Date(job.startDate).getTime()) /
+                          (1000 * 60 * 60 * 24),
+                      ),
+                    )}{" "}
+                    days
+                  </Text>
+                  <Text
+                    style={[
+                      styles.infoValue,
+                      { color: "#6b7280", fontSize: 13 },
+                    ]}
+                  >
+                    {new Date(job.startDate).toLocaleDateString()} →{" "}
+                    {new Date(job.endDate).toLocaleDateString()}
+                  </Text>
+                </View>
+              </View>
 
               {/* <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Created By:</Text>
@@ -714,50 +744,46 @@ const filteredJobs = (
                 </Text>
               </View> */}
 
-
               {/* <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>User Email:</Text>
                 <Text style={styles.infoValue}>
                   {job.createdBy.email}
                 </Text>
               </View> */}
-{appliedJobs[job._id] && (
-  <Animated.View
-    style={{
-      position: "absolute",
-      top: 10,
-      right: 10,
-      backgroundColor: "#13582eff",
-      paddingVertical: 4,
-      paddingHorizontal: 10,
-      borderRadius: 12,
-      opacity: 0.9,
-      zIndex: 10,
-    }}
-  >
-    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>
-      Applied
-    </Text>
-  </Animated.View>
-)}
+              {appliedJobs[job._id] && (
+                <Animated.View
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    backgroundColor: "#13582eff",
+                    paddingVertical: 4,
+                    paddingHorizontal: 10,
+                    borderRadius: 12,
+                    opacity: 0.9,
+                    zIndex: 10,
+                  }}
+                >
+                  <Text
+                    style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}
+                  >
+                    Applied
+                  </Text>
+                </Animated.View>
+              )}
 
-
-
-<TouchableOpacity
-  style={[
-    styles.applyButton,
-    appliedJobs[job._id] && { backgroundColor: "#9ca3af" },
-  ]}
-  disabled={!!appliedJobs[job._id]}
-  onPress={() => handleApply(job)}
->
-  <Text style={styles.applyButtonText}>
-    {appliedJobs[job._id] ? "Applied" : "Apply"}
-  </Text>
-</TouchableOpacity>
-
-
-
+              <TouchableOpacity
+                style={[
+                  styles.applyButton,
+                  appliedJobs[job._id] && { backgroundColor: "#9ca3af" },
+                ]}
+                disabled={!!appliedJobs[job._id]}
+                onPress={() => handleApply(job)}
+              >
+                <Text style={styles.applyButtonText}>
+                  {appliedJobs[job._id] ? "Applied" : "Apply"}
+                </Text>
+              </TouchableOpacity>
             </View>
           ))
         ) : (
@@ -766,42 +792,42 @@ const filteredJobs = (
       </ScrollView>
 
       <Modal
-  transparent
-  visible={modalVisible}
-  animationType="fade"
-  onRequestClose={closeModal}
->
-  <Animated.View
-    style={{
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.5)",
-      justifyContent: "center",
-      alignItems: "center",
-      opacity: opacityAnim,
-    }}
-  >
-    <Animated.View
-      style={{
-        flex: 1,
-        width: "100%",
-        backgroundColor: "#fff",
-        borderRadius: 0,
-        transform: [{ scale: scaleAnim }],
-        padding: 15,
-      }}
-    >
-      <Pressable
-        onPress={closeModal}
-        style={{ position: "absolute", top: 40, right: 20, zIndex: 10 }}
+        transparent
+        visible={modalVisible}
+        animationType="fade"
+        onRequestClose={closeModal}
       >
-        <Text style={{ fontSize: 22, fontWeight: "700" }}>X</Text>
-      </Pressable>
+        <Animated.View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            opacity: opacityAnim,
+          }}
+        >
+          <Animated.View
+            style={{
+              flex: 1,
+              width: "100%",
+              backgroundColor: "#fff",
+              borderRadius: 0,
+              transform: [{ scale: scaleAnim }],
+              padding: 15,
+            }}
+          >
+            <Pressable
+              onPress={closeModal}
+              style={{ position: "absolute", top: 40, right: 20, zIndex: 10 }}
+            >
+              <Text style={{ fontSize: 22, fontWeight: "700" }}>X</Text>
+            </Pressable>
 
-      {/* Profile component inside modal */}
-      {selectedEmail && <Profile email={selectedEmail} />}
-    </Animated.View>
-  </Animated.View>
-</Modal>
+            {/* Profile component inside modal */}
+            {selectedEmail && <Profile email={selectedEmail} />}
+          </Animated.View>
+        </Animated.View>
+      </Modal>
 
       <BottomTab
         tabs={contractorTabs}
@@ -837,20 +863,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   searchContainer: {
-  marginHorizontal: 15,
-  marginBottom: 10,
-},
-searchInput: {
-  backgroundColor: "#fff",
-  borderRadius: 12,
-  borderWidth: 1,
-  borderColor: "#e5e7eb",
-  paddingVertical: 10,
-  paddingHorizontal: 15,
-  fontSize: 15,
-  color: "#111827",
-  elevation: 2,
-},
+    marginHorizontal: 15,
+    marginBottom: 10,
+  },
+  searchInput: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    fontSize: 15,
+    color: "#111827",
+    elevation: 2,
+  },
 
   toggleText: {
     fontSize: 16,
@@ -890,7 +916,7 @@ searchInput: {
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
-  
+
   dateInput: {
     flex: 1,
     paddingVertical: 10,
@@ -951,9 +977,8 @@ searchInput: {
   jobTitle: { fontSize: 18, fontWeight: "700", color: "#111827" },
   jobText: { fontSize: 14, color: "#374151", marginBottom: 8 },
   emptyText: { fontSize: 14, color: "#6b7280", textAlign: "center" },
-  
 
-industryTag: { backgroundColor: "#3b82f6" },
+  industryTag: { backgroundColor: "#3b82f6" },
 
   roleTag: {
     alignSelf: "flex-start",
@@ -966,30 +991,27 @@ industryTag: { backgroundColor: "#3b82f6" },
   labourTag: { backgroundColor: "#10b981" },
   roleTagText: { color: "#fff", fontWeight: "700", fontSize: 12 },
 
+  infoRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+    alignItems: "flex-start",
+  },
 
-infoRow: {
-  flexDirection: "row",
-  marginBottom: 6,
-  alignItems: "flex-start",
-},
+  infoLabel: {
+    fontWeight: "600",
+    color: "#4b5563",
+    width: 90,
+  },
 
-infoLabel: {
-  fontWeight: "600",
-  color: "#4b5563",
-  width: 90,
-},
-
-infoValue: {
-  flex: 1,
-  flexWrap: "wrap",
-  color: "#374151",
-},
-
+  infoValue: {
+    flex: 1,
+    flexWrap: "wrap",
+    color: "#374151",
+  },
 
   applyButtonPressed: {
     backgroundColor: "#f97316",
     transform: [{ scale: 0.97 }],
     shadowOpacity: 0.5,
   },
-
 });

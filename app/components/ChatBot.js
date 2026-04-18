@@ -51,7 +51,7 @@ export default function ChatBot() {
           useNativeDriver: true,
           easing: Easing.inOut(Easing.ease),
         }),
-      ])
+      ]),
     ).start();
 
     Animated.loop(
@@ -66,7 +66,7 @@ export default function ChatBot() {
           duration: 1200,
           useNativeDriver: false,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -85,7 +85,7 @@ export default function ChatBot() {
           useNativeDriver: true,
           easing: Easing.inOut(Easing.ease),
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -108,14 +108,11 @@ export default function ChatBot() {
     setInput("");
 
     try {
-      const response = await fetch(
-        "http://192.168.100.39:3000/api/chat",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text }),
-        }
-      );
+      const response = await fetch("http://10.40.23.221:3000/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
 
       const data = await response.json();
       const botMessage = {
@@ -151,7 +148,7 @@ export default function ChatBot() {
 
       const rec = new Audio.Recording();
       await rec.prepareToRecordAsync(
-        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY,
       );
       await rec.startAsync();
       setRecording(rec);
@@ -174,13 +171,10 @@ export default function ChatBot() {
         type: "audio/m4a",
       });
 
-      const response = await fetch(
-        "http://192.168.100.39:3000/api/transcribe",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch("http://10.40.23.221:3000/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await response.json();
       const spokenText = data.text || "";

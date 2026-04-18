@@ -1,11 +1,20 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+    ActivityIndicator,
+    Dimensions,
+    Image,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 import AppliedJobScreen from "../screens/AppliedJob";
-
 
 const { width } = Dimensions.get("window");
 
@@ -22,12 +31,9 @@ export default function ContractorDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
-const [showResponseModal, setShowResponseModal] = useState(false);
-const [showJobResponseModal, setShowJobResponseModal] = useState(false);
-const [showAppliedJobModal, setShowAppliedJobModal] = useState(false);
-
-
-  
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [showJobResponseModal, setShowJobResponseModal] = useState(false);
+  const [showAppliedJobModal, setShowAppliedJobModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,9 +43,23 @@ const [showAppliedJobModal, setShowAppliedJobModal] = useState(false);
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
 
-        const res = await fetch(`http://192.168.100.39:3000/api/my-jobs-email/${parsedUser.email}`);
+        const res = await fetch(
+          `http://10.40.23.221:3000/api/my-jobs-email/${parsedUser.email}`,
+        );
         const data = await res.json();
-        setJobs(data.length ? data : [{ _id: "default", title: "No Jobs", workersRequired: 0, applicants: [], budget: 0 }]);
+        setJobs(
+          data.length
+            ? data
+            : [
+                {
+                  _id: "default",
+                  title: "No Jobs",
+                  workersRequired: 0,
+                  applicants: [],
+                  budget: 0,
+                },
+              ],
+        );
       } catch (err) {
         console.error(err);
       } finally {
@@ -49,107 +69,139 @@ const [showAppliedJobModal, setShowAppliedJobModal] = useState(false);
     fetchData();
   }, []);
 
-// inside your component
-if (loading) return (
-  <SafeAreaView style={styles.loadingContainer}>
-    <View style={styles.loaderBox}>
-      <ActivityIndicator size="large" color="#fb923c" />
-      <Text style={styles.loadingText}>Loading Dashboard...</Text>
-    </View>
-  </SafeAreaView>
-);
+  // inside your component
+  if (loading)
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <View style={styles.loaderBox}>
+          <ActivityIndicator size="large" color="#fb923c" />
+          <Text style={styles.loadingText}>Loading Dashboard...</Text>
+        </View>
+      </SafeAreaView>
+    );
 
-  
-  const totalApplicants = jobs.reduce((acc, job) => acc + (job.applicants?.length || 0), 0);
-  const maxApplicants = Math.max(...jobs.map(j => j.applicants?.length || 1));
+  const totalApplicants = jobs.reduce(
+    (acc, job) => acc + (job.applicants?.length || 0),
+    0,
+  );
+  const maxApplicants = Math.max(...jobs.map((j) => j.applicants?.length || 1));
 
   // --- Chart Data ---
   const barData = {
-    labels: jobs.map(j => j.title),
-    datasets: [{ data: jobs.map(j => j.applicants?.length || 0) }]
+    labels: jobs.map((j) => j.title),
+    datasets: [{ data: jobs.map((j) => j.applicants?.length || 0) }],
   };
 
   const stackedBarData = {
-    labels: jobs.map(j => j.title),
+    labels: jobs.map((j) => j.title),
     datasets: [
-      { data: jobs.map(j => j.applicants?.length || 0), color: () => `rgba(251, 146, 60, 1)` },
-      { data: jobs.map(j => j.workersRequired || 0), color: () => `rgba(60, 179, 113, 1)` }
-    ]
+      {
+        data: jobs.map((j) => j.applicants?.length || 0),
+        color: () => `rgba(251, 146, 60, 1)`,
+      },
+      {
+        data: jobs.map((j) => j.workersRequired || 0),
+        color: () => `rgba(60, 179, 113, 1)`,
+      },
+    ],
   };
 
   const lineData = {
-    labels: jobs.map(j => j.title),
-    datasets: [{ data: jobs.map(j => j.applicants?.length || 0), strokeWidth: 2, color: () => `rgba(251, 146, 60, 1)` }]
+    labels: jobs.map((j) => j.title),
+    datasets: [
+      {
+        data: jobs.map((j) => j.applicants?.length || 0),
+        strokeWidth: 2,
+        color: () => `rgba(251, 146, 60, 1)`,
+      },
+    ],
   };
 
-  const pieData = jobs.map(j => ({
+  const pieData = jobs.map((j) => ({
     name: j.title,
     population: j.applicants?.length || 1,
     color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
     legendFontColor: "#7F7F7F",
-    legendFontSize: 12
+    legendFontSize: 12,
   }));
 
   const progressData = {
-    labels: jobs.map(j => j.title),
-    data: jobs.map(j => Math.min((j.applicants?.length || 0) / maxApplicants, 1))
+    labels: jobs.map((j) => j.title),
+    data: jobs.map((j) =>
+      Math.min((j.applicants?.length || 0) / maxApplicants, 1),
+    ),
   };
 
   // NEW CHART: Contribution Graph (e.g., job activity over time)
   const contributionData = jobs.map((j, idx) => ({
     date: new Date(Date.now() - idx * 86400000).toISOString().split("T")[0],
-    count: j.applicants?.length || 0
+    count: j.applicants?.length || 0,
   }));
 
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* ------------------ AppBar ------------------ */}
       {/* <AppBar title={`Welcome, ${user.firstName} 👷‍♂️`} /> */}
-            <AppBar title={`Labour Hub`} />
-
+      <AppBar title={`Labour Hub`} />
 
       {/* ------------------ Scrollable Content ------------------ */}
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
         {/* ------------------ User Info Card ------------------ */}
         <View style={styles.userCard}>
           <Image
-  source={{
-    uri:
-      user?.image && user.image.trim() !== ""
-        ? user.image
-        : "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
-  }}
-  style={styles.userImage}
-/>
+            source={{
+              uri:
+                user?.image && user.image.trim() !== ""
+                  ? user.image
+                  : "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
+            }}
+            style={styles.userImage}
+          />
 
           <View style={{ flex: 1, marginLeft: 15 }}>
-            <Text style={styles.userName}>{user.firstName} {user.lastName}</Text>
+            <Text style={styles.userName}>
+              {user.firstName} {user.lastName}
+            </Text>
             <Text style={styles.userEmail}>{user.email}</Text>
             <Text style={styles.userRole}>{user.role}</Text>
           </View>
         </View>
 
-
-
-  {/* Job Response Button */}
-  <View style={styles.actionBtn}>
-    <Text onPress={() => setShowJobResponseModal(true)} style={styles.actionBtnText}>
-      Applied Job Response
-    </Text>
-  </View>
-{/* --- Job Response Modal --- */}
-<Modal visible={showJobResponseModal} transparent animationType="fade">
-  <View style={[styles.modalContainer, { backgroundColor: "rgba(16, 185, 129, 0.4)" }]}>
-    <View style={[styles.modalBoxLarge, { backgroundColor: "#ECFDF5" }]}>
-      <Text style={[styles.modalTitle, { color: "#059669" }]}>Job Response</Text>
-      <ScrollView style={{ flex: 1, width: "100%" }}>
-        <AppliedJobScreen />
-      </ScrollView>
-      <Text style={styles.closeBtn} onPress={() => setShowJobResponseModal(false)}>Close</Text>
-    </View>
-  </View>
-</Modal>
+        {/* Job Response Button */}
+        <View style={styles.actionBtn}>
+          <Text
+            onPress={() => setShowJobResponseModal(true)}
+            style={styles.actionBtnText}
+          >
+            Applied Job Response
+          </Text>
+        </View>
+        {/* --- Job Response Modal --- */}
+        <Modal visible={showJobResponseModal} transparent animationType="fade">
+          <View
+            style={[
+              styles.modalContainer,
+              { backgroundColor: "rgba(16, 185, 129, 0.4)" },
+            ]}
+          >
+            <View
+              style={[styles.modalBoxLarge, { backgroundColor: "#ECFDF5" }]}
+            >
+              <Text style={[styles.modalTitle, { color: "#059669" }]}>
+                Job Response
+              </Text>
+              <ScrollView style={{ flex: 1, width: "100%" }}>
+                <AppliedJobScreen />
+              </ScrollView>
+              <Text
+                style={styles.closeBtn}
+                onPress={() => setShowJobResponseModal(false)}
+              >
+                Close
+              </Text>
+            </View>
+          </View>
+        </Modal>
         {/* ------------------ Stats Cards ------------------ */}
         {/* <View style={styles.statsRow}>
           <View style={styles.statCard}>
@@ -176,7 +228,7 @@ if (loading) return (
             chartConfig={chartConfig}
             verticalLabelRotation={30}
             yAxisLabel=""
-  yAxisSuffix=""
+            yAxisSuffix=""
             fromZero
             showValuesOnTopOfBars
             style={styles.chartStyle}
@@ -193,7 +245,7 @@ if (loading) return (
             chartConfig={chartConfig}
             verticalLabelRotation={30}
             yAxisLabel=""
-  yAxisSuffix=""
+            yAxisSuffix=""
             fromZero
             showValuesOnTopOfBars
             style={styles.chartStyle}
@@ -257,16 +309,15 @@ if (loading) return (
 />
 
         </View> */}
-
       </ScrollView>
 
       {/* ------------------ Bottom Tab ------------------ */}
-      <BottomTab 
+      <BottomTab
         tabs={[
-           { label: "Home", icon: "home" },
-  { label: "Find Jobs", icon: "search" },
-  { label: "Chats", icon: "chatbubbles" },
-  { label: "Settings", icon: "settings" },
+          { label: "Home", icon: "home" },
+          { label: "Find Jobs", icon: "search" },
+          { label: "Chats", icon: "chatbubbles" },
+          { label: "Settings", icon: "settings" },
         ]}
         activeTab="Home"
         userRole="Labour"
@@ -287,51 +338,48 @@ const chartConfig = {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#f0f4f8" },
-loadingContainer: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "#ffffff",
-},
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
 
-loaderBox: {
-  width: 160,
-  height: 160,
-  borderRadius: 24,
-  backgroundColor: "#fff",
-  justifyContent: "center",
-  alignItems: "center",
-  shadowColor: "#fb923c",
-  shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.35,
-  shadowRadius: 12,
-  elevation: 12,
-  transform: [{ scale: 1 }],
-  // Animate scaling for subtle bounce effect
-},
-modalBoxLarge: {
-  width: "90%",
-  height: "80%",
-  backgroundColor: "#fff",
-  borderRadius: 20,
-  padding: 20,
-  alignItems: "center",
-},
+  loaderBox: {
+    width: 160,
+    height: 160,
+    borderRadius: 24,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#fb923c",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 12,
+    transform: [{ scale: 1 }],
+    // Animate scaling for subtle bounce effect
+  },
+  modalBoxLarge: {
+    width: "90%",
+    height: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+  },
 
-loadingText: {
-  marginTop: 12,
-  fontSize: 16,
-  fontWeight: "700",
-  color: "#fb923c",
-  textAlign: "center",
-},
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#fb923c",
+    textAlign: "center",
+  },
 
-// Optional: keyframe animation for bounce (React Native Animated alternative)
-
+  // Optional: keyframe animation for bounce (React Native Animated alternative)
 
   container: { paddingVertical: 20, paddingHorizontal: 20 },
-
-  
 
   // --- User Card ---
   userCard: {
@@ -399,7 +447,11 @@ loadingText: {
   latestJobInfo: { fontSize: 13, color: "#555", marginTop: 3 },
 
   // --- Stats Cards ---
-  statsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 25 },
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 25,
+  },
   statCard: {
     flex: 1,
     backgroundColor: "#fff",
@@ -443,53 +495,53 @@ loadingText: {
     backgroundColor: "#f9fafb",
     padding: 8,
   },
-actionBtn: {
-  backgroundColor: "#fb923c",
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  borderRadius: 12,
-  marginTop:10,
-  marginBottom:10,
-  flex: 1,
-  marginHorizontal: 4,
-  alignItems: "center",
-},
-actionBtnText: {
-  color: "#fff",
-  fontWeight: "700",
-  fontSize: 14,
-},
+  actionBtn: {
+    backgroundColor: "#fb923c",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginTop: 10,
+    marginBottom: 10,
+    flex: 1,
+    marginHorizontal: 4,
+    alignItems: "center",
+  },
+  actionBtnText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+  },
 
-modalContainer: {
-  flex: 1,
-  backgroundColor: "rgba(0,0,0,0.5)",
-  justifyContent: "center",
-  alignItems: "center",
-},
-modalBox: {
-  width: "85%",
-  backgroundColor: "#fff",
-  borderRadius: 20,
-  padding: 20,
-  alignItems: "center",
-},
-modalTitle: {
-  fontSize: 20,
-  fontWeight: "700",
-  marginBottom: 10,
-},
-modalContent: {
-  fontSize: 14,
-  color: "#555",
-  marginBottom: 20,
-  textAlign: "center",
-},
-closeBtn: {
-  color: "#fb923c",
-  fontSize: 16,
-  fontWeight: "700",
-  marginTop: 10,
-},
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    width: "85%",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  modalContent: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  closeBtn: {
+    color: "#fb923c",
+    fontSize: 16,
+    fontWeight: "700",
+    marginTop: 10,
+  },
 
   // --- Animations hint ---
   animatedCard: {

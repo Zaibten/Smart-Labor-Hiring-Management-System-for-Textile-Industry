@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    Easing,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
-const API_URL = "http://192.168.100.39:3000/api/profile";
+const API_URL = "http://10.40.23.221:3000/api/profile";
 const HARD_CODED_EMAIL = "silver@gmail.com";
 
 interface ProfileProps {
@@ -66,7 +66,12 @@ const Profile: React.FC<ProfileProps> = ({ email }) => {
     );
   }
 
-const { user = {}, stats = {}, jobsCreated = [], jobsApplied = [] } = profile || {};
+  const {
+    user = {},
+    stats = {},
+    jobsCreated = [],
+    jobsApplied = [],
+  } = profile || {};
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
@@ -96,31 +101,32 @@ const { user = {}, stats = {}, jobsCreated = [], jobsApplied = [] } = profile ||
             </Text>
           </View>
         </View>
-{/* REVIEWS SECTION */}
-{profile.reviews && profile.reviews.length > 0 ? (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>Reviews</Text>
-    {profile.reviews.map((review: any, index: number) => (
-      <View key={index} style={styles.reviewCard}>
-        <Text style={styles.reviewerEmail}>{review.reviewerEmail}</Text>
-        <Text style={styles.reviewRating}>
-          {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
-        </Text>
-        {review.feedback ? (
-          <Text style={styles.reviewFeedback}>{review.feedback}</Text>
-        ) : null}
-        <Text style={styles.reviewDate}>
-          {new Date(review.createdAt).toDateString()}
-        </Text>
-      </View>
-    ))}
-  </View>
-) : (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>Reviews</Text>
-    <Text style={styles.empty}>No reviews yet.</Text>
-  </View>
-)}
+        {/* REVIEWS SECTION */}
+        {profile.reviews && profile.reviews.length > 0 ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Reviews</Text>
+            {profile.reviews.map((review: any, index: number) => (
+              <View key={index} style={styles.reviewCard}>
+                <Text style={styles.reviewerEmail}>{review.reviewerEmail}</Text>
+                <Text style={styles.reviewRating}>
+                  {"★".repeat(review.rating)}
+                  {"☆".repeat(5 - review.rating)}
+                </Text>
+                {review.feedback ? (
+                  <Text style={styles.reviewFeedback}>{review.feedback}</Text>
+                ) : null}
+                <Text style={styles.reviewDate}>
+                  {new Date(review.createdAt).toDateString()}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Reviews</Text>
+            <Text style={styles.empty}>No reviews yet.</Text>
+          </View>
+        )}
 
         {/* STATS */}
         <View style={styles.statsContainer}>
@@ -135,9 +141,7 @@ const { user = {}, stats = {}, jobsCreated = [], jobsApplied = [] } = profile ||
           </View>
 
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>
-              {stats.totalApplicantsOnJobs}
-            </Text>
+            <Text style={styles.statNumber}>{stats.totalApplicantsOnJobs}</Text>
             <Text style={styles.statLabel}>Applicants</Text>
           </View>
         </View>
@@ -260,34 +264,34 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   reviewCard: {
-  backgroundColor: "#fff",
-  padding: 15,
-  borderRadius: 15,
-  marginBottom: 12,
-  shadowColor: "#000",
-  shadowOpacity: 0.08,
-  shadowRadius: 10,
-  elevation: 3,
-},
-reviewerEmail: {
-  fontWeight: "bold",
-  color: "#222",
-  marginBottom: 4,
-},
-reviewRating: {
-  color: "#facc15",
-  fontSize: 16,
-},
-reviewFeedback: {
-  color: "#555",
-  marginTop: 4,
-  fontSize: 14,
-},
-reviewDate: {
-  fontSize: 12,
-  color: "#999",
-  marginTop: 4,
-},
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  reviewerEmail: {
+    fontWeight: "bold",
+    color: "#222",
+    marginBottom: 4,
+  },
+  reviewRating: {
+    color: "#facc15",
+    fontSize: 16,
+  },
+  reviewFeedback: {
+    color: "#555",
+    marginTop: 4,
+    fontSize: 14,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
+  },
 
   memberSince: {
     marginTop: 10,
