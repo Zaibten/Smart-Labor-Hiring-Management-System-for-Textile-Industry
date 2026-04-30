@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "labourshub",
-    "slug": "labourshub",
+    "slug": "laborshub",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,6 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "useNextNotificationsApi": true,
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
@@ -20,11 +21,13 @@
       },
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "googleMaps": {
-          "apiKey": "AIzaSyDLjGuox_0JwC5Y2D4WlYiRgwfz0ppCuHo"
-        },
+        "apiKey": "AIzaSyDLjGuox_0JwC5Y2D4WlYiRgwfz0ppCuHo"
+      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -33,6 +36,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "expo-notifications",
       "expo-router",
       [
         "expo-splash-screen",
@@ -51,6 +55,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9cd32292-c5e7-45c2-87b8-645c0571f1cb"
+      }
+    },
+    "owner": "laborshub"
   }
 }

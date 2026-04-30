@@ -4,20 +4,20 @@ import React, { useEffect, useRef, useState } from "react";
 import Profile from "./Profile";
 
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Image,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -81,7 +81,7 @@ export default function AllJobs() {
   const checkIfApplied = async (jobId: string) => {
     try {
       const res = await fetch(
-        `http://10.40.23.221:3000/api/check-application/${jobId}?email=${user.email}`,
+        `http://192.168.100.177:3000/api/check-application/${jobId}?email=${user.email}`,
       );
       const data = await res.json();
       setAppliedJobs((prev) => ({ ...prev, [jobId]: data.applied }));
@@ -180,7 +180,7 @@ export default function AllJobs() {
     if (userImages[email]) return; // already fetched
     try {
       const res = await fetch(
-        `http://10.40.23.221:3000/api/user-by-email/${email}`,
+        `http://192.168.100.177:3000/api/user-by-email/${email}`,
       );
       if (!res.ok) throw new Error("User not found");
       const data = await res.json();
@@ -256,7 +256,7 @@ export default function AllJobs() {
           // ✅ Fetch logged-in user's skills
           try {
             const skillsRes = await fetch(
-              `http://10.40.23.221:3000/api/user/skills/${parsedUser.email}`,
+              `http://192.168.100.177:3000/api/user/skills/${parsedUser.email}`,
             );
             const skillData = await skillsRes.json();
             if (skillData.success) setUserSkills(skillData.skills);
@@ -264,13 +264,13 @@ export default function AllJobs() {
             console.log("Error loading user skills:", err);
           }
 
-          const resAll = await fetch("http://10.40.23.221:3000/api/alljobs");
+          const resAll = await fetch("http://192.168.100.177:3000/api/alljobs");
           const jobsAll = await resAll.json();
           setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
 
           if (parsedUser.role === "Contractor") {
             const resMine = await fetch(
-              `http://10.40.23.221:3000/api/my-jobs-email/${parsedUser.email}`,
+              `http://192.168.100.177:3000/api/my-jobs-email/${parsedUser.email}`,
             );
             const jobsMine = await resMine.json();
             setMyJobs(jobsMine);
@@ -288,7 +288,7 @@ export default function AllJobs() {
   const searchJobsFromAPI = async (text: string) => {
     try {
       const res = await fetch(
-        `http://10.40.23.221:3000/api/search-jobs?name=${text}&skill=${text}`,
+        `http://192.168.100.177:3000/api/search-jobs?name=${text}&skill=${text}`,
       );
 
       const data = await res.json();
@@ -303,7 +303,7 @@ export default function AllJobs() {
 
   // const handleApply = async (job: Job) => {
   //   try {
-  //     const response = await fetch(`http://10.40.23.221:3000/api/jobs/apply/${job._id}`, {
+  //     const response = await fetch(`https://labourhubserver.vercel.appapi/jobs/apply/${job._id}`, {
   //       method: "POST",
   //       headers: { "Content-Type": "application/json" },
   //       body: JSON.stringify({ labourId: user._id, labourEmail: user.email }),
@@ -358,7 +358,7 @@ export default function AllJobs() {
     try {
       // Use user.email from state instead of hardcoded value
       const response = await fetch(
-        `http://10.40.23.221:3000/api/apply/${job._id}`,
+        `http://192.168.100.177:3000/api/apply/${job._id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -3,26 +3,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import BottomTab from "../components/BottomTab";
 import Profile from "./Profile"; // Profile modal component
 
-const BACKEND_URL = "http://10.40.23.221:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "http://192.168.100.177:3000/api/chat"; // replace with your backend
 
 interface Labour {
   labourId: string | null;
@@ -152,7 +152,7 @@ export default function Response() {
     const fetchResponses = async () => {
       try {
         const response = await fetch(
-          `http://10.40.23.221:3000/api/responses-by-contractor/${contractorEmail}`,
+          `http://192.168.100.177:3000/api/responses-by-contractor/${contractorEmail}`,
         );
         if (!response.ok) throw new Error("Failed to fetch responses");
         const data = await response.json();

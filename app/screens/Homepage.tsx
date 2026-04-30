@@ -1,15 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    Image,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
@@ -44,7 +44,7 @@ export default function ContractorDashboard() {
         setUser(parsedUser);
 
         const res = await fetch(
-          `http://10.40.23.221:3000/api/my-jobs-email/${parsedUser.email}`,
+          `http://192.168.100.177:3000/api/my-jobs-email/${parsedUser.email}`,
         );
         const data = await res.json();
         setJobs(

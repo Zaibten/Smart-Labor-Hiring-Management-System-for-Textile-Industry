@@ -4,18 +4,18 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 
 import {
-    Alert,
-    Animated,
-    Easing,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Animated,
+  Easing,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export const options = { headerShown: false };
@@ -107,11 +107,14 @@ export default function ChangePasswordScreen({
     }
     try {
       setLoading(true);
-      const res = await fetch("http://10.40.23.221:3000/api/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        "http://192.168.100.177:3000/api/forgot-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        },
+      );
       const data = await res.json();
       setLoading(false);
 
@@ -134,11 +137,14 @@ export default function ChangePasswordScreen({
     }
     try {
       setLoading(true);
-      const res = await fetch("http://10.40.23.221:3000/api/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, newPassword }),
-      });
+      const res = await fetch(
+        "http://192.168.100.177:3000/api/reset-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, newPassword }),
+        },
+      );
       const data = await res.json();
       setLoading(false);
 

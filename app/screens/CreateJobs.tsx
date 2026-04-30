@@ -8,15 +8,15 @@ import { useRef } from "react";
 
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
@@ -222,7 +222,7 @@ export default function CreateJob() {
     }
 
     try {
-      const response = await fetch("http://10.40.23.221:3000/api/jobs", {
+      const response = await fetch("http://192.168.100.177:3000/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

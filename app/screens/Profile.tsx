@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 
-const API_URL = "http://10.40.23.221:3000/api/profile";
+const API_URL = "http://192.168.100.177:3000/api/profile";
 const HARD_CODED_EMAIL = "silver@gmail.com";
 
 interface ProfileProps {

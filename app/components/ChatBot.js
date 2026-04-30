@@ -1,16 +1,16 @@
 import { Audio } from "expo-av";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Easing,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Easing,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function ChatBot() {
@@ -108,7 +108,7 @@ export default function ChatBot() {
     setInput("");
 
     try {
-      const response = await fetch("http://10.40.23.221:3000/api/chat", {
+      const response = await fetch("http://192.168.100.177:3000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
@@ -171,10 +171,13 @@ export default function ChatBot() {
         type: "audio/m4a",
       });
 
-      const response = await fetch("http://10.40.23.221:3000/api/transcribe", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "http://192.168.100.177:3000/api/transcribe",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       const data = await response.json();
       const spokenText = data.text || "";

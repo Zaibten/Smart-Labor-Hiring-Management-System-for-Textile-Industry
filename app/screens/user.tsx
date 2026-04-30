@@ -62,7 +62,7 @@ interface Profile {
   };
 }
 
-const API_URL = "http://10.40.23.221:3000/api/users";
+const API_URL = "http://192.168.100.177:3000/api/users";
 
 export default function UsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
@@ -101,7 +101,7 @@ export default function UsersScreen() {
 
     try {
       const res = await axios.post(
-        `http://10.40.23.221:3000/api/users/${reviewTargetEmail}/review`,
+        `https://labourhubserver.vercel.appapi/users/${reviewTargetEmail}/review`,
         {
           reviewerEmail: userEmail, // logged-in user
           rating: reviewRating,
@@ -188,7 +188,7 @@ export default function UsersScreen() {
 
     try {
       const res = await axios.get(
-        `http://10.40.23.221:3000/api/chat/${userEmail}/${receiverEmail}`,
+        `http://192.168.100.177:3000/api/chat/${userEmail}/${receiverEmail}`,
       );
       setChatMessages(res.data);
     } catch (err) {
@@ -199,11 +199,14 @@ export default function UsersScreen() {
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
     try {
-      const res = await axios.post("http://10.40.23.221:3000/api/chat/send", {
-        senderEmail: userEmail,
-        receiverEmail: currentReceiver,
-        message: newMessage,
-      });
+      const res = await axios.post(
+        "http://192.168.100.177:3000/api/chat/send",
+        {
+          senderEmail: userEmail,
+          receiverEmail: currentReceiver,
+          message: newMessage,
+        },
+      );
       setChatMessages((prev) => [...prev, res.data]);
       setNewMessage("");
     } catch (err) {
@@ -215,7 +218,7 @@ export default function UsersScreen() {
   const openProfile = async (email: string) => {
     try {
       const res = await axios.get(
-        `http://10.40.23.221:3000/api/profile/${email}`,
+        `http://192.168.100.177:3000/api/profile/${email}`,
       );
       setUserProfiles((prev) => ({ ...prev, [email]: res.data }));
       setProfileModalVisible(true);

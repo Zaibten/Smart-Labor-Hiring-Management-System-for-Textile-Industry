@@ -22,7 +22,7 @@ const sgMail = require("@sendgrid/mail");
 const chatRoutes = require("./chat");
 const { Server } = require("socket.io");
 require("dotenv").config();
-
+const notification = require("./notification");
 
 const app = express();
 app.use(express.json());
@@ -404,11 +404,11 @@ const questionsData = [
 const findMatchingQuestion = (text) => {
   const lowerText = text.toLowerCase();
   const match = questionsData.find(
-    (q) => q.text.includes(lowerText) || lowerText.includes(q.text)
+    (q) => q.text.includes(lowerText) || lowerText.includes(q.text),
   );
   if (match) return match;
   const similar = questionsData.find((q) =>
-    q.text.split(" ").some((word) => lowerText.includes(word))
+    q.text.split(" ").some((word) => lowerText.includes(word)),
   );
   return similar;
 };
@@ -511,7 +511,7 @@ app.post("/api/transcribe", upload.single("file"), async (req, res) => {
           ...form.getHeaders(),
         },
         body: form,
-      }
+      },
     );
 
     const data = await whisperResponse.json();
@@ -548,11 +548,12 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*", // Or your frontend URL
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
 app.use("/api/chat", chatRoutes);
+notification.sendServerStartNotification().catch(console.error);
 
 /* ---------- Mongoose user schema ---------- */
 const userSchema = new mongoose.Schema(
@@ -560,14 +561,22 @@ const userSchema = new mongoose.Schema(
     firstName: { type: String, required: true, trim: true, maxlength: 50 },
     lastName: { type: String, required: true, trim: true, maxlength: 50 },
     phone: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ["Labour", "Contractor"], default: "Labour" },
-    image: { 
-      type: String, 
-      default: "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png" 
+    image: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
     },
     skills: { type: [String], default: [] },
+    expoPushToken: { type: String, default: null }, // ADD THIS LINE
     reviews: [
       {
         reviewerEmail: { type: String, required: true },
@@ -578,45 +587,54 @@ const userSchema = new mongoose.Schema(
     ],
     createdAt: { type: Date, default: Date.now },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
 
 const User = mongoose.model("User", userSchema);
 
-app.post("/api/update-profile-image", upload.single("image"), async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ message: "Email is required" });
-  if (!req.file) return res.status(400).json({ message: "No image uploaded" });
+app.post(
+  "/api/update-profile-image",
+  upload.single("image"),
+  async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+    if (!req.file)
+      return res.status(400).json({ message: "No image uploaded" });
 
-  try {
-    // Save only Cloudinary URL
-    const imageUrl = req.file.path; // <-- keep this as is
-    const user = await User.findOneAndUpdate({ email }, { image: imageUrl }, { new: true });
+    try {
+      // Save only Cloudinary URL
+      const imageUrl = req.file.path; // <-- keep this as is
+      const user = await User.findOneAndUpdate(
+        { email },
+        { image: imageUrl },
+        { new: true },
+      );
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+      if (!user) return res.status(404).json({ message: "User not found" });
 
-    return res.status(200).json({ message: "Profile image updated", user });
-  } catch (err) {
-    console.log("Server error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
+      return res.status(200).json({ message: "Profile image updated", user });
+    } catch (err) {
+      console.log("Server error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  },
+);
 
 app.post("/api/users/:email/review", async (req, res) => {
   const { email } = req.params;
   const { reviewerEmail, rating, feedback } = req.body;
 
   if (!reviewerEmail || !rating) {
-    return res.status(400).json({ message: "Reviewer email and rating are required" });
+    return res
+      .status(400)
+      .json({ message: "Reviewer email and rating are required" });
   }
 
   try {
     const user = await User.findOneAndUpdate(
       { email },
       { $push: { reviews: { reviewerEmail, rating, feedback } } },
-      { new: true }
+      { new: true },
     );
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -627,9 +645,6 @@ app.post("/api/users/:email/review", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-
-
 
 app.get("/api/users", async (req, res) => {
   try {
@@ -656,11 +671,11 @@ app.get("/api/users", async (req, res) => {
     }
 
     const users = await User.find(filter).select(
-      "firstName lastName email phone role image skills"
+      "firstName lastName email phone role image skills",
     );
 
     // 🏷 Add badge dynamically
-    const formattedUsers = users.map(user => ({
+    const formattedUsers = users.map((user) => ({
       _id: user._id,
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
@@ -676,7 +691,6 @@ app.get("/api/users", async (req, res) => {
       count: formattedUsers.length,
       users: formattedUsers,
     });
-
   } catch (error) {
     console.error("User Fetch Error:", error);
     res.status(500).json({
@@ -697,7 +711,6 @@ app.get("/api/user/:userId", async (req, res) => {
   }
 });
 
-
 // ---------- Get Skills by Email ----------
 app.get("/api/user/skills/:email", async (req, res) => {
   try {
@@ -706,15 +719,16 @@ app.get("/api/user/skills/:email", async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     return res.json({
       success: true,
       email: user.email,
-      skills: user.skills || []
+      skills: user.skills || [],
     });
-
   } catch (err) {
     console.error("Error fetching skills:", err);
     res.status(500).json({
@@ -731,13 +745,17 @@ app.post("/api/user/:email/skills", async (req, res) => {
     const { skill } = req.body;
 
     if (!skill || !skill.trim()) {
-      return res.status(400).json({ success: false, message: "Skill is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Skill is required" });
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // Prevent duplicates
@@ -755,7 +773,9 @@ app.post("/api/user/:email/skills", async (req, res) => {
     });
   } catch (err) {
     console.error("Error adding skill:", err);
-    res.status(500).json({ success: false, message: "Server error while adding skill" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error while adding skill" });
   }
 });
 
@@ -768,11 +788,15 @@ app.delete("/api/user/:email/skills/:index", async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     if (index < 0 || index >= user.skills.length) {
-      return res.status(400).json({ success: false, message: "Invalid skill index" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid skill index" });
     }
 
     // Remove the skill by index
@@ -786,16 +810,19 @@ app.delete("/api/user/:email/skills/:index", async (req, res) => {
     });
   } catch (err) {
     console.error("Error deleting skill:", err);
-    res.status(500).json({ success: false, message: "Server error while deleting skill" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error while deleting skill" });
   }
 });
-
 
 // Get user by email
 app.get("/api/user-by-email/:email", async (req, res) => {
   try {
     const { email } = req.params;
-    const user = await User.findOne({ email }).select("firstName lastName email image role");
+    const user = await User.findOne({ email }).select(
+      "firstName lastName email image role",
+    );
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
@@ -803,7 +830,6 @@ app.get("/api/user-by-email/:email", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 /* ---------- Helpers ---------- */
 
@@ -816,8 +842,13 @@ function validateSignupPayload(payload) {
   if (!payload.lastName || String(payload.lastName).trim().length < 1) {
     errors.push("Last name is required.");
   }
-  if (!payload.phone || !/^\+?[0-9]{7,15}$/.test(String(payload.phone).trim())) {
-    errors.push("Phone is required (digits only, 7-15 chars, optional leading +).");
+  if (
+    !payload.phone ||
+    !/^\+?[0-9]{7,15}$/.test(String(payload.phone).trim())
+  ) {
+    errors.push(
+      "Phone is required (digits only, 7-15 chars, optional leading +).",
+    );
   }
   if (!payload.email || !validator.isEmail(String(payload.email))) {
     errors.push("A valid email is required.");
@@ -838,7 +869,7 @@ function signJwt(user) {
   return jwt.sign(
     { sub: user._id.toString(), email: user.email, role: user.role },
     secret,
-    { expiresIn }
+    { expiresIn },
   );
 }
 
@@ -850,10 +881,18 @@ function signJwt(user) {
  */
 app.post("/api/signup", async (req, res) => {
   try {
-    const { firstName, lastName, phone, email, password, role } = req.body || {};
-
+    const { firstName, lastName, phone, email, password, role, expoPushToken } =
+      req.body || {};
     // validate input
-    const validationErrors = validateSignupPayload({ firstName, lastName, phone, email, password, role });
+    const validationErrors = validateSignupPayload({
+      firstName,
+      lastName,
+      phone,
+      email,
+      password,
+      role,
+      expoPushToken: expoPushToken || null, // Add this
+    });
     if (validationErrors.length) {
       return res.status(400).json({ errors: validationErrors });
     }
@@ -905,17 +944,31 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-/* Optional: small login route for convenience */
+// Update the login route to store push token
 app.post("/api/login", async (req, res) => {
   try {
-    const { email, password } = req.body || {};
-    if (!email || !password) return res.status(400).json({ error: "Email and password required." });
+    const { email, password, expoPushToken } = req.body || {};
 
-    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
+    if (!email || !password)
+      return res.status(400).json({ error: "Email and password required." });
+
+    const user = await User.findOne({
+      email: String(email).trim().toLowerCase(),
+    });
+
     if (!user) return res.status(401).json({ error: "Invalid credentials." });
 
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ error: "Invalid credentials." });
+
+    // Store the push token if provided
+    if (expoPushToken) {
+      user.expoPushToken = expoPushToken;
+      await user.save();
+      console.log(
+        `✅ Saved push token for ${email}: ${expoPushToken.substring(0, 30)}...`,
+      );
+    }
 
     const token = signJwt(user);
     return res.json({
@@ -934,12 +987,12 @@ app.post("/api/login", async (req, res) => {
     return res.status(500).json({ error: "Internal server error." });
   }
 });
-
 /* Protected test endpoint example */
 app.get("/api/me", async (req, res) => {
   try {
     const auth = req.headers.authorization;
-    if (!auth || !auth.startsWith("Bearer ")) return res.status(401).json({ error: "Missing token." });
+    if (!auth || !auth.startsWith("Bearer "))
+      return res.status(401).json({ error: "Missing token." });
     const token = auth.slice(7);
     const secret = process.env.JWT_SECRET;
     const decoded = jwt.verify(token, secret);
@@ -947,7 +1000,14 @@ app.get("/api/me", async (req, res) => {
     const user = await User.findById(userId).lean();
     if (!user) return res.status(404).json({ error: "User not found." });
 
-    return res.json({ user: { id: user._id, email: user.email, firstName: user.firstName, role: user.role } });
+    return res.json({
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        role: user.role,
+      },
+    });
   } catch (err) {
     console.error("Auth error:", err);
     return res.status(401).json({ error: "Invalid or expired token." });
@@ -961,18 +1021,28 @@ app.post("/api/forgot-password", async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email is required." });
 
-    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
-    if (!user) return res.status(404).json({ error: "No account found with this email." });
+    const user = await User.findOne({
+      email: String(email).trim().toLowerCase(),
+    });
+    if (!user)
+      return res
+        .status(404)
+        .json({ error: "No account found with this email." });
 
     // You can send a reset email here if you want.
-    return res.status(200).json({ message: "User found. Proceed to reset password." });
+    return res
+      .status(200)
+      .json({ message: "User found. Proceed to reset password." });
   } catch (err) {
     console.error("Forgot Password error:", err);
     return res.status(500).json({ error: "Internal server error." });
   }
 });
 
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN,
+);
 
 // ---------------- SendGrid Setup ----------------
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -981,16 +1051,20 @@ app.post("/api/reset-password", async (req, res) => {
   try {
     const { email, newPassword } = req.body;
     if (!email || !newPassword)
-      return res.status(400).json({ error: "Email and new password are required." });
+      return res
+        .status(400)
+        .json({ error: "Email and new password are required." });
 
-    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
+    const user = await User.findOne({
+      email: String(email).trim().toLowerCase(),
+    });
     if (!user) return res.status(404).json({ error: "User not found." });
 
     const isSame = await bcrypt.compare(newPassword, user.passwordHash);
     if (isSame)
-      return res
-        .status(400)
-        .json({ error: "New password must be different from your old password." });
+      return res.status(400).json({
+        error: "New password must be different from your old password.",
+      });
 
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
     const passwordHash = await bcrypt.hash(newPassword, saltRounds);
@@ -998,16 +1072,16 @@ app.post("/api/reset-password", async (req, res) => {
     await user.save();
 
     // ---------------- Read and Encode Logo ----------------
-   const logoUrl = "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762834364/logo_je7mnb.png";
-
+    const logoUrl =
+      "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762834364/logo_je7mnb.png";
 
     // ---------------- Send Email ----------------
     try {
-const msg = {
-  to: user.email,
-  from: process.env.SENDGRID_VERIFIED_SENDER,
-  subject: "Labour Hub - Password Changed Successfully",
-  html: `
+      const msg = {
+        to: user.email,
+        from: process.env.SENDGRID_VERIFIED_SENDER,
+        subject: "Labour Hub - Password Changed Successfully",
+        html: `
     <div style="font-family: 'Segoe UI', sans-serif; background-color: #f5f7fa; padding: 40px 0;">
       <div style="max-width: 600px; background-color: #ffffff; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
         
@@ -1039,14 +1113,16 @@ const msg = {
       </div>
     </div>
   `,
-};
-await sgMail.send(msg);
-
+      };
+      await sgMail.send(msg);
 
       await sgMail.send(msg);
       console.log(`✅ Email sent successfully to ${user.email}`);
     } catch (err) {
-      console.error("Email send failed:", err.response ? err.response.body : err);
+      console.error(
+        "Email send failed:",
+        err.response ? err.response.body : err,
+      );
     }
 
     return res.status(200).json({ message: "Password reset successfully!" });
@@ -1056,14 +1132,15 @@ await sgMail.send(msg);
   }
 });
 
-
-
-const DEFAULT_IMAGE = "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png";
+const DEFAULT_IMAGE =
+  "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png";
 
 // API to get user by ID
 app.get("/api/user/:id", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("firstName lastName role email image");
+    const user = await User.findById(req.params.id).select(
+      "firstName lastName role email image",
+    );
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
@@ -1071,7 +1148,8 @@ app.get("/api/user/:id", async (req, res) => {
       lastName: user.lastName || "",
       role: user.role || "",
       email: user.email || "",
-      image: user.image && user.image.trim() !== "" ? user.image : DEFAULT_IMAGE,
+      image:
+        user.image && user.image.trim() !== "" ? user.image : DEFAULT_IMAGE,
     });
   } catch (err) {
     console.error(err);
@@ -1079,43 +1157,46 @@ app.get("/api/user/:id", async (req, res) => {
   }
 });
 
-
-
-
 // ==================== SCHEMA ====================
-const jobSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  location: String,
-  workersRequired: Number,
-  skill: String,
-  budget: Number,
-  contact: String,
-  startDate: Date,
-  endDate: Date,
-  shift: { type: String, default: "Shift A" },
-jobTime: { type: Date, default: Date.now },
+const jobSchema = new mongoose.Schema(
+  {
+    title: String,
+    description: String,
+    location: String,
+    workersRequired: Number,
+    skill: String,
+    budget: Number,
+    contact: String,
+    startDate: Date,
+    endDate: Date,
+    shift: { type: String, default: "Shift A" },
+    jobTime: { type: Date, default: Date.now },
 
-  createdBy: {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    firstName: String,
-    lastName: String,
-    role: String,
-    email: String,
+    createdBy: {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      firstName: String,
+      lastName: String,
+      role: String,
+      email: String,
+    },
+    applicants: [
+      {
+        laborId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        appliedAt: { type: Date, default: Date.now },
+        status: {
+          type: String,
+          enum: ["pending", "accepted", "rejected"],
+          default: "pending",
+        },
+        chatId: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" },
+      },
+    ],
+    noOfWorkersApplied: { type: Number, default: 0 }, // NEW
   },
-  applicants: [
-    {
-      laborId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      appliedAt: { type: Date, default: Date.now },
-      status: { type: String, enum: ["pending","accepted","rejected"], default: "pending" },
-      chatId: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" },
-    }
-  ],
-  noOfWorkersApplied: { type: Number, default: 0 }, // NEW
-}, { timestamps: true });
+  { timestamps: true },
+);
 
 const Job = mongoose.model("Job", jobSchema);
-
 
 const jobApplicationSchema = new mongoose.Schema({
   jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job", required: true },
@@ -1124,33 +1205,33 @@ const jobApplicationSchema = new mongoose.Schema({
   appliedAt: { type: Date, default: Date.now },
 });
 
-
-
 const JobApplication = mongoose.model("JobApplication", jobApplicationSchema);
 module.exports = JobApplication;
 
-
 app.post("/api/jobs/apply/:jobId", async (req, res) => {
   const { jobId } = req.params;
-const { labourId, labourEmail } = req.body;
-
+  const { labourId, labourEmail } = req.body;
 
   try {
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ message: "Job not found" });
 
     // Check if labour already applied
-const alreadyApplied = job.applicants.some(
-  app => app.laborId && app.laborId.toString() === labourId
-);
+    const alreadyApplied = job.applicants.some(
+      (app) => app.laborId && app.laborId.toString() === labourId,
+    );
 
-    if (alreadyApplied) return res.status(400).json({ message: "Already applied" });
+    if (alreadyApplied)
+      return res.status(400).json({ message: "Already applied" });
 
     // Add labour to job
-job.applicants.push({ laborId: labourId, appliedAt: new Date(), status: "pending" });
-job.noOfWorkersApplied = job.applicants.length;
-await job.save();
-
+    job.applicants.push({
+      laborId: labourId,
+      appliedAt: new Date(),
+      status: "pending",
+    });
+    job.noOfWorkersApplied = job.applicants.length;
+    await job.save();
 
     // Save in JobApplications collection
     await JobApplication.create({
@@ -1181,9 +1262,21 @@ app.post("/api/jobs", async (req, res) => {
       startDate,
       endDate,
       createdBy,
+      shift,
+      jobTime,
     } = req.body;
 
-    if (!title || !description || !location || !workersRequired || !skill || !budget || !contact || !startDate || !endDate) {
+    if (
+      !title ||
+      !description ||
+      !location ||
+      !workersRequired ||
+      !skill ||
+      !budget ||
+      !contact ||
+      !startDate ||
+      !endDate
+    ) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
@@ -1197,22 +1290,89 @@ app.post("/api/jobs", async (req, res) => {
       contact,
       startDate,
       endDate,
+      shift: shift || "Shift A",
+      jobTime: jobTime || new Date(),
       createdBy: {
-        ...createdBy,
-        email: createdBy.email, // store email here
+        userId: createdBy.userId,
+        firstName: createdBy.firstName,
+        lastName: createdBy.lastName,
+        role: createdBy.role,
+        email: createdBy.email,
       },
     });
 
     await job.save();
-    return res.status(201).json({ message: "Job created successfully", job });
+
+    // ============================================
+    // SEND PUSH NOTIFICATIONS TO ALL LABOUR USERS
+    // ============================================
+    let notificationResult = { successCount: 0, failCount: 0 };
+
+    try {
+      // Get all Labour users who have push tokens
+      const labourUsers = await User.find({
+        role: "Labour",
+        expoPushToken: { $exists: true, $ne: null, $ne: "" },
+      }).select("expoPushToken firstName lastName email");
+
+      console.log(
+        `📱 Found ${labourUsers.length} labour users with push tokens`,
+      );
+
+      if (labourUsers.length > 0) {
+        notificationResult = await notification.notifyLabourUsersAboutNewJob(
+          labourUsers,
+          job,
+        );
+        console.log(
+          `📊 Notification Summary: ${notificationResult.successCount} sent, ${notificationResult.failCount} failed`,
+        );
+      } else {
+        console.log("⚠️ No labour users with push tokens found.");
+      }
+    } catch (notifError) {
+      console.error("❌ Notification error:", notifError);
+      // Don't fail the job creation if notification fails
+    }
+
+    return res.status(201).json({
+      message: "Job created successfully",
+      job,
+      notificationsSent: notificationResult.successCount,
+    });
   } catch (err) {
     console.error("Error creating job:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
+// Add this route after your other routes (around line 700)
+app.post("/api/update-push-token", async (req, res) => {
+  try {
+    const { email, expoPushToken } = req.body;
 
+    if (!email || !expoPushToken) {
+      return res.status(400).json({ error: "Email and token required" });
+    }
 
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim() },
+      { expoPushToken: expoPushToken },
+      { new: true },
+    );
 
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log(
+      `✅ Updated push token for ${email}: ${expoPushToken.substring(0, 30)}...`,
+    );
+    res.json({ success: true, message: "Token updated" });
+  } catch (err) {
+    console.error("Token update error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // ==================== 1. Get all jobs ====================
 app.get("/api/alljobs", async (req, res) => {
@@ -1224,12 +1384,79 @@ app.get("/api/alljobs", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+// Add this temporary endpoint to manually add a token
+app.post("/api/manual-add-token", async (req, res) => {
+  try {
+    const { email, expoPushToken } = req.body;
+
+    if (!email || !expoPushToken) {
+      return res.status(400).json({ error: "Email and token required" });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim(), role: "Labour" },
+      { expoPushToken: expoPushToken },
+      { new: true },
+    );
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ error: "Labour user not found with this email" });
+    }
+
+    console.log(`✅ Manually added token for Labour user: ${email}`);
+    res.json({
+      success: true,
+      message: `Token added for ${email}`,
+      user: { email: user.email, role: user.role, hasToken: true },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// Add this temporary debug route after your other routes
+app.get("/api/debug-users", async (req, res) => {
+  try {
+    const allUsers = await User.find({}).select(
+      "email role expoPushToken createdAt",
+    );
+
+    const usersWithTokens = allUsers.filter(
+      (u) => u.expoPushToken && u.expoPushToken !== null,
+    );
+    const labourUsers = allUsers.filter((u) => u.role === "Labour");
+    const labourWithTokens = labourUsers.filter(
+      (u) => u.expoPushToken && u.expoPushToken !== null,
+    );
+
+    res.json({
+      totalUsers: allUsers.length,
+      usersWithTokens: usersWithTokens.length,
+      labourUsers: labourUsers.length,
+      labourWithTokens: labourWithTokens.length,
+      details: allUsers.map((u) => ({
+        email: u.email,
+        role: u.role,
+        hasToken: !!u.expoPushToken,
+        tokenPreview: u.expoPushToken
+          ? u.expoPushToken.substring(0, 30) + "..."
+          : null,
+        createdAt: u.createdAt,
+      })),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ==================== 2. Get jobs created by a specific contractor by email ====================
 app.get("/api/my-jobs-email/:email", async (req, res) => {
   const { email } = req.params;
   try {
-    const jobs = await Job.find({ "createdBy.email": email }).sort({ createdAt: -1 });
+    const jobs = await Job.find({ "createdBy.email": email }).sort({
+      createdAt: -1,
+    });
     res.status(200).json(jobs);
   } catch (err) {
     console.error(`Error fetching jobs for ${email}:`, err);
@@ -1325,13 +1552,15 @@ app.get("/api/profile/:email", async (req, res) => {
       jobsCreated = await Job.find({ "createdBy.email": email }).lean();
       totalApplicantsOnJobs = jobsCreated.reduce(
         (acc, job) => acc + (job.applicants?.length || 0),
-        0
+        0,
       );
     } else {
-      const applications = await Job.find({ "applicants.laborId": user._id }).lean();
-      jobsApplied = applications.map(job => {
+      const applications = await Job.find({
+        "applicants.laborId": user._id,
+      }).lean();
+      jobsApplied = applications.map((job) => {
         const applicant = job.applicants.find(
-          a => a.laborId.toString() === user._id.toString()
+          (a) => a.laborId.toString() === user._id.toString(),
         );
         return {
           jobId: job._id,
@@ -1364,21 +1593,26 @@ app.get("/api/profile/:email", async (req, res) => {
   }
 });
 
-
 // ==================== Get jobs a user applied to ====================
 app.get("/api/jobs/user/:email", async (req, res) => {
   try {
     const { email } = req.params;
 
     // Find user
-    const user = await User.findOne({ email: email.trim().toLowerCase() }).lean();
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    }).lean();
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // Jobs the user created (if Contractor)
-    const jobsCreated = await Job.find({ "createdBy.email": email }).sort({ createdAt: -1 }).lean();
+    const jobsCreated = await Job.find({ "createdBy.email": email })
+      .sort({ createdAt: -1 })
+      .lean();
 
     // Jobs the user applied to (from JobApplication collection)
-    const jobApplications = await JobApplication.find({ labourEmail: email }).lean();
+    const jobApplications = await JobApplication.find({
+      labourEmail: email,
+    }).lean();
 
     const jobsApplied = [];
     for (const app of jobApplications) {
@@ -1395,7 +1629,9 @@ app.get("/api/jobs/user/:email", async (req, res) => {
           lastName: job.createdBy.lastName,
           email: job.createdBy.email,
           role: job.createdBy.role,
-          image: job.createdBy.image || "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png",
+          image:
+            job.createdBy.image ||
+            "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png",
         },
       });
     }
@@ -1406,7 +1642,9 @@ app.get("/api/jobs/user/:email", async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
-        image: user.image || "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png",
+        image:
+          user.image ||
+          "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png",
       },
       stats: {
         totalJobsPosted: jobsCreated.length,
@@ -1427,9 +1665,13 @@ app.get("/api/responses-by-contractor/:email", async (req, res) => {
     const { email } = req.params;
 
     // Step 1: Find all job applications for this contractor
-    const applications = await JobApplication.find({ contractorEmail: email }).lean();
+    const applications = await JobApplication.find({
+      contractorEmail: email,
+    }).lean();
     if (!applications || applications.length === 0) {
-      return res.status(404).json({ message: "No responses found for this contractor" });
+      return res
+        .status(404)
+        .json({ message: "No responses found for this contractor" });
     }
 
     // Step 2: For each application, fetch job info and labour info
@@ -1454,7 +1696,9 @@ app.get("/api/responses-by-contractor/:email", async (req, res) => {
           lastName: labour?.lastName || "Unknown",
           email: labour?.email || app.labourEmail,
           role: labour?.role || "Labour",
-          image: labour?.image || "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png",
+          image:
+            labour?.image ||
+            "https://png.pngtree.com/png-vector/20231019/ourmid/pngtree-user-profile-avatar-png-image_10211467.png",
         },
       });
     }
@@ -1479,7 +1723,7 @@ app.get("/api/search-jobs", async (req, res) => {
     const query = {};
 
     if (skill && skill.trim() !== "") {
-      query.skill = { $regex: new RegExp(skill, "i") };  // case-insensitive match
+      query.skill = { $regex: new RegExp(skill, "i") }; // case-insensitive match
     }
 
     if (name && name.trim() !== "") {
@@ -1493,7 +1737,6 @@ app.get("/api/search-jobs", async (req, res) => {
       count: jobs.length,
       jobs,
     });
-
   } catch (err) {
     console.error("Search Jobs Error:", err);
     res.status(500).json({
@@ -1502,7 +1745,6 @@ app.get("/api/search-jobs", async (req, res) => {
     });
   }
 });
-
 
 app.post("/api/apply/:jobId", async (req, res) => {
   try {
@@ -1539,9 +1781,6 @@ app.post("/api/apply/:jobId", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-
-
 
 // // ------------------- Chat Schema -------------------
 // const chatSchema = new mongoose.Schema(
@@ -1585,7 +1824,6 @@ app.post("/api/apply/:jobId", async (req, res) => {
 //     res.status(500).json({ message: "Server error" });
 //   }
 // });
-
 
 // // ------------------- Socket.IO -------------------
 // io.on("connection", (socket) => {
@@ -1658,14 +1896,12 @@ app.get("/api/check-application/:jobId", async (req, res) => {
 
     const application = await JobApplication.findOne({
       jobId,
-      labourEmail: userEmail
+      labourEmail: userEmail,
     });
 
     res.json({
       applied: !!application,
-      message: application
-        ? "User already applied"
-        : "User has not applied"
+      message: application ? "User already applied" : "User has not applied",
     });
   } catch (err) {
     console.error("Error:", err);
@@ -1673,51 +1909,61 @@ app.get("/api/check-application/:jobId", async (req, res) => {
   }
 });
 
-
-
-
 // Industry Mongoose Schema
-const industrySchema = new mongoose.Schema({
-  industry: { type: String, required: true },
-  owner: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  phone: { type: String, required: true },
-  address: { type: String, required: true },
-  textileType: { type: String, required: true },
-  password: { type: String, required: true }, // hashed
+const industrySchema = new mongoose.Schema(
+  {
+    industry: { type: String, required: true },
+    owner: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String, required: true },
+    address: { type: String, required: true },
+    textileType: { type: String, required: true },
+    password: { type: String, required: true }, // hashed
 
-  // ✅ NEW FIELD
-  active: { type: Boolean, default: false },
+    // ✅ NEW FIELD
+    active: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
 
-}, { timestamps: true })
-
-const Industry = mongoose.model('Industry', industrySchema)
-
+const Industry = mongoose.model("Industry", industrySchema);
 
 // Create Industry API
-app.post('/api/industries', async (req, res) => {
+app.post("/api/industries", async (req, res) => {
   try {
-    const { industry, owner, email, phone, address, textileType, password } = req.body
+    const { industry, owner, email, phone, address, textileType, password } =
+      req.body;
 
     // Validate required fields
-    if (!industry || !owner || !email || !phone || !address || !textileType || !password) {
-      return res.status(400).json({ message: 'All fields are required' })
+    if (
+      !industry ||
+      !owner ||
+      !email ||
+      !phone ||
+      !address ||
+      !textileType ||
+      !password
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ message: 'Invalid email format' })
+      return res.status(400).json({ message: "Invalid email format" });
     }
 
     if (password.length < 8) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters' })
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters" });
     }
 
     // Check if email already exists
-    const existing = await Industry.findOne({ email })
-    if (existing) return res.status(400).json({ message: 'Email already registered' })
+    const existing = await Industry.findOne({ email });
+    if (existing)
+      return res.status(400).json({ message: "Email already registered" });
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Save to DB (active will default to false)
     const newIndustry = await Industry.create({
@@ -1727,60 +1973,62 @@ app.post('/api/industries', async (req, res) => {
       phone,
       address,
       textileType,
-      password: hashedPassword
-    })
+      password: hashedPassword,
+    });
 
     res.status(201).json({
-      message: 'Industry registered successfully',
-      industry: newIndustry
-    })
+      message: "Industry registered successfully",
+      industry: newIndustry,
+    });
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error' })
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-})
-
+});
 
 // Get all active industries except current logged-in one
-app.get('/api/industries/all', async (req, res) => {
+app.get("/api/industries/all", async (req, res) => {
   try {
-    const { email, search } = req.query
+    const { email, search } = req.query;
 
     let query = {
       active: true,
       email: { $ne: email }, // exclude logged-in industry
-    }
+    };
 
     if (search) {
-      query.industry = { $regex: search, $options: 'i' }
+      query.industry = { $regex: search, $options: "i" };
     }
 
     const industries = await Industry.find(query).select(
-      'industry email address textileType'
-    )
+      "industry email address textileType",
+    );
 
-    res.status(200).json(industries)
+    res.status(200).json(industries);
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error' })
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-})
+});
 
-const borrowSchema = new mongoose.Schema({
-  fromIndustryEmail: { type: String, required: true },
-  toIndustryEmail: { type: String, required: true },
+const borrowSchema = new mongoose.Schema(
+  {
+    fromIndustryEmail: { type: String, required: true },
+    toIndustryEmail: { type: String, required: true },
 
-  labourRequired: Number,
-  skills: String,
-  description: String,
-  date: String,
-  time: String,
-  location: String,
+    labourRequired: Number,
+    skills: String,
+    description: String,
+    date: String,
+    time: String,
+    location: String,
 
-  status: { type: String, default: 'Pending' },
-}, { timestamps: true })
+    status: { type: String, default: "Pending" },
+  },
+  { timestamps: true },
+);
 
-const Borrow = mongoose.model('Borrow', borrowSchema)
+const Borrow = mongoose.model("Borrow", borrowSchema);
 
 app.post("/api/borrow", async (req, res) => {
   try {
@@ -1863,14 +2111,10 @@ app.post("/api/borrow", async (req, res) => {
 
     await sgMail.send(msg);
     console.log("✅ Borrow request email sent to", toIndustryEmail);
-
   } catch (err) {
     console.error("❌ Borrow API error:", err);
   }
 });
-
-
-
 
 // ==================== API to Get Borrow Records for Logged-in User ====================
 app.get("/api/my-borrows/:email", async (req, res) => {
@@ -1890,7 +2134,6 @@ app.get("/api/my-borrows/:email", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 // Get borrow requests sent TO the logged-in user
 app.get("/api/incoming-borrows/:email", async (req, res) => {
@@ -1976,8 +2219,6 @@ app.post("/api/approve-borrow/:id", async (req, res) => {
   }
 });
 
-
-
 // app.post("/api/borrow", async (req, res) => {
 //   try {
 //     const borrow = await Borrow.create(req.body);
@@ -2021,69 +2262,67 @@ app.post("/api/approve-borrow/:id", async (req, res) => {
 //   }
 // });
 
-
-app.post('/api/industries/login', async (req, res) => {
+app.post("/api/industries/login", async (req, res) => {
   try {
-    const { email, password } = req.body
+    const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' })
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ message: 'Invalid email format' })
+      return res.status(400).json({ message: "Invalid email format" });
     }
 
-    const industry = await Industry.findOne({ email })
-    if (!industry) return res.status(400).json({ message: 'Invalid credentials' })
+    const industry = await Industry.findOne({ email });
+    if (!industry)
+      return res.status(400).json({ message: "Invalid credentials" });
 
-    const isMatch = await bcrypt.compare(password, industry.password)
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' })
+    const isMatch = await bcrypt.compare(password, industry.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
     // ✅ Send active status
     const token = jwt.sign(
       { id: industry._id, email: industry.email },
-      'YOUR_SECRET_KEY',
-      { expiresIn: '7d' }
-    )
+      "YOUR_SECRET_KEY",
+      { expiresIn: "7d" },
+    );
 
     res.status(200).json({
-      message: 'Login successful',
+      message: "Login successful",
       email: industry.email,
       token,
       active: industry.active, // 🔥 IMPORTANT
-    })
+    });
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error' })
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-})
-
+});
 
 // API to get industry profile by email
-app.get('/api/industries/profile', async (req, res) => {
+app.get("/api/industries/profile", async (req, res) => {
   try {
-    const { email } = req.query
+    const { email } = req.query;
 
-    if (!email || typeof email !== 'string') {
-      return res.status(400).json({ message: 'Email is required' })
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ message: "Email is required" });
     }
 
-    const industry = await Industry.findOne({ email }).select('-password') // exclude password
+    const industry = await Industry.findOne({ email }).select("-password"); // exclude password
     if (!industry) {
-      return res.status(404).json({ message: 'Industry not found' })
+      return res.status(404).json({ message: "Industry not found" });
     }
 
-    res.status(200).json(industry)
+    res.status(200).json(industry);
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error' })
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-})
-
-
-
-
+});
 
 app.post("/api/admin/industry-toggle/:id", async (req, res) => {
   try {
@@ -2100,8 +2339,6 @@ app.post("/api/admin/industry-toggle/:id", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
-
-
 
 app.get("/api/admin", async (req, res) => {
   try {
@@ -2205,7 +2442,9 @@ app.get("/api/admin", async (req, res) => {
 <tr>
   <th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Skills</th><th>Created</th>
 </tr>
-${users.map(u => `
+${users
+  .map(
+    (u) => `
 <tr>
   <td>${u.firstName} ${u.lastName}</td>
   <td>${u.email}</td>
@@ -2213,7 +2452,9 @@ ${users.map(u => `
   <td><span class="badge blue">${u.role}</span></td>
   <td>${u.skills?.join(", ") || "-"}</td>
   <td>${new Date(u.createdAt).toLocaleString()}</td>
-</tr>`).join("")}
+</tr>`,
+  )
+  .join("")}
 </table>
 
 <!-- JOBS -->
@@ -2223,7 +2464,9 @@ ${users.map(u => `
   <th>Title</th><th>Location</th><th>Skill</th><th>Budget</th>
   <th>Workers</th><th>Applicants</th><th>Posted By</th>
 </tr>
-${jobs.map(j => `
+${jobs
+  .map(
+    (j) => `
 <tr>
   <td>${j.title}</td>
   <td>${j.location}</td>
@@ -2232,7 +2475,9 @@ ${jobs.map(j => `
   <td>${j.workersRequired}</td>
   <td>${j.noOfWorkersApplied || 0}</td>
   <td>${j.createdBy?.email || "-"}</td>
-</tr>`).join("")}
+</tr>`,
+  )
+  .join("")}
 </table>
 
 <!-- JOB APPLICATIONS -->
@@ -2241,13 +2486,17 @@ ${jobs.map(j => `
 <tr>
   <th>Job ID</th><th>Contractor</th><th>Labour</th><th>Date</th>
 </tr>
-${applications.map(a => `
+${applications
+  .map(
+    (a) => `
 <tr>
   <td>${a.jobId}</td>
   <td>${a.contractorEmail}</td>
   <td>${a.labourEmail}</td>
   <td>${new Date(a.appliedAt).toLocaleString()}</td>
-</tr>`).join("")}
+</tr>`,
+  )
+  .join("")}
 </table>
 <!-- INDUSTRIES -->
 <h2>🏭 Industries</h2>
@@ -2261,7 +2510,9 @@ ${applications.map(a => `
   <th>Status (Click)</th>
 </tr>
 
-${industries.map(i => `
+${industries
+  .map(
+    (i) => `
 <tr>
   <td>${i.industry}</td>
   <td>${i.owner}</td>
@@ -2273,9 +2524,11 @@ ${industries.map(i => `
   <form
     method="POST"
     action="/api/admin/industry-toggle/${i._id}"
-    onsubmit="return confirm('${i.active
-      ? "Are you sure you want to DEACTIVATE this industry?"
-      : "Are you sure you want to ACTIVATE this industry?"}'
+    onsubmit="return confirm('${
+      i.active
+        ? "Are you sure you want to DEACTIVATE this industry?"
+        : "Are you sure you want to ACTIVATE this industry?"
+    }'
     );"
   >
     <button
@@ -2288,7 +2541,9 @@ ${industries.map(i => `
 </td>
 
 </tr>
-`).join("")}
+`,
+  )
+  .join("")}
 
 </table>
 
@@ -2299,7 +2554,9 @@ ${industries.map(i => `
   <th>From</th><th>To</th><th>Labour</th><th>Skills</th>
   <th>Location</th><th>Status</th>
 </tr>
-${borrows.map(b => `
+${borrows
+  .map(
+    (b) => `
 <tr>
   <td>${b.fromIndustryEmail}</td>
   <td>${b.toIndustryEmail}</td>
@@ -2308,11 +2565,16 @@ ${borrows.map(b => `
   <td>${b.location}</td>
   <td>
     <span class="badge ${
-      b.status === "Approved" ? "green" :
-      b.status === "Rejected" ? "red" : "gray"
+      b.status === "Approved"
+        ? "green"
+        : b.status === "Rejected"
+          ? "red"
+          : "gray"
     }">${b.status}</span>
   </td>
-</tr>`).join("")}
+</tr>`,
+  )
+  .join("")}
 </table>
 
 <footer>
@@ -2355,19 +2617,6 @@ ${borrows.map(b => `
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* ---------- DB connect & server start ---------- */
 async function start() {
   if (!process.env.MONGO_URI) {
@@ -2385,7 +2634,6 @@ async function start() {
       useUnifiedTopology: true,
     });
     console.log("Connected to MongoDB");
-   
   } catch (err) {
     console.error("Failed to connect to MongoDB:", err);
     process.exit(1);
@@ -2399,5 +2647,5 @@ app.get("/", (req, res) => res.send("🚀 Labour Hub APIs areS running!"));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () =>
-  console.log(`✅ Server running at http://localhost:${port}`)
+  console.log(`✅ Server running at http://localhost:${port}`),
 );

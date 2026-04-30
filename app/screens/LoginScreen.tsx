@@ -1,15 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import NotificationService from "./notifications";
+
 import React, { useState } from "react";
 import {
-    Alert,
-    Image,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export const options = { headerShown: false };
@@ -21,6 +23,8 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // In LoginScreen.js, update the handleLogin function:
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Validation Error", "Please fill in all fields.");
@@ -30,10 +34,23 @@ export default function LoginScreen() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://10.40.23.221:3000/api/login", {
+      // Get Expo push token
+      let expoPushToken = null;
+      try {
+        expoPushToken =
+          await NotificationService.registerForPushNotificationsAsync();
+      } catch (err) {
+        console.log("Could not get push token:", err);
+      }
+
+      const res = await fetch("http://192.168.100.177:3000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          expoPushToken: expoPushToken, // Include token in login request
+        }),
       });
 
       const data = await res.json();
@@ -48,9 +65,14 @@ export default function LoginScreen() {
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
       await AsyncStorage.setItem("token", data.token);
 
+      // Initialize notifications with user email
+      if (data.user?.email) {
+        await NotificationService.initialize(data.user.email);
+      }
+
       Alert.alert("Success", "Login successful!");
 
-      // ✅ Check user role before redirecting
+      // Check user role before redirecting
       const role = data.user?.role?.toLowerCase();
       if (role === "contractor") {
         router.replace("/screens/ContractorHomepage");

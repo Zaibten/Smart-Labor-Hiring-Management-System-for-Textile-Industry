@@ -21,7 +21,7 @@ import {
 import BottomTab from "../components/BottomTab";
 import Profile from "./Profile";
 
-const BACKEND_URL = "http://10.40.23.221:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "http://192.168.100.177:3000/api/chat"; // replace with your backend
 
 interface Contractor {
   firstName: string;
@@ -155,7 +155,7 @@ export default function Response() {
         if (!localUser?.email) return;
 
         const response = await fetch(
-          `http://10.40.23.221:3000/api/jobs/user/${localUser.email}`,
+          `http://192.168.100.177:3000/api/jobs/user/${localUser.email}`,
         );
         if (!response.ok) throw new Error("Failed to fetch user jobs");
         const data = await response.json();

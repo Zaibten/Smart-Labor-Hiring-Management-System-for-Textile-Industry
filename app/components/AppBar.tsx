@@ -39,7 +39,7 @@
 //         const localUser = userData ? JSON.parse(userData) : null;
 //         if (!localUser?.id) return;
 
-//         const response = await fetch(`http://10.40.23.221:3000/api/user/${localUser.id}`);
+//         const response = await fetch(`https://labourhubserver.vercel.appapi/user/${localUser.id}`);
 //         if (!response.ok) throw new Error("Failed to fetch user");
 
 //         const serverUser = await response.json();
@@ -227,7 +227,7 @@ const AppBar: React.FC<AppBarProps> = ({ title }) => {
         if (!localUser?.id) return;
 
         const response = await fetch(
-          `http://10.40.23.221:3000/api/user/${localUser.id}`,
+          `http://192.168.100.177:3000/api/user/${localUser.id}`,
         );
         if (!response.ok) throw new Error("Failed to fetch user");
 
