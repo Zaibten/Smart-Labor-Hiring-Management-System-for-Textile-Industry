@@ -7,9 +7,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
+import ChatBot from "../components/ChatBot";
 
 const contractorTabs = [
   { label: "Home", icon: "home" },
@@ -221,6 +222,7 @@ const Contractor: React.FC = () => {
             <Text style={{ color: "#fff" }}>Preview Contract</Text>
           </TouchableOpacity>
         </View>
+        <ChatBot />
 
         {/* CONTRACT MODAL */}
         <Modal visible={showContract} animationType="slide">

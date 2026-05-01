@@ -19,9 +19,10 @@ import {
   View,
 } from "react-native";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 import Profile from "./Profile";
 
-const BACKEND_URL = "http://192.168.100.177:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat"; // replace with your backend
 
 interface Contractor {
   firstName: string;
@@ -155,7 +156,7 @@ export default function Response() {
         if (!localUser?.email) return;
 
         const response = await fetch(
-          `http://192.168.100.177:3000/api/jobs/user/${localUser.email}`,
+          `https://labourhubserver.vercel.app/api/jobs/user/${localUser.email}`,
         );
         if (!response.ok) throw new Error("Failed to fetch user jobs");
         const data = await response.json();
@@ -341,6 +342,7 @@ export default function Response() {
       </Modal>
 
       <BottomTab tabs={[]} activeTab="" userRole={user.role} />
+      <ChatBot />
     </SafeAreaView>
   );
 }

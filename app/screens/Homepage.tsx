@@ -14,6 +14,7 @@ import {
 import { BarChart, LineChart } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 import AppliedJobScreen from "../screens/AppliedJob";
 
 const { width } = Dimensions.get("window");
@@ -44,7 +45,7 @@ export default function ContractorDashboard() {
         setUser(parsedUser);
 
         const res = await fetch(
-          `http://192.168.100.177:3000/api/my-jobs-email/${parsedUser.email}`,
+          `https://labourhubserver.vercel.app/api/my-jobs-email/${parsedUser.email}`,
         );
         const data = await res.json();
         setJobs(
@@ -322,6 +323,7 @@ export default function ContractorDashboard() {
         activeTab="Home"
         userRole="Labour"
       />
+      <ChatBot />
     </SafeAreaView>
   );
 }

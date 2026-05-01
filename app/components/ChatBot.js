@@ -108,11 +108,14 @@ export default function ChatBot() {
     setInput("");
 
     try {
-      const response = await fetch("http://192.168.100.177:3000/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
-      });
+      const response = await fetch(
+        "https://labourhubserver.vercel.app/api/chat",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text }),
+        },
+      );
 
       const data = await response.json();
       const botMessage = {
@@ -172,7 +175,7 @@ export default function ChatBot() {
       });
 
       const response = await fetch(
-        "http://192.168.100.177:3000/api/transcribe",
+        "https://labourhubserver.vercel.app/api/transcribe",
         {
           method: "POST",
           body: formData,

@@ -227,7 +227,7 @@ const AppBar: React.FC<AppBarProps> = ({ title }) => {
         if (!localUser?.id) return;
 
         const response = await fetch(
-          `http://192.168.100.177:3000/api/user/${localUser.id}`,
+          `https://labourhubserver.vercel.app/api/user/${localUser.id}`,
         );
         if (!response.ok) throw new Error("Failed to fetch user");
 

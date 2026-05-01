@@ -1,4 +1,3 @@
-// app/index.tsx
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import AppliedJob from "../screens/SplashScreen";
@@ -7,16 +6,9 @@ export default function HomePage() {
   return (
     <View style={styles.container}>
       {/* Page content */}
-      {/* <View style={styles.content}>
-        <Text style={styles.title}>Welcome to Home Page</Text>
-        <Text style={styles.subtitle}>
-          This is your simple React Native App using Expo
-        </Text>
-      </View> */}
-      {/* <Profile/> */}
       <AppliedJob />
 
-      {/* Floating Chatbot */}
+      {/* Floating Chatbot - Always visible */}
       {/* <View style={styles.chatbotWrapper}>
         <ChatBot />
       </View> */}
@@ -26,8 +18,10 @@ export default function HomePage() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  content: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 24, fontWeight: "bold" },
-  subtitle: { marginTop: 10, fontSize: 16, color: "#555" },
-  chatbotWrapper: { position: "absolute", bottom: 2, right: 2 },
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    zIndex: 999, // Ensure it stays above other content
+  },
 });

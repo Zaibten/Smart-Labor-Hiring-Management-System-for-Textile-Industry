@@ -62,7 +62,7 @@ interface Profile {
   };
 }
 
-const API_URL = "http://192.168.100.177:3000/api/users";
+const API_URL = "https://labourhubserver.vercel.app/api/users";
 
 export default function UsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
@@ -188,7 +188,7 @@ export default function UsersScreen() {
 
     try {
       const res = await axios.get(
-        `http://192.168.100.177:3000/api/chat/${userEmail}/${receiverEmail}`,
+        `https://labourhubserver.vercel.app/api/chat/${userEmail}/${receiverEmail}`,
       );
       setChatMessages(res.data);
     } catch (err) {
@@ -200,7 +200,7 @@ export default function UsersScreen() {
     if (!newMessage.trim()) return;
     try {
       const res = await axios.post(
-        "http://192.168.100.177:3000/api/chat/send",
+        "https://labourhubserver.vercel.app/api/chat/send",
         {
           senderEmail: userEmail,
           receiverEmail: currentReceiver,
@@ -218,7 +218,7 @@ export default function UsersScreen() {
   const openProfile = async (email: string) => {
     try {
       const res = await axios.get(
-        `http://192.168.100.177:3000/api/profile/${email}`,
+        `https://labourhubserver.vercel.app/api/profile/${email}`,
       );
       setUserProfiles((prev) => ({ ...prev, [email]: res.data }));
       setProfileModalVisible(true);

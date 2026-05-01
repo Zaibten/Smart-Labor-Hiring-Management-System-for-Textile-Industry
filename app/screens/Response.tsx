@@ -20,9 +20,10 @@ import {
   View,
 } from "react-native";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 import Profile from "./Profile"; // Profile modal component
 
-const BACKEND_URL = "http://192.168.100.177:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat"; // replace with your backend
 
 interface Labour {
   labourId: string | null;
@@ -152,7 +153,7 @@ export default function Response() {
     const fetchResponses = async () => {
       try {
         const response = await fetch(
-          `http://192.168.100.177:3000/api/responses-by-contractor/${contractorEmail}`,
+          `https://labourhubserver.vercel.app/api/responses-by-contractor/${contractorEmail}`,
         );
         if (!response.ok) throw new Error("Failed to fetch responses");
         const data = await response.json();
@@ -402,6 +403,7 @@ export default function Response() {
       </Modal>
 
       <BottomTab tabs={[]} activeTab="" userRole="Contractor" />
+      <ChatBot />
     </SafeAreaView>
   );
 }

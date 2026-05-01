@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 
 export default function CreateJob() {
   const [jobTitle, setJobTitle] = useState("");
@@ -222,31 +223,34 @@ export default function CreateJob() {
     }
 
     try {
-      const response = await fetch("http://192.168.100.177:3000/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: jobTitle,
-          description,
-          location,
-          workersRequired: parseInt(workers),
-          skill,
-          budget: parseFloat(budget),
-          contact,
-          startDate,
-          endDate,
-          jobTime,
-          shift,
-          createdBy: {
-            userId: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-            image: user.image,
-            email: user.email,
-          },
-        }),
-      });
+      const response = await fetch(
+        "https://labourhubserver.vercel.app/api/jobs",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: jobTitle,
+            description,
+            location,
+            workersRequired: parseInt(workers),
+            skill,
+            budget: parseFloat(budget),
+            contact,
+            startDate,
+            endDate,
+            jobTime,
+            shift,
+            createdBy: {
+              userId: user._id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              role: user.role,
+              image: user.image,
+              email: user.email,
+            },
+          }),
+        },
+      );
 
       const data = await response.json();
       if (response.ok) {
@@ -500,6 +504,7 @@ export default function CreateJob() {
           userRole="Contractor"
         />
       </View>
+      <ChatBot />
     </SafeAreaView>
   );
 }

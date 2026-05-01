@@ -22,6 +22,7 @@ import {
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 
 interface Applicant {
   laborId: string;
@@ -109,7 +110,7 @@ export default function LabourAllJobs() {
   const checkIfApplied = async (jobId: string) => {
     try {
       const res = await fetch(
-        `http://192.168.100.177:3000/api/check-application/${jobId}?email=${user.email}`,
+        `https://labourhubserver.vercel.app/api/check-application/${jobId}?email=${user.email}`,
       );
       const data = await res.json();
       setAppliedJobs((prev) => ({ ...prev, [jobId]: data.applied }));
@@ -221,7 +222,7 @@ export default function LabourAllJobs() {
     if (userImages[email]) return;
     try {
       const res = await fetch(
-        `http://192.168.100.177:3000/api/user-by-email/${email}`,
+        `https://labourhubserver.vercel.app/api/user-by-email/${email}`,
       );
       if (!res.ok) {
         // silently fallback to default
@@ -301,20 +302,22 @@ export default function LabourAllJobs() {
 
         // fetch skills
         const skillsRes = await fetch(
-          `http://192.168.100.177:3000/api/user/skills/${parsedUser.email}`,
+          `https://labourhubserver.vercel.app/api/user/skills/${parsedUser.email}`,
         );
         const skillData = await skillsRes.json();
         if (skillData.success) setUserSkills(skillData.skills);
 
         // fetch all jobs
-        const resAll = await fetch("http://192.168.100.177:3000/api/alljobs");
+        const resAll = await fetch(
+          "https://labourhubserver.vercel.app/api/alljobs",
+        );
         const jobsAll = await resAll.json();
         setAllJobs(Array.isArray(jobsAll) ? jobsAll : []);
 
         // fetch my jobs if contractor
         if (parsedUser.role === "Contractor") {
           const resMine = await fetch(
-            `http://192.168.100.177:3000/api/my-jobs-email/${parsedUser.email}`,
+            `https://labourhubserver.vercel.app/api/my-jobs-email/${parsedUser.email}`,
           );
           const jobsMine = await resMine.json();
           setMyJobs(jobsMine);
@@ -332,7 +335,7 @@ export default function LabourAllJobs() {
   const searchJobsFromAPI = async (text: string) => {
     try {
       const res = await fetch(
-        `http://192.168.100.177:3000/api/search-jobs?name=${text}&skill=${text}`,
+        `https://labourhubserver.vercel.app/api/search-jobs?name=${text}&skill=${text}`,
       );
 
       const data = await res.json();
@@ -360,7 +363,7 @@ export default function LabourAllJobs() {
   const handleApply = async (job: Job) => {
     try {
       const response = await fetch(
-        `http://192.168.100.177:3000/api/jobs/apply/${job._id}`,
+        `https://labourhubserver.vercel.app/api/jobs/apply/${job._id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -846,6 +849,7 @@ export default function LabourAllJobs() {
         activeTab={pathname.includes("LabourAllJobs") ? "Find Jobs" : undefined}
         userRole="Labour"
       />
+      <ChatBot />
     </SafeAreaView>
   );
 }

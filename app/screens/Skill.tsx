@@ -34,7 +34,7 @@ export default function UserSkillsScreen() {
   const fetchSkills = async (email: string) => {
     try {
       const res = await fetch(
-        `http://192.168.100.177:3000/api/user/skills/${email}`,
+        `https://labourhubserver.vercel.app/api/user/skills/${email}`,
       );
       const data = await res.json();
       if (data.success) setSkills(data.skills);
@@ -46,7 +46,7 @@ export default function UserSkillsScreen() {
   const addSkill = async () => {
     if (!newSkill.trim()) return;
     try {
-      await fetch(`http://192.168.100.177:3000/api/user/${userEmail}/skills`, {
+      await fetch(`https://labourhubserver.vercel.app/api/user/${userEmail}/skills`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ skill: newSkill }),
@@ -68,7 +68,7 @@ export default function UserSkillsScreen() {
         onPress: async () => {
           try {
             await fetch(
-              `http://192.168.100.177:3000/api/user/${userEmail}/skills/${index}`,
+              `https://labourhubserver.vercel.app/api/user/${userEmail}/skills/${index}`,
               { method: "DELETE" },
             );
 

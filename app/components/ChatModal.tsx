@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 
-const BACKEND_URL = "http://192.168.100.177:3000/api/chat"; // replace with your backend
+const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat"; // replace with your backend
 
 interface Message {
   sender: "me" | "other";

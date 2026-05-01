@@ -21,7 +21,7 @@ import {
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
 
-const BACKEND_URL = "http://192.168.100.177:3000/api/chat";
+const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat";
 
 interface ChatItem {
   email: string;

@@ -73,7 +73,7 @@ class NotificationService {
   async sendTokenToServer(email: string, token: string): Promise<void> {
     try {
       const response = await fetch(
-        "http://192.168.100.177:3000/api/update-push-token",
+        "https://labourhubserver.vercel.app/api/update-push-token",
         {
           method: "POST",
           headers: {

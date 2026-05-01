@@ -43,7 +43,7 @@ export default function LoginScreen() {
         console.log("Could not get push token:", err);
       }
 
-      const res = await fetch("http://192.168.100.177:3000/api/login", {
+      const res = await fetch("https://labourhubserver.vercel.app/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

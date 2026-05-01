@@ -65,7 +65,7 @@ export default function SignupScreen() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://192.168.100.177:3000/api/signup", {
+      const res = await fetch("https://labourhubserver.vercel.app/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -108,7 +108,7 @@ export default function ChangePasswordScreen({
     try {
       setLoading(true);
       const res = await fetch(
-        "http://192.168.100.177:3000/api/forgot-password",
+        "https://labourhubserver.vercel.app/api/forgot-password",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -138,7 +138,7 @@ export default function ChangePasswordScreen({
     try {
       setLoading(true);
       const res = await fetch(
-        "http://192.168.100.177:3000/api/reset-password",
+        "https://labourhubserver.vercel.app/api/reset-password",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
