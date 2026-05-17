@@ -2650,6 +2650,7 @@
 //   console.log(`✅ Server running at http://localhost:${port}`),
 // );
 
+/////////////////////////////////////////////////// LATEST ONE ///////////////////////////////////////
 const express = require("express");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
@@ -3175,6 +3176,241 @@ const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
+// Replace SendGrid with Nodemailer
+const nodemailer = require("nodemailer");
+
+// Configure SMTP transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+// Verify SMTP connection
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ SMTP Connection Error:", error);
+  } else {
+    console.log("✅ SMTP Server is ready to send emails");
+  }
+});
+
+// ==================== EMAIL HELPER FUNCTIONS (UPDATED for SMTP) ====================
+
+/**
+ * Send email to a single user using SMTP
+ */
+async function sendSingleEmail(toEmail, subject, htmlContent) {
+  try {
+    const mailOptions = {
+      from: `"Labour Hub" <${process.env.SMTP_EMAIL}>`,
+      to: toEmail,
+      subject: subject,
+      html: htmlContent,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(
+      `✅ Email sent successfully to ${toEmail} - Message ID: ${info.messageId}`,
+    );
+    return true;
+  } catch (err) {
+    console.error(`❌ Error sending email to ${toEmail}:`, err.message);
+    return false;
+  }
+}
+
+/**
+ * Send bulk emails to multiple users
+ */
+async function sendBulkEmails(users, subject, getHtmlContent) {
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const user of users) {
+    try {
+      const htmlContent = getHtmlContent(user);
+      await sendSingleEmail(user.email, subject, htmlContent);
+      successCount++;
+      // Add small delay to avoid rate limiting (Gmail allows ~100 emails/day)
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch (err) {
+      failCount++;
+      console.error(`Failed to send email to ${user.email}:`, err.message);
+    }
+  }
+
+  return { successCount, failCount };
+}
+
+/**
+ * Generate email HTML for new job post
+ */
+function getNewJobEmailHTML(job, jobPosterName) {
+  const logoUrl =
+    "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762834364/logo_je7mnb.png";
+  const applyUrl = `https://labourhub.pk/job-details/${job._id}`;
+
+  return `
+    <div style="font-family: 'Segoe UI', sans-serif; background-color: #f5f7fa; padding: 40px 0;">
+      <div style="max-width: 600px; background-color: #ffffff; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        
+        <div style="background-color: #0a66c2; padding: 25px 20px; text-align: center;">
+          <img src="${logoUrl}" alt="Labour Hub Logo" width="70" height="70" style="border-radius: 50%; border: 2px solid #ffffff; margin-bottom: 10px;">
+          <h1 style="color: #ffffff; font-size: 24px; margin: 0;">Labour Hub</h1>
+          <p style="color: #ffffff; margin: 5px 0 0;">New Job Opportunity!</p>
+        </div>
+
+        <div style="padding: 30px 25px; color: #333333;">
+          <h2 style="color: #0a66c2; font-size: 20px; margin-top: 0;">🆕 New Job Posted!</h2>
+          <p style="font-size: 16px; line-height: 1.6;">
+            A new job has been posted that matches your skills!
+          </p>
+          
+          <div style="background-color: #f0f2f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #0a66c2;">${job.title}</h3>
+            <p><strong>🏢 Posted by:</strong> ${jobPosterName}</p>
+            <p><strong>📍 Location:</strong> ${job.location}</p>
+            <p><strong>💰 Budget:</strong> PKR ${job.budget.toLocaleString()}</p>
+            <p><strong>🔧 Skills Required:</strong> ${job.skill}</p>
+            <p><strong>👥 Workers Needed:</strong> ${job.workersRequired}</p>
+            <p><strong>📅 Start Date:</strong> ${new Date(job.startDate).toLocaleDateString()}</p>
+            <p><strong>📅 End Date:</strong> ${new Date(job.endDate).toLocaleDateString()}</p>
+            <p><strong>⏰ Shift:</strong> ${job.shift}</p>
+            <p><strong>📝 Description:</strong></p>
+            <p style="background-color: white; padding: 10px; border-radius: 5px; margin: 10px 0;">${job.description}</p>
+            <p><strong>📞 Contact:</strong> ${job.contact}</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0 20px;">
+            <a href="${applyUrl}" 
+               style="background-color: #0a66c2; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; display: inline-block;">
+              Apply Now
+            </a>
+          </div>
+        </div>
+
+        <div style="background-color: #f0f2f5; text-align: center; padding: 20px; border-top: 1px solid #e1e4e8;">
+          <p style="color: #777777; font-size: 13px; margin: 0;">
+            © ${new Date().getFullYear()} Labour Hub. All rights reserved.<br>
+            Karachi, Pakistan
+          </p>
+          <p style="color: #999999; font-size: 11px; margin: 10px 0 0;">
+            You're receiving this because you're a registered Labour user on Labour Hub.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Generate email HTML for job poster confirmation
+ */
+function getJobPosterConfirmationHTML(job) {
+  const logoUrl =
+    "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762834364/logo_je7mnb.png";
+
+  return `
+    <div style="font-family: 'Segoe UI', sans-serif; background-color: #f5f7fa; padding: 40px 0;">
+      <div style="max-width: 600px; background-color: #ffffff; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        
+        <div style="background-color: #0a66c2; padding: 25px 20px; text-align: center;">
+          <img src="${logoUrl}" alt="Labour Hub Logo" width="70" height="70" style="border-radius: 50%; border: 2px solid #ffffff; margin-bottom: 10px;">
+          <h1 style="color: #ffffff; font-size: 24px; margin: 0;">Labour Hub</h1>
+          <p style="color: #ffffff; margin: 5px 0 0;">Job Posted Successfully!</p>
+        </div>
+
+        <div style="padding: 30px 25px; color: #333333;">
+          <h2 style="color: #0a66c2; font-size: 20px; margin-top: 0;">✅ Job Posted Successfully!</h2>
+          <p style="font-size: 16px; line-height: 1.6;">
+            Your job "<strong>${job.title}</strong>" has been posted successfully on Labour Hub.
+          </p>
+          
+          <div style="background-color: #f0f2f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #0a66c2;">Job Summary</h3>
+            <p><strong>📍 Location:</strong> ${job.location}</p>
+            <p><strong>💰 Budget:</strong> PKR ${job.budget.toLocaleString()}</p>
+            <p><strong>👥 Workers Needed:</strong> ${job.workersRequired}</p>
+            <p><strong>🔧 Skills Required:</strong> ${job.skill}</p>
+            <p><strong>📅 Duration:</strong> ${new Date(job.startDate).toLocaleDateString()} - ${new Date(job.endDate).toLocaleDateString()}</p>
+          </div>
+          
+          <p>You will receive <strong>email and push notifications</strong> when workers apply to your job posting.</p>
+          
+          <div style="text-align: center; margin: 30px 0 20px;">
+            <a href="https://labourhub.pk/my-jobs" 
+               style="background-color: #0a66c2; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; display: inline-block;">
+              View Your Jobs
+            </a>
+          </div>
+        </div>
+
+        <div style="background-color: #f0f2f5; text-align: center; padding: 20px; border-top: 1px solid #e1e4e8;">
+          <p style="color: #777777; font-size: 13px; margin: 0;">
+            © ${new Date().getFullYear()} Labour Hub. All rights reserved.<br>
+            Karachi, Pakistan
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Generate email HTML for application status update
+ */
+function getApplicationStatusEmailHTML(job, status, contractorName) {
+  const logoUrl =
+    "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762834364/logo_je7mnb.png";
+  const statusText = status === "accepted" ? "Accepted ✅" : "Rejected ❌";
+  const statusColor = status === "accepted" ? "#16a34a" : "#dc2626";
+  const message =
+    status === "accepted"
+      ? "Congratulations! Your application has been accepted. The contractor will contact you shortly."
+      : "Unfortunately, your application was not selected for this position. Don't worry, there are many more opportunities available!";
+
+  return `
+    <div style="font-family: 'Segoe UI', sans-serif; background-color: #f5f7fa; padding: 40px 0;">
+      <div style="max-width: 600px; background-color: #ffffff; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        
+        <div style="background-color: #0a66c2; padding: 25px 20px; text-align: center;">
+          <img src="${logoUrl}" alt="Labour Hub Logo" width="70" height="70" style="border-radius: 50%; border: 2px solid #ffffff; margin-bottom: 10px;">
+          <h1 style="color: #ffffff; font-size: 24px; margin: 0;">Labour Hub</h1>
+          <p style="color: #ffffff; margin: 5px 0 0;">Application Update</p>
+        </div>
+
+        <div style="padding: 30px 25px; color: #333333; text-align: center;">
+          <h2 style="color: ${statusColor}; font-size: 24px; margin-top: 0;">Application ${statusText}</h2>
+          <p style="font-size: 18px; margin: 20px 0;">
+            <strong>Job Title:</strong> ${job.title}
+          </p>
+          <p><strong>Contractor:</strong> ${contractorName}</p>
+          <div style="background-color: #f0f2f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0;">${message}</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0 20px;">
+            <a href="https://labourhub.pk/my-applications" 
+               style="background-color: #0a66c2; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; display: inline-block;">
+              View My Applications
+            </a>
+          </div>
+        </div>
+
+        <div style="background-color: #f0f2f5; text-align: center; padding: 20px; border-top: 1px solid #e1e4e8;">
+          <p style="color: #777777; font-size: 13px; margin: 0;">
+            © ${new Date().getFullYear()} Labour Hub. All rights reserved.<br>
+            Karachi, Pakistan
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 app.use("/api/chat", chatRoutes);
 notification.sendServerStartNotification().catch(console.error);
 
@@ -3357,13 +3593,11 @@ app.get("/api/users", async (req, res) => {
       badge: user.role === "Contractor" ? "🟦 Contractor" : "🟩 Labour",
     }));
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        count: formattedUsers.length,
-        users: formattedUsers,
-      });
+    res.status(200).json({
+      success: true,
+      count: formattedUsers.length,
+      users: formattedUsers,
+    });
   } catch (error) {
     console.error("User Fetch Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -3658,11 +3892,9 @@ app.post("/api/reset-password", async (req, res) => {
 
     const isSame = await bcrypt.compare(newPassword, user.passwordHash);
     if (isSame)
-      return res
-        .status(400)
-        .json({
-          error: "New password must be different from your old password.",
-        });
+      return res.status(400).json({
+        error: "New password must be different from your old password.",
+      });
 
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
     user.passwordHash = await bcrypt.hash(newPassword, saltRounds);
@@ -3791,6 +4023,7 @@ app.post("/api/jobs/apply/:jobId", async (req, res) => {
 
 // ── POST /api/jobs  (create job)
 // 🔔 NOTIFICATION: Notify all Labour users about new job
+// Create a new job (UPDATED with SMTP email notifications)
 app.post("/api/jobs", async (req, res) => {
   try {
     const {
@@ -3845,31 +4078,75 @@ app.post("/api/jobs", async (req, res) => {
 
     await job.save();
 
-    // 🔔 Notify all Labour users
+    // ============================================
+    // SEND NOTIFICATIONS TO ALL LABOUR USERS
+    // ============================================
     let notificationResult = { successCount: 0, failCount: 0 };
+    let emailResult = { successCount: 0, failCount: 0 };
+
     try {
+      // Get all Labour users
       const labourUsers = await User.find({
         role: "Labour",
-        expoPushToken: { $exists: true, $ne: null, $ne: "" },
       }).select("expoPushToken firstName lastName email");
 
+      console.log(`📱 Found ${labourUsers.length} labour users`);
+
       if (labourUsers.length > 0) {
-        notificationResult = await notification.notifyLabourUsersAboutNewJob(
+        // Send push notifications (only to those with tokens)
+        const usersWithTokens = labourUsers.filter((u) => u.expoPushToken);
+        if (usersWithTokens.length > 0) {
+          notificationResult = await notification.notifyLabourUsersAboutNewJob(
+            usersWithTokens,
+            job,
+          );
+          console.log(
+            `📊 Push Notification Summary: ${notificationResult.successCount} sent, ${notificationResult.failCount} failed`,
+          );
+        }
+
+        // Send email notifications to ALL labour users
+        console.log(
+          `\n📧 Sending email notifications to ${labourUsers.length} labour users...`,
+        );
+        const jobPosterName =
+          `${createdBy.firstName} ${createdBy.lastName}`.trim();
+
+        emailResult = await sendBulkEmails(
           labourUsers,
-          job,
+          `🔔 New Job Alert: ${job.title} - Labour Hub`,
+          (user) => getNewJobEmailHTML(job, jobPosterName),
+        );
+
+        console.log(
+          `📊 Email Summary: ${emailResult.successCount} sent, ${emailResult.failCount} failed`,
+        );
+      } else {
+        console.log("⚠️ No labour users found.");
+      }
+
+      // Send confirmation email to job poster
+      const poster = await User.findById(createdBy.userId);
+      if (poster && poster.email) {
+        await sendSingleEmail(
+          poster.email,
+          `✅ Job Posted Successfully: ${job.title}`,
+          getJobPosterConfirmationHTML(job),
+        );
+        console.log(
+          `✅ Confirmation email sent to job poster: ${poster.email}`,
         );
       }
     } catch (notifError) {
-      console.error("❌ New job notification error:", notifError);
+      console.error("❌ Notification error:", notifError);
     }
 
-    return res
-      .status(201)
-      .json({
-        message: "Job created successfully",
-        job,
-        notificationsSent: notificationResult.successCount,
-      });
+    return res.status(201).json({
+      message: "Job created successfully",
+      job,
+      pushNotificationsSent: notificationResult.successCount,
+      emailsSent: emailResult.successCount,
+    });
   } catch (err) {
     console.error("Error creating job:", err);
     return res.status(500).json({ message: "Server error" });
@@ -3878,9 +4155,10 @@ app.post("/api/jobs", async (req, res) => {
 
 // ── PUT /api/jobs/:jobId/applicants/:labourId/status
 // 🔔 NOTIFICATION: Notify the labour about acceptance or rejection
+// Update application status with SMTP email
 app.put("/api/jobs/:jobId/applicants/:labourId/status", async (req, res) => {
   const { jobId, labourId } = req.params;
-  const { status } = req.body; // "accepted" | "rejected"
+  const { status } = req.body;
 
   if (!["accepted", "rejected"].includes(status)) {
     return res
@@ -3903,23 +4181,39 @@ app.put("/api/jobs/:jobId/applicants/:labourId/status", async (req, res) => {
     applicant.status = status;
     await job.save();
 
-    // 🔔 Notify labour about their application status
-    try {
-      const labour = await User.findById(labourId).select(
-        "expoPushToken firstName lastName email",
-      );
-      if (labour?.expoPushToken) {
-        await notification.notifyLabourAboutApplicationStatus(
-          labour.expoPushToken,
-          job,
-          status,
-        );
-      }
-    } catch (notifErr) {
-      console.error("❌ Status change notification error:", notifErr);
+    // Get labour info for email
+    const labour = await User.findById(labourId).select(
+      "expoPushToken firstName lastName email",
+    );
+    const contractorName = `${job.createdBy.firstName} ${job.createdBy.lastName}`;
+
+    // Send push notification
+    if (labour?.expoPushToken) {
+      await notification
+        .notifyLabourAboutApplicationStatus(labour.expoPushToken, job, status)
+        .catch((e) => console.error("Push notification error:", e));
     }
 
-    res.status(200).json({ message: `Applicant ${status} successfully`, job });
+    // Send email notification via SMTP
+    if (labour?.email) {
+      const emailSent = await sendSingleEmail(
+        labour.email,
+        `Application ${status === "accepted" ? "Accepted ✅" : "Rejected ❌"}: ${job.title}`,
+        getApplicationStatusEmailHTML(job, status, contractorName),
+      );
+      console.log(
+        `Status email ${emailSent ? "sent" : "failed"} to ${labour.email}`,
+      );
+    }
+
+    res.status(200).json({
+      message: `Applicant ${status} successfully`,
+      job,
+      notifications: {
+        push: !!labour?.expoPushToken,
+        email: !!labour?.email,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -4117,6 +4411,37 @@ app.get("/api/profile/:email", async (req, res) => {
   }
 });
 
+// Add this test endpoint after the email functions
+app.get("/api/test-email", async (req, res) => {
+  try {
+    const testEmail = req.query.email || process.env.test_email;
+
+    const result = await sendSingleEmail(
+      testEmail,
+      "🔔 Labour Hub - SMTP Test Email",
+      `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2 style="color: #0a66c2;">✅ SMTP Test Successful!</h2>
+        <p>If you're reading this, your SMTP email configuration is working perfectly.</p>
+        <p>Time: ${new Date().toLocaleString()}</p>
+        <hr>
+        <p style="color: #666; font-size: 12px;">Labour Hub Notification System</p>
+      </div>
+      `,
+    );
+
+    res.json({
+      success: result,
+      message: result
+        ? "Test email sent successfully"
+        : "Failed to send test email",
+      sentTo: testEmail,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.get("/api/jobs/user/:email", async (req, res) => {
   try {
     const { email } = req.params;
@@ -4204,13 +4529,11 @@ app.get("/api/responses-by-contractor/:email", async (req, res) => {
       });
     }
 
-    res
-      .status(200)
-      .json({
-        contractorEmail: email,
-        totalResponses: results.length,
-        responses: results,
-      });
+    res.status(200).json({
+      contractorEmail: email,
+      totalResponses: results.length,
+      responses: results,
+    });
   } catch (err) {
     res.status(500).json({ message: "Server Error" });
   }
@@ -4366,12 +4689,10 @@ app.post("/api/industries", async (req, res) => {
       textileType,
       password: hashedPassword,
     });
-    res
-      .status(201)
-      .json({
-        message: "Industry registered successfully",
-        industry: newIndustry,
-      });
+    res.status(201).json({
+      message: "Industry registered successfully",
+      industry: newIndustry,
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -4408,14 +4729,12 @@ app.post("/api/industries/login", async (req, res) => {
       "YOUR_SECRET_KEY",
       { expiresIn: "7d" },
     );
-    res
-      .status(200)
-      .json({
-        message: "Login successful",
-        email: industry.email,
-        token,
-        active: industry.active,
-      });
+    res.status(200).json({
+      message: "Login successful",
+      email: industry.email,
+      token,
+      active: industry.active,
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
