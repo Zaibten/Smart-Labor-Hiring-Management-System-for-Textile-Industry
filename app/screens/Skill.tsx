@@ -4,13 +4,13 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function UserSkillsScreen() {
@@ -46,11 +46,14 @@ export default function UserSkillsScreen() {
   const addSkill = async () => {
     if (!newSkill.trim()) return;
     try {
-      await fetch(`https://labourhubserver.vercel.app/api/user/${userEmail}/skills`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skill: newSkill }),
-      });
+      await fetch(
+        `https://labourhubserver.vercel.app/api/user/${userEmail}/skills`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ skill: newSkill }),
+        },
+      );
 
       setSkills([...skills, newSkill]);
       setNewSkill("");

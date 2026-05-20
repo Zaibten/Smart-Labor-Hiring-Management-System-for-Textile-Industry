@@ -5,24 +5,23 @@ import React, { useEffect, useRef, useState } from "react";
 import Profile from "./Profile";
 
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Image,
-  Modal,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Image,
+    Modal,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
-import ChatBot from "../components/ChatBot";
 
 interface Applicant {
   laborId: string;
@@ -849,7 +848,7 @@ export default function LabourAllJobs() {
         activeTab={pathname.includes("LabourAllJobs") ? "Find Jobs" : undefined}
         userRole="Labour"
       />
-      <ChatBot />
+      {/* <ChatBot /> */}
     </SafeAreaView>
   );
 }

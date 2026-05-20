@@ -1,20 +1,19 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    Image,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
-import ChatBot from "../components/ChatBot";
 import AppliedJobScreen from "../screens/AppliedJob";
 
 const { width } = Dimensions.get("window");
@@ -323,7 +322,7 @@ export default function ContractorDashboard() {
         activeTab="Home"
         userRole="Labour"
       />
-      <ChatBot />
+      {/* <ChatBot /> */}
     </SafeAreaView>
   );
 }

@@ -5,22 +5,21 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Image,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Image,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
-import ChatBot from "../components/ChatBot";
 import ChangePasswordScreen from "./ChangePassword";
 import UserSkillsScreen from "./Skill";
 
@@ -538,7 +537,7 @@ export default function SettingsPage() {
           userRole={userRole}
         />
       </View>
-      <ChatBot />
+      {/* <ChatBot /> */}
     </SafeAreaView>
   );
 }

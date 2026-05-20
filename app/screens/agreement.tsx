@@ -1,16 +1,15 @@
 import React, { useRef, useState } from "react";
 import {
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
-import ChatBot from "../components/ChatBot";
 
 const contractorTabs = [
   { label: "Home", icon: "home" },
@@ -222,7 +221,7 @@ const Contractor: React.FC = () => {
             <Text style={{ color: "#fff" }}>Preview Contract</Text>
           </TouchableOpacity>
         </View>
-        <ChatBot />
+        {/* <ChatBot /> */}
 
         {/* CONTRACT MODAL */}
         <Modal visible={showContract} animationType="slide">

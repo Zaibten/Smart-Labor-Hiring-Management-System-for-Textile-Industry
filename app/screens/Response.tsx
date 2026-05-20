@@ -3,24 +3,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import BottomTab from "../components/BottomTab";
-import ChatBot from "../components/ChatBot";
 import Profile from "./Profile"; // Profile modal component
 
 const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat"; // replace with your backend
@@ -403,7 +402,7 @@ export default function Response() {
       </Modal>
 
       <BottomTab tabs={[]} activeTab="" userRole="Contractor" />
-      <ChatBot />
+      {/* <ChatBot /> */}
     </SafeAreaView>
   );
 }
