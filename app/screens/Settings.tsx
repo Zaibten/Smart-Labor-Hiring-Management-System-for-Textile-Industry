@@ -5,21 +5,22 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Image,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 import ChangePasswordScreen from "./ChangePassword";
 import UserSkillsScreen from "./Skill";
 
@@ -256,7 +257,7 @@ export default function SettingsPage() {
       formData.append("email", email); // <-- send email
 
       const response = await axios.post(
-        "http://192.168.100.39:3000/api/update-profile-image",
+        "https://labourhubserver.vercel.app/api/update-profile-image",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } },
       );
@@ -369,6 +370,10 @@ export default function SettingsPage() {
             onClose={() => setChangePasswordVisible(false)}
           />
         </Modal>
+
+        <View style={styles.chatbotWrapper}>
+          <ChatBot />
+        </View>
 
         <TouchableOpacity style={styles.menuItem} onPress={openSkillsModal}>
           <Text style={styles.menuLabel}>Manage Skills</Text>
@@ -586,7 +591,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 10,
   },
-
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
+  },
   faqAnswerUrdu: {
     marginTop: 10,
     fontSize: 15,

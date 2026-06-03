@@ -1,25 +1,26 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    Image,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import {
-    BarChart,
-    ContributionGraph,
-    LineChart,
-    PieChart,
-    ProgressChart,
+  BarChart,
+  ContributionGraph,
+  LineChart,
+  PieChart,
+  ProgressChart,
 } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 import Agreement from "../screens/agreement";
 import AppliedJobScreen from "../screens/AppliedJob";
 import ResponseScreen from "../screens/Response";
@@ -490,6 +491,9 @@ export default function ContractorDashboard() {
           </ScrollView>
         </View>
       </ScrollView>
+      <View style={styles.chatbotWrapper}>
+        <ChatBot />
+      </View>
 
       {/* ------------------ Bottom Tab ------------------ */}
       <BottomTab
@@ -537,6 +541,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowRadius: 12,
     elevation: 5,
+  },
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
   },
   chartStyle: {
     borderRadius: 16,

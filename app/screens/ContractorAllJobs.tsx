@@ -4,23 +4,24 @@ import React, { useEffect, useRef, useState } from "react";
 import Profile from "./Profile";
 
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Image,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 
 interface Applicant {
   laborId: string;
@@ -792,6 +793,9 @@ export default function AllJobs() {
           <Text style={styles.emptyText}>No jobs found.</Text>
         )}
       </ScrollView>
+      <View style={styles.chatbotWrapper}>
+        <ChatBot />
+      </View>
 
       <Modal
         transparent
@@ -868,6 +872,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginHorizontal: 15,
     marginBottom: 10,
+  },
+
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
   },
   searchInput: {
     backgroundColor: "#fff",

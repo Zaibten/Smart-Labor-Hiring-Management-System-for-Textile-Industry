@@ -5,21 +5,22 @@ import { Audio } from "expo-av";
 
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 
 const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat";
 
@@ -368,6 +369,10 @@ export default function ChatList() {
         </View>
       </Modal>
 
+      <View style={styles.chatbotWrapper}>
+        <ChatBot />
+      </View>
+
       <View style={styles.tabWrapper}>
         <BottomTab
           tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
@@ -440,7 +445,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 30,
   },
-
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
+  },
   /* Input Box */
   inputWrapper: {
     flexDirection: "row",

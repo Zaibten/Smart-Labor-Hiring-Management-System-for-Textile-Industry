@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    Easing,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import ChatBot from "../components/ChatBot";
 
 const API_URL = "https://labourhubserver.vercel.app/api/profile";
 const HARD_CODED_EMAIL = "silver@gmail.com";
@@ -146,6 +147,10 @@ const Profile: React.FC<ProfileProps> = ({ email }) => {
           </View>
         </View>
 
+        <View style={styles.chatbotWrapper}>
+          <ChatBot />
+        </View>
+
         {/* JOBS CREATED / APPLIED */}
         {user.role === "Contractor" && (
           <View style={styles.section}>
@@ -257,6 +262,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: ORANGE,
     elevation: 2,
+  },
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
   },
   roleText: {
     color: "#fff",

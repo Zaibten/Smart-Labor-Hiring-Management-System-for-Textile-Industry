@@ -8,18 +8,19 @@ import { useRef } from "react";
 
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 
 export default function CreateJob() {
   const [jobTitle, setJobTitle] = useState("");
@@ -495,6 +496,9 @@ export default function CreateJob() {
           <Text style={styles.buttonText}>Post Job</Text>
         </TouchableOpacity>
       </ScrollView>
+      <View style={styles.chatbotWrapper}>
+        <ChatBot />
+      </View>
 
       <View style={styles.tabWrapper}>
         <BottomTab
@@ -564,6 +568,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 1,
     borderColor: "#fff",
+  },
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
   },
   userImage: {
     width: "100%",

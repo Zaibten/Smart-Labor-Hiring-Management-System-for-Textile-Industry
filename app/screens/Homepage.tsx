@@ -1,19 +1,20 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    Image,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 import AppliedJobScreen from "../screens/AppliedJob";
 
 const { width } = Dimensions.get("window");
@@ -233,6 +234,10 @@ export default function ContractorDashboard() {
             showValuesOnTopOfBars
             style={styles.chartStyle}
           />
+        </View>
+
+        <View style={styles.chatbotWrapper}>
+          <ChatBot />
         </View>
 
         {/* ------------------ Stacked Bar Chart ------------------ */}
@@ -551,5 +556,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
+  },
+
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
   },
 });

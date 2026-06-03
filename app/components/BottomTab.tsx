@@ -14,13 +14,20 @@ interface BottomTabProps {
   userRole?: "Contractor" | "Labour";
 }
 
-export default function BottomTab({ tabs, activeTab, userRole }: BottomTabProps) {
+export default function BottomTab({
+  tabs,
+  activeTab,
+  userRole,
+}: BottomTabProps) {
   const router = useRouter();
   const pathname = usePathname();
 
   // ✅ Route mapping based on user role
   const routeMap: Record<string, string> = {
-    Home: userRole === "Contractor" ? "/screens/ContractorHomepage" : "/screens/Homepage",
+    Home:
+      userRole === "Contractor"
+        ? "/screens/ContractorHomepage"
+        : "/screens/Homepage",
     "Create Jobs": "/screens/CreateJobs",
     "All Jobs": "/screens/ContractorAllJobs",
     "Find Jobs": "/screens/LabourAllJobs", // ✅ Added for Labour role

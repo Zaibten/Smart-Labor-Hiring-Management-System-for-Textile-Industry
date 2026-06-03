@@ -1,15 +1,16 @@
 import React, { useRef, useState } from "react";
 import {
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
+import ChatBot from "../components/ChatBot";
 
 const contractorTabs = [
   { label: "Home", icon: "home" },
@@ -329,6 +330,10 @@ const Contractor: React.FC = () => {
                 </View>
               </View>
 
+              <View style={styles.chatbotWrapper}>
+                <ChatBot />
+              </View>
+
               {/* Contractor Signature Section */}
               <View style={styles.signatureWrapper}>
                 <Text style={styles.signatureLabel}>Contractor Signature</Text>
@@ -435,6 +440,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 2,
     backgroundColor: "#fff",
+  },
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
   },
   option: { padding: 10 },
   button: {

@@ -5,23 +5,24 @@ import React, { useEffect, useRef, useState } from "react";
 import Profile from "./Profile";
 
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Image,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
+import ChatBot from "../components/ChatBot";
 
 interface Applicant {
   laborId: string;
@@ -843,6 +844,10 @@ export default function LabourAllJobs() {
         </Animated.View>
       </Modal>
 
+      <View style={styles.chatbotWrapper}>
+        <ChatBot />
+      </View>
+
       <BottomTab
         tabs={labourTabs}
         activeTab={pathname.includes("LabourAllJobs") ? "Find Jobs" : undefined}
@@ -892,7 +897,12 @@ const styles = StyleSheet.create({
     color: "#111827",
     elevation: 2,
   },
-
+  chatbotWrapper: {
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    zIndex: 999, // Ensure it stays above other content
+  },
   toggleText: {
     fontSize: 16,
     fontWeight: "600",
