@@ -1,7 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Tab {
   label: string;
@@ -21,6 +27,7 @@ export default function BottomTab({
 }: BottomTabProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   // ✅ Route mapping based on user role
   const routeMap: Record<string, string> = {
@@ -30,7 +37,7 @@ export default function BottomTab({
         : "/screens/Homepage",
     "Create Jobs": "/screens/CreateJobs",
     "All Jobs": "/screens/ContractorAllJobs",
-    "Find Jobs": "/screens/LabourAllJobs", // ✅ Added for Labour role
+    "Find Jobs": "/screens/LabourAllJobs",
     Chats: "/screens/ChatList",
     Settings: "/screens/Settings",
   };
@@ -48,41 +55,46 @@ export default function BottomTab({
   };
 
   return (
-    <View style={styles.bottomTab}>
-      {tabs.map((tab, index) => {
-        const isActive = tab.label === activeTab;
-        return (
-          <TouchableOpacity
-            key={index}
-            style={styles.tabItem}
-            onPress={() => handleTabPress(tab.label)}
-          >
-            <Ionicons
-              name={tab.icon as any}
-              size={22}
-              color={isActive ? "#fb923c" : "#9ca3af"}
-            />
-            <Text style={[styles.tabLabel, isActive && styles.activeLabel]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+    <View style={[styles.bottomTabWrapper, { paddingBottom: insets.bottom }]}>
+      <View style={styles.bottomTab}>
+        {tabs.map((tab, index) => {
+          const isActive = tab.label === activeTab;
+          return (
+            <TouchableOpacity
+              key={index}
+              style={styles.tabItem}
+              onPress={() => handleTabPress(tab.label)}
+            >
+              <Ionicons
+                name={tab.icon as any}
+                size={22}
+                color={isActive ? "#fb923c" : "#9ca3af"}
+              />
+              <Text style={[styles.tabLabel, isActive && styles.activeLabel]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  bottomTabWrapper: {
+    backgroundColor: "#f9fafb",
+    borderTopWidth: 1,
+    borderColor: "#e5e7eb",
+  },
   bottomTab: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    borderTopWidth: 1,
-    borderColor: "#e5e7eb",
     paddingVertical: 10,
     backgroundColor: "#f9fafb",
   },
-  tabItem: { alignItems: "center", justifyContent: "center" },
+  tabItem: { alignItems: "center", justifyContent: "center", flex: 1 },
   tabLabel: { marginTop: 4, fontSize: 13, color: "#9ca3af", fontWeight: "600" },
   activeLabel: { color: "#fb923c", fontWeight: "700" },
 });

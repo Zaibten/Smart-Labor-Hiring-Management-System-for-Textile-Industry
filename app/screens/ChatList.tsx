@@ -20,7 +20,6 @@ import {
 } from "react-native";
 import AppBar from "../components/AppBar";
 import BottomTab from "../components/BottomTab";
-import ChatBot from "../components/ChatBot";
 
 const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat";
 
@@ -369,9 +368,9 @@ export default function ChatList() {
         </View>
       </Modal>
 
-      <View style={styles.chatbotWrapper}>
+      {/* <View style={styles.chatbotWrapper}>
         <ChatBot />
-      </View>
+      </View> */}
 
       <View style={styles.tabWrapper}>
         <BottomTab

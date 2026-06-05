@@ -195,158 +195,161 @@ export default function Response() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* <AppBar title="My Applied Jobs" /> */}
+    <>
+      <SafeAreaView style={styles.safeArea}>
+        {/* <AppBar title="My Applied Jobs" /> */}
 
-      {/* User Info */}
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>
-          {user.firstName} {user.lastName}
-        </Text>
-        <Text style={styles.userEmail}>{user.email}</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {jobsApplied.length > 0 ? (
-          jobsApplied.map((job, index) => (
-            <View key={index} style={styles.card}>
-              <TouchableOpacity
-                onPress={() => openProfileModal(job.contractor.email)}
-              >
-                <Image
-                  source={
-                    job.contractor.image
-                      ? { uri: job.contractor.image }
-                      : require("../../assets/images/logo.png")
-                  }
-                  style={styles.avatar}
-                />
-              </TouchableOpacity>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.name}>
-                  {job.contractor.firstName} {job.contractor.lastName}
-                </Text>
-                <Text style={styles.email}>{job.contractor.email}</Text>
-                <Text style={styles.jobTitle}>Job: {job.title}</Text>
-                <Text style={styles.appliedAt}>
-                  Applied At: {new Date(job.appliedAt).toLocaleString()}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => handleChatPress(job.contractor.email)}
-                style={styles.chatBtn}
-              >
-                <Ionicons
-                  name="chatbubble-ellipses-outline"
-                  size={24}
-                  color="#fff"
-                />
-              </TouchableOpacity>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.emptyText}>
-            You have not applied to any jobs yet.
+        {/* User Info */}
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>
+            {user.firstName} {user.lastName}
           </Text>
-        )}
-      </ScrollView>
-
-      {/* Profile Modal */}
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent={false}
-        onRequestClose={closeModal}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-          <Pressable
-            onPress={closeModal}
-            style={{
-              position: "absolute",
-              top: 10,
-              right: 15,
-              zIndex: 10,
-              padding: 10,
-              backgroundColor: "#fff",
-              borderRadius: 25,
-              elevation: 3,
-            }}
-          >
-            <Text style={{ fontSize: 18, fontWeight: "700" }}>X</Text>
-          </Pressable>
-
-          {selectedEmail && <Profile email={selectedEmail} />}
-        </SafeAreaView>
-      </Modal>
-
-      {/* Chat Modal */}
-      <Modal
-        transparent
-        visible={chatModalVisible}
-        onRequestClose={() => setChatModalVisible(false)}
-        animationType="slide"
-      >
-        <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: 40 }}>
-          <Pressable
-            onPress={() => setChatModalVisible(false)}
-            style={{ position: "absolute", top: 40, right: 20, zIndex: 10 }}
-          >
-            <Ionicons name="close-circle" size={30} color="#fb923c" />
-          </Pressable>
-
-          {chatUserEmail && (
-            <>
-              <FlatList
-                ref={flatListRef}
-                data={messages}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={renderMessageItem}
-                contentContainerStyle={{ padding: 10 }}
-              />
-
-              <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ padding: 10, backgroundColor: "#f3f4f6" }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <TextInput
-                    value={newMessage}
-                    onChangeText={setNewMessage}
-                    placeholder="Type a message"
-                    style={{
-                      flex: 1,
-                      borderWidth: 1,
-                      borderColor: "#e5e7eb",
-                      borderRadius: 20,
-                      paddingHorizontal: 15,
-                      paddingVertical: 8,
-                      marginRight: 10,
-                      backgroundColor: "#fff",
-                    }}
-                  />
-                  <TouchableOpacity
-                    onPress={sendMessage}
-                    style={{
-                      backgroundColor: "#fb923c",
-                      padding: 10,
-                      borderRadius: 20,
-                    }}
-                  >
-                    <Text style={{ color: "#fff" }}>Send</Text>
-                  </TouchableOpacity>
-                </View>
-              </KeyboardAvoidingView>
-            </>
-          )}
+          <Text style={styles.userEmail}>{user.email}</Text>
         </View>
-      </Modal>
-      <View style={styles.chatbotWrapper}>
-        <ChatBot />
-      </View>
 
-      <BottomTab tabs={[]} activeTab="" userRole={user.role} />
-      {/* <ChatBot /> */}
-    </SafeAreaView>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {jobsApplied.length > 0 ? (
+            jobsApplied.map((job, index) => (
+              <View key={index} style={styles.card}>
+                <TouchableOpacity
+                  onPress={() => openProfileModal(job.contractor.email)}
+                >
+                  <Image
+                    source={
+                      job.contractor.image
+                        ? { uri: job.contractor.image }
+                        : require("../../assets/images/logo.png")
+                    }
+                    style={styles.avatar}
+                  />
+                </TouchableOpacity>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.name}>
+                    {job.contractor.firstName} {job.contractor.lastName}
+                  </Text>
+                  <Text style={styles.email}>{job.contractor.email}</Text>
+                  <Text style={styles.jobTitle}>Job: {job.title}</Text>
+                  <Text style={styles.appliedAt}>
+                    Applied At: {new Date(job.appliedAt).toLocaleString()}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleChatPress(job.contractor.email)}
+                  style={styles.chatBtn}
+                >
+                  <Ionicons
+                    name="chatbubble-ellipses-outline"
+                    size={24}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.emptyText}>
+              You have not applied to any jobs yet.
+            </Text>
+          )}
+        </ScrollView>
+
+        {/* Profile Modal */}
+        <Modal
+          visible={modalVisible}
+          animationType="fade"
+          transparent={false}
+          onRequestClose={closeModal}
+        >
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+            <Pressable
+              onPress={closeModal}
+              style={{
+                position: "absolute",
+                top: 10,
+                right: 15,
+                zIndex: 10,
+                padding: 10,
+                backgroundColor: "#fff",
+                borderRadius: 25,
+                elevation: 3,
+              }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: "700" }}>X</Text>
+            </Pressable>
+
+            {selectedEmail && <Profile email={selectedEmail} />}
+          </SafeAreaView>
+        </Modal>
+
+        {/* Chat Modal */}
+        <Modal
+          transparent
+          visible={chatModalVisible}
+          onRequestClose={() => setChatModalVisible(false)}
+          animationType="slide"
+        >
+          <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: 40 }}>
+            <Pressable
+              onPress={() => setChatModalVisible(false)}
+              style={{ position: "absolute", top: 40, right: 20, zIndex: 10 }}
+            >
+              <Ionicons name="close-circle" size={30} color="#fb923c" />
+            </Pressable>
+
+            {chatUserEmail && (
+              <>
+                <FlatList
+                  ref={flatListRef}
+                  data={messages}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={renderMessageItem}
+                  contentContainerStyle={{ padding: 10 }}
+                />
+
+                <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+                  style={{ padding: 10, backgroundColor: "#f3f4f6" }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <TextInput
+                      value={newMessage}
+                      onChangeText={setNewMessage}
+                      placeholder="Type a message"
+                      style={{
+                        flex: 1,
+                        borderWidth: 1,
+                        borderColor: "#e5e7eb",
+                        borderRadius: 20,
+                        paddingHorizontal: 15,
+                        paddingVertical: 8,
+                        marginRight: 10,
+                        backgroundColor: "#fff",
+                      }}
+                    />
+                    <TouchableOpacity
+                      onPress={sendMessage}
+                      style={{
+                        backgroundColor: "#fb923c",
+                        padding: 10,
+                        borderRadius: 20,
+                      }}
+                    >
+                      <Text style={{ color: "#fff" }}>Send</Text>
+                    </TouchableOpacity>
+                  </View>
+                </KeyboardAvoidingView>
+              </>
+            )}
+          </View>
+        </Modal>
+        {/* <View style={styles.chatbotWrapper}>
+      <ChatBot />
+    </View> */}
+
+        <BottomTab tabs={[]} activeTab="" userRole={user.role} />
+        {/* <ChatBot /> */}
+      </SafeAreaView>
+      <ChatBot />
+    </>
   );
 }
 

@@ -153,362 +153,378 @@ export default function ContractorDashboard() {
   }));
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* ------------------ AppBar ------------------ */}
-      {/* <AppBar title={`Welcome, ${user.firstName} 👷‍♂️`} /> */}
-      <AppBar title={`Labour Hub`} />
+    <>
+      <SafeAreaView style={styles.safeArea}>
+        {/* ------------------ AppBar ------------------ */}
+        {/* <AppBar title={`Welcome, ${user.firstName} 👷‍♂️`} /> */}
+        <AppBar title={`Labour Hub`} />
 
-      {/* ------------------ Scrollable Content ------------------ */}
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* ------------------ User Info Card ------------------ */}
-        <View style={styles.userCard}>
-          <Image
-            source={{
-              uri:
-                user?.image && user.image.trim() !== ""
-                  ? user.image
-                  : "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
-            }}
-            style={styles.userImage}
-          />
-
-          <View style={{ flex: 1, marginLeft: 15 }}>
-            <Text style={styles.userName}>
-              {user.firstName} {user.lastName}
-            </Text>
-            <Text style={styles.userEmail}>{user.email}</Text>
-            <Text style={styles.userRole}>{user.role}</Text>
-          </View>
-        </View>
-
-        {/* ---------- NEW BUTTONS ROW ---------- */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginBottom: 20,
-          }}
+        {/* ------------------ Scrollable Content ------------------ */}
+        <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
         >
-          {/* Response Button */}
-          <View style={styles.actionBtn}>
-            <Text
-              onPress={() => setShowResponseModal(true)}
-              style={styles.actionBtnText}
-            >
-              Job Response
-            </Text>
-          </View>
+          {/* ------------------ User Info Card ------------------ */}
+          <View style={styles.userCard}>
+            <Image
+              source={{
+                uri:
+                  user?.image && user.image.trim() !== ""
+                    ? user.image
+                    : "https://res.cloudinary.com/dh7kv5dzy/image/upload/v1762757911/Pngtree_user_profile_avatar_13369988_qdlgmg.png",
+              }}
+              style={styles.userImage}
+            />
 
-          {/* Job Response Button */}
-          <View style={styles.actionBtn}>
-            <Text
-              onPress={() => setShowJobResponseModal(true)}
-              style={styles.actionBtnText}
-            >
-              Applied Job Response
-            </Text>
-          </View>
-
-          {/* Agreement Job Button */}
-          <View style={styles.actionBtn}>
-            <Text
-              onPress={() => setShowAppliedJobModal(true)}
-              style={styles.actionBtnText}
-            >
-              Make Agreement
-            </Text>
-          </View>
-        </View>
-        {/* ================= MODALS ================= */}
-
-        <Modal visible={showResponseModal} transparent animationType="slide">
-          <View
-            style={[
-              styles.modalContainer,
-              { backgroundColor: "rgba(59, 130, 246, 0.5)" },
-            ]}
-          >
-            <View
-              style={[styles.modalBoxLarge, { backgroundColor: "#EFF6FF" }]}
-            >
-              <Text style={[styles.modalTitle, { color: "#1D4ED8" }]}>
-                Response
+            <View style={{ flex: 1, marginLeft: 15 }}>
+              <Text style={styles.userName}>
+                {user.firstName} {user.lastName}
               </Text>
-              <ScrollView style={{ flex: 1, width: "100%" }}>
-                <ResponseScreen />
-              </ScrollView>
-              <Text
-                style={styles.closeBtn}
-                onPress={() => setShowResponseModal(false)}
-              >
-                Close
-              </Text>
+              <Text style={styles.userEmail}>{user.email}</Text>
+              <Text style={styles.userRole}>{user.role}</Text>
             </View>
           </View>
-        </Modal>
 
-        {/* --- Job Response Modal --- */}
-        <Modal visible={showJobResponseModal} transparent animationType="fade">
+          {/* ---------- NEW BUTTONS ROW ---------- */}
           <View
-            style={[
-              styles.modalContainer,
-              { backgroundColor: "rgba(16, 185, 129, 0.4)" },
-            ]}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 20,
+            }}
           >
-            <View
-              style={[styles.modalBoxLarge, { backgroundColor: "#ECFDF5" }]}
-            >
-              <Text style={[styles.modalTitle, { color: "#059669" }]}>
+            {/* Response Button */}
+            <View style={styles.actionBtn}>
+              <Text
+                onPress={() => setShowResponseModal(true)}
+                style={styles.actionBtnText}
+              >
                 Job Response
               </Text>
-              <ScrollView style={{ flex: 1, width: "100%" }}>
-                <AppliedJobScreen />
-              </ScrollView>
+            </View>
+
+            {/* Job Response Button */}
+            <View style={styles.actionBtn}>
               <Text
-                style={styles.closeBtn}
-                onPress={() => setShowJobResponseModal(false)}
+                onPress={() => setShowJobResponseModal(true)}
+                style={styles.actionBtnText}
               >
-                Close
+                Applied Job Response
+              </Text>
+            </View>
+
+            {/* Agreement Job Button */}
+            <View style={styles.actionBtn}>
+              <Text
+                onPress={() => setShowAppliedJobModal(true)}
+                style={styles.actionBtnText}
+              >
+                Make Agreement
               </Text>
             </View>
           </View>
-        </Modal>
+          {/* ================= MODALS ================= */}
 
-        {/* --- Applied Jobs Modal --- */}
-        <Modal visible={showAppliedJobModal} transparent animationType="slide">
-          <View
-            style={[
-              styles.modalContainer,
-              { backgroundColor: "rgba(251, 191, 36, 0.4)" },
-            ]}
+          <Modal visible={showResponseModal} transparent animationType="slide">
+            <View
+              style={[
+                styles.modalContainer,
+                { backgroundColor: "rgba(59, 130, 246, 0.5)" },
+              ]}
+            >
+              <View
+                style={[styles.modalBoxLarge, { backgroundColor: "#EFF6FF" }]}
+              >
+                <Text style={[styles.modalTitle, { color: "#1D4ED8" }]}>
+                  Response
+                </Text>
+                <ScrollView style={{ flex: 1, width: "100%" }}>
+                  <ResponseScreen />
+                </ScrollView>
+                <Text
+                  style={styles.closeBtn}
+                  onPress={() => setShowResponseModal(false)}
+                >
+                  Close
+                </Text>
+              </View>
+            </View>
+          </Modal>
+
+          {/* --- Job Response Modal --- */}
+          <Modal
+            visible={showJobResponseModal}
+            transparent
+            animationType="fade"
           >
             <View
-              style={[styles.modalBoxLarge, { backgroundColor: "#FFFBEB" }]}
+              style={[
+                styles.modalContainer,
+                { backgroundColor: "rgba(16, 185, 129, 0.4)" },
+              ]}
             >
-              <Text style={[styles.modalTitle, { color: "#B45309" }]}>
-                Applied Jobs
-              </Text>
-              <ScrollView style={{ flex: 1, width: "100%" }}>
-                <Agreement />
-              </ScrollView>
-              <Text
-                style={styles.closeBtn}
-                onPress={() => setShowAppliedJobModal(false)}
+              <View
+                style={[styles.modalBoxLarge, { backgroundColor: "#ECFDF5" }]}
               >
-                Close
+                <Text style={[styles.modalTitle, { color: "#059669" }]}>
+                  Job Response
+                </Text>
+                <ScrollView style={{ flex: 1, width: "100%" }}>
+                  <AppliedJobScreen />
+                </ScrollView>
+                <Text
+                  style={styles.closeBtn}
+                  onPress={() => setShowJobResponseModal(false)}
+                >
+                  Close
+                </Text>
+              </View>
+            </View>
+          </Modal>
+
+          {/* --- Applied Jobs Modal --- */}
+          <Modal
+            visible={showAppliedJobModal}
+            transparent
+            animationType="slide"
+          >
+            <View
+              style={[
+                styles.modalContainer,
+                { backgroundColor: "rgba(251, 191, 36, 0.4)" },
+              ]}
+            >
+              <View
+                style={[styles.modalBoxLarge, { backgroundColor: "#FFFBEB" }]}
+              >
+                <Text style={[styles.modalTitle, { color: "#B45309" }]}>
+                  Applied Jobs
+                </Text>
+                <ScrollView style={{ flex: 1, width: "100%" }}>
+                  <Agreement />
+                </ScrollView>
+                <Text
+                  style={styles.closeBtn}
+                  onPress={() => setShowAppliedJobModal(false)}
+                >
+                  Close
+                </Text>
+              </View>
+            </View>
+          </Modal>
+
+          {/* ------------------ Contractor Details ------------------ */}
+          {user?.role === "Contractor" && (
+            <View style={styles.contractorDetailsCard}>
+              <Text style={styles.sectionTitle}>Contractor Details</Text>
+
+              <View style={styles.contractorStatsRow}>
+                <View style={styles.contractorStat}>
+                  <Text style={styles.contractorStatNumber}>{jobs.length}</Text>
+                  <Text style={styles.contractorStatLabel}>Jobs Posted</Text>
+                </View>
+                <View style={styles.contractorStat}>
+                  <Text style={styles.contractorStatNumber}>
+                    {totalApplicants}
+                  </Text>
+                  <Text style={styles.contractorStatLabel}>
+                    Total Applicants
+                  </Text>
+                </View>
+                <View style={styles.contractorStat}>
+                  <Text style={styles.contractorStatNumber}>
+                    {Math.max(...jobs.map((j) => j.workersRequired || 0))}
+                  </Text>
+                  <Text style={styles.contractorStatLabel}>
+                    Max Workers Needed
+                  </Text>
+                </View>
+              </View>
+
+              {/* Latest 3 Jobs */}
+              <Text style={[styles.sectionTitle, { marginTop: 15 }]}>
+                Latest Jobs Posted
               </Text>
+              {jobs.slice(0, 3).map((job) => (
+                <View key={job._id} style={styles.latestJobCard}>
+                  <Text style={styles.latestJobTitle}>{job.title}</Text>
+                  <Text style={styles.latestJobInfo}>
+                    Workers Required: {job.workersRequired} | Budget: $
+                    {job.budget}
+                  </Text>
+                  <Text style={styles.latestJobInfo}>
+                    Applicants: {job.applicants?.length || 0}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* ------------------ Stats Cards ------------------ */}
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{jobs.length}</Text>
+              <Text style={styles.statLabel}>Jobs Posted</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{totalApplicants}</Text>
+              <Text style={styles.statLabel}>Total Applicants</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>
+                {Math.max(...jobs.map((j) => j.workersRequired || 0))}
+              </Text>
+              <Text style={styles.statLabel}>Max Workers Needed</Text>
             </View>
           </View>
-        </Modal>
 
-        {/* ------------------ Contractor Details ------------------ */}
-        {user?.role === "Contractor" && (
-          <View style={styles.contractorDetailsCard}>
-            <Text style={styles.sectionTitle}>Contractor Details</Text>
-
-            <View style={styles.contractorStatsRow}>
-              <View style={styles.contractorStat}>
-                <Text style={styles.contractorStatNumber}>{jobs.length}</Text>
-                <Text style={styles.contractorStatLabel}>Jobs Posted</Text>
-              </View>
-              <View style={styles.contractorStat}>
-                <Text style={styles.contractorStatNumber}>
-                  {totalApplicants}
-                </Text>
-                <Text style={styles.contractorStatLabel}>Total Applicants</Text>
-              </View>
-              <View style={styles.contractorStat}>
-                <Text style={styles.contractorStatNumber}>
-                  {Math.max(...jobs.map((j) => j.workersRequired || 0))}
-                </Text>
-                <Text style={styles.contractorStatLabel}>
-                  Max Workers Needed
-                </Text>
-              </View>
-            </View>
-
-            {/* Latest 3 Jobs */}
-            <Text style={[styles.sectionTitle, { marginTop: 15 }]}>
-              Latest Jobs Posted
-            </Text>
-            {jobs.slice(0, 3).map((job) => (
-              <View key={job._id} style={styles.latestJobCard}>
-                <Text style={styles.latestJobTitle}>{job.title}</Text>
-                <Text style={styles.latestJobInfo}>
-                  Workers Required: {job.workersRequired} | Budget: $
-                  {job.budget}
-                </Text>
-                <Text style={styles.latestJobInfo}>
-                  Applicants: {job.applicants?.length || 0}
-                </Text>
-              </View>
-            ))}
+          {/* ------------------ Applicants per Job ------------------ */}
+          <View style={styles.chartWrapper}>
+            <Text style={styles.chartTitle}>Applicants per Job</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={{ paddingHorizontal: 10 }}
+            >
+              <BarChart
+                data={barData}
+                width={Math.max(jobs.length * 80, width - 40)}
+                height={220}
+                chartConfig={chartConfig}
+                verticalLabelRotation={30}
+                fromZero
+                showValuesOnTopOfBars
+                style={styles.chartStyle}
+                yAxisLabel=""
+                yAxisSuffix=""
+              />
+            </ScrollView>
           </View>
-        )}
 
-        {/* ------------------ Stats Cards ------------------ */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{jobs.length}</Text>
-            <Text style={styles.statLabel}>Jobs Posted</Text>
+          {/* ------------------ Applicants vs Workers ------------------ */}
+          <View style={styles.chartWrapper}>
+            <Text style={styles.chartTitle}>Applicants vs Workers</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={{ paddingHorizontal: 10 }}
+            >
+              <BarChart
+                data={stackedBarData}
+                width={Math.max(jobs.length * 80, width - 40)}
+                height={220}
+                chartConfig={chartConfig}
+                verticalLabelRotation={30}
+                fromZero
+                showValuesOnTopOfBars
+                style={styles.chartStyle}
+                yAxisLabel=""
+                yAxisSuffix=""
+              />
+            </ScrollView>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{totalApplicants}</Text>
-            <Text style={styles.statLabel}>Total Applicants</Text>
+
+          {/* ------------------ Applicants Trend ------------------ */}
+          <View style={styles.chartWrapper}>
+            <Text style={styles.chartTitle}>Applicants Trend</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={{ paddingHorizontal: 10 }}
+            >
+              <LineChart
+                data={lineData}
+                width={Math.max(jobs.length * 200, width - 40)}
+                height={220}
+                chartConfig={chartConfig}
+                bezier
+                style={styles.chartStyle}
+                withDots
+                withShadow
+              />
+            </ScrollView>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>
-              {Math.max(...jobs.map((j) => j.workersRequired || 0))}
-            </Text>
-            <Text style={styles.statLabel}>Max Workers Needed</Text>
+
+          {/* ------------------ Pie Chart ------------------ */}
+          <View style={styles.chartWrapper}>
+            <Text style={styles.chartTitle}>Job Distribution</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={{ paddingHorizontal: 10 }}
+            >
+              <PieChart
+                data={pieData}
+                width={Math.max(jobs.length * 80, width - 40)}
+                height={220}
+                chartConfig={chartConfig}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="15"
+                absolute
+              />
+            </ScrollView>
           </View>
-        </View>
 
-        {/* ------------------ Applicants per Job ------------------ */}
-        <View style={styles.chartWrapper}>
-          <Text style={styles.chartTitle}>Applicants per Job</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={true}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-          >
-            <BarChart
-              data={barData}
-              width={Math.max(jobs.length * 80, width - 40)}
-              height={220}
-              chartConfig={chartConfig}
-              verticalLabelRotation={30}
-              fromZero
-              showValuesOnTopOfBars
-              style={styles.chartStyle}
-              yAxisLabel=""
-              yAxisSuffix=""
-            />
-          </ScrollView>
-        </View>
+          {/* ------------------ Progress Chart ------------------ */}
+          <View style={styles.chartWrapper}>
+            <Text style={styles.chartTitle}>Applicants Ratio</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={{ paddingHorizontal: 10 }}
+            >
+              <ProgressChart
+                data={progressData}
+                width={Math.max(jobs.length * 80, width - 40)}
+                height={220}
+                strokeWidth={16}
+                radius={32}
+                chartConfig={chartConfig}
+                hideLegend={false}
+              />
+            </ScrollView>
+          </View>
 
-        {/* ------------------ Applicants vs Workers ------------------ */}
-        <View style={styles.chartWrapper}>
-          <Text style={styles.chartTitle}>Applicants vs Workers</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={true}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-          >
-            <BarChart
-              data={stackedBarData}
-              width={Math.max(jobs.length * 80, width - 40)}
-              height={220}
-              chartConfig={chartConfig}
-              verticalLabelRotation={30}
-              fromZero
-              showValuesOnTopOfBars
-              style={styles.chartStyle}
-              yAxisLabel=""
-              yAxisSuffix=""
-            />
-          </ScrollView>
-        </View>
+          {/* ------------------ Contribution Graph ------------------ */}
+          <View style={styles.chartWrapper}>
+            <Text style={styles.chartTitle}>Job Activity Over Time</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={{ paddingHorizontal: 10 }}
+            >
+              <ContributionGraph
+                values={contributionData}
+                endDate={new Date()}
+                numDays={30}
+                width={Math.max(jobs.length * 80, width - 40)}
+                height={220}
+                chartConfig={chartConfig}
+              />
+            </ScrollView>
+          </View>
+        </ScrollView>
+        {/* <View style={styles.chatbotWrapper}>
+      <ChatBot />
+    </View> */}
 
-        {/* ------------------ Applicants Trend ------------------ */}
-        <View style={styles.chartWrapper}>
-          <Text style={styles.chartTitle}>Applicants Trend</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={true}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-          >
-            <LineChart
-              data={lineData}
-              width={Math.max(jobs.length * 200, width - 40)}
-              height={220}
-              chartConfig={chartConfig}
-              bezier
-              style={styles.chartStyle}
-              withDots
-              withShadow
-            />
-          </ScrollView>
-        </View>
-
-        {/* ------------------ Pie Chart ------------------ */}
-        <View style={styles.chartWrapper}>
-          <Text style={styles.chartTitle}>Job Distribution</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={true}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-          >
-            <PieChart
-              data={pieData}
-              width={Math.max(jobs.length * 80, width - 40)}
-              height={220}
-              chartConfig={chartConfig}
-              accessor="population"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              absolute
-            />
-          </ScrollView>
-        </View>
-
-        {/* ------------------ Progress Chart ------------------ */}
-        <View style={styles.chartWrapper}>
-          <Text style={styles.chartTitle}>Applicants Ratio</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={true}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-          >
-            <ProgressChart
-              data={progressData}
-              width={Math.max(jobs.length * 80, width - 40)}
-              height={220}
-              strokeWidth={16}
-              radius={32}
-              chartConfig={chartConfig}
-              hideLegend={false}
-            />
-          </ScrollView>
-        </View>
-
-        {/* ------------------ Contribution Graph ------------------ */}
-        <View style={styles.chartWrapper}>
-          <Text style={styles.chartTitle}>Job Activity Over Time</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={true}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-          >
-            <ContributionGraph
-              values={contributionData}
-              endDate={new Date()}
-              numDays={30}
-              width={Math.max(jobs.length * 80, width - 40)}
-              height={220}
-              chartConfig={chartConfig}
-            />
-          </ScrollView>
-        </View>
-      </ScrollView>
-      <View style={styles.chatbotWrapper}>
-        <ChatBot />
-      </View>
-
-      {/* ------------------ Bottom Tab ------------------ */}
-      <BottomTab
-        tabs={[
-          { label: "Home", icon: "home" },
-          { label: "Create Jobs", icon: "add-circle" },
-          { label: "All Jobs", icon: "list" },
-          { label: "Chats", icon: "chatbubbles" },
-          { label: "Settings", icon: "settings" },
-        ]}
-        activeTab="Home"
-        userRole="Contractor"
-      />
-      {/* `<ChatBot />` */}
-    </SafeAreaView>
+        {/* ------------------ Bottom Tab ------------------ */}
+        <BottomTab
+          tabs={[
+            { label: "Home", icon: "home" },
+            { label: "Create Jobs", icon: "add-circle" },
+            { label: "All Jobs", icon: "list" },
+            { label: "Chats", icon: "chatbubbles" },
+            { label: "Settings", icon: "settings" },
+          ]}
+          activeTab="Home"
+          userRole="Contractor"
+        />
+        {/* `<ChatBot />` */}
+      </SafeAreaView>
+      <ChatBot />
+    </>
   );
 }
 

@@ -345,205 +345,213 @@ export default function SettingsPage() {
     );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <AppBar title="Settings" />
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        {/* Account Section */}
-        <Text style={styles.sectionTitle}>Account Settings</Text>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={openChangePasswordModal}
+    <>
+      <SafeAreaView style={styles.safeArea}>
+        <AppBar title="Settings" />
+        <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 120 }}
         >
-          <Text style={styles.menuLabel}>Change Password</Text>
-        </TouchableOpacity>
-
-        <Modal
-          transparent
-          visible={changePasswordVisible}
-          animationType="slide"
-        >
-          <ChangePasswordScreen
-            onClose={() => setChangePasswordVisible(false)}
-          />
-        </Modal>
-
-        <View style={styles.chatbotWrapper}>
-          <ChatBot />
-        </View>
-
-        <TouchableOpacity style={styles.menuItem} onPress={openSkillsModal}>
-          <Text style={styles.menuLabel}>Manage Skills</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem} onPress={pickImage}>
-          <Text style={styles.menuLabel}>Change Profile Image</Text>
-          {profileImage && (
-            <Image
-              source={{ uri: profileImage }}
-              style={{ width: 50, height: 50, borderRadius: 25, marginTop: 10 }}
-            />
-          )}
-        </TouchableOpacity>
-
-        <Modal visible={skillsVisible} animationType="slide">
-          <UserSkillsScreen />
+          {/* Account Section */}
+          <Text style={styles.sectionTitle}>Account Settings</Text>
           <TouchableOpacity
-            style={{
-              position: "absolute",
-              top: 40,
-              right: 20,
-              backgroundColor: "#fb7c3c",
-              padding: 10,
-              borderRadius: 30,
-            }}
-            onPress={() => setSkillsVisible(false)}
+            style={styles.menuItem}
+            onPress={openChangePasswordModal}
           >
-            <Ionicons name="close" size={26} color="#fff" />
+            <Text style={styles.menuLabel}>Change Password</Text>
           </TouchableOpacity>
-        </Modal>
 
-        <Modal transparent visible={faqVisible} animationType="fade">
-          <Animated.View
-            style={[
-              styles.faqOverlay,
-              { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-            ]}
+          <Modal
+            transparent
+            visible={changePasswordVisible}
+            animationType="slide"
           >
-            <View style={styles.faqContainer}>
-              <Text style={styles.faqTitle}>
-                {faqLanguage === "ur"
-                  ? "اکثر پوچھے جانے والے سوالات"
-                  : "Frequently Asked Questions"}
-              </Text>
+            <ChangePasswordScreen
+              onClose={() => setChangePasswordVisible(false)}
+            />
+          </Modal>
 
-              {/* Language Toggle */}
-              <View style={styles.languageToggle}>
-                <TouchableOpacity
-                  style={[
-                    styles.langBtn,
-                    faqLanguage === "en" && styles.langActive,
-                  ]}
-                  onPress={() => setFaqLanguage("en")}
-                >
-                  <Text style={styles.langText}>English</Text>
-                </TouchableOpacity>
+          {/* <View style={styles.chatbotWrapper}>
+      <ChatBot />
+    </View> */}
+
+          <TouchableOpacity style={styles.menuItem} onPress={openSkillsModal}>
+            <Text style={styles.menuLabel}>Manage Skills</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={pickImage}>
+            <Text style={styles.menuLabel}>Change Profile Image</Text>
+            {profileImage && (
+              <Image
+                source={{ uri: profileImage }}
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  marginTop: 10,
+                }}
+              />
+            )}
+          </TouchableOpacity>
+
+          <Modal visible={skillsVisible} animationType="slide">
+            <UserSkillsScreen />
+            <TouchableOpacity
+              style={{
+                position: "absolute",
+                top: 40,
+                right: 20,
+                backgroundColor: "#fb7c3c",
+                padding: 10,
+                borderRadius: 30,
+              }}
+              onPress={() => setSkillsVisible(false)}
+            >
+              <Ionicons name="close" size={26} color="#fff" />
+            </TouchableOpacity>
+          </Modal>
+
+          <Modal transparent visible={faqVisible} animationType="fade">
+            <Animated.View
+              style={[
+                styles.faqOverlay,
+                { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+              ]}
+            >
+              <View style={styles.faqContainer}>
+                <Text style={styles.faqTitle}>
+                  {faqLanguage === "ur"
+                    ? "اکثر پوچھے جانے والے سوالات"
+                    : "Frequently Asked Questions"}
+                </Text>
+
+                {/* Language Toggle */}
+                <View style={styles.languageToggle}>
+                  <TouchableOpacity
+                    style={[
+                      styles.langBtn,
+                      faqLanguage === "en" && styles.langActive,
+                    ]}
+                    onPress={() => setFaqLanguage("en")}
+                  >
+                    <Text style={styles.langText}>English</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.langBtn,
+                      faqLanguage === "ur" && styles.langActive,
+                    ]}
+                    onPress={() => setFaqLanguage("ur")}
+                  >
+                    <Text style={styles.langText}>اردو</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {(faqLanguage === "ur" ? faqDataUrdu : faqDataEnglish).map(
+                    (item, index) => (
+                      <FAQItem
+                        key={index}
+                        item={item}
+                        isUrdu={faqLanguage === "ur"}
+                      />
+                    ),
+                  )}
+                </ScrollView>
 
                 <TouchableOpacity
-                  style={[
-                    styles.langBtn,
-                    faqLanguage === "ur" && styles.langActive,
-                  ]}
-                  onPress={() => setFaqLanguage("ur")}
+                  style={styles.faqCloseBtn}
+                  onPress={() => closeModal(setFaqVisible)}
                 >
-                  <Text style={styles.langText}>اردو</Text>
+                  <Text style={styles.faqCloseText}>
+                    {faqLanguage === "ur" ? "بند کریں" : "Close"}
+                  </Text>
                 </TouchableOpacity>
               </View>
+            </Animated.View>
+          </Modal>
 
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {(faqLanguage === "ur" ? faqDataUrdu : faqDataEnglish).map(
-                  (item, index) => (
-                    <FAQItem
-                      key={index}
-                      item={item}
-                      isUrdu={faqLanguage === "ur"}
-                    />
-                  ),
-                )}
-              </ScrollView>
+          {/* Preferences Section */}
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          {/* <TouchableOpacity style={styles.menuItem}>
+      <Text style={styles.menuLabel}>Notification Settings</Text>
+    </TouchableOpacity> */}
 
-              <TouchableOpacity
-                style={styles.faqCloseBtn}
-                onPress={() => closeModal(setFaqVisible)}
-              >
-                <Text style={styles.faqCloseText}>
-                  {faqLanguage === "ur" ? "بند کریں" : "Close"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        </Modal>
-
-        {/* Preferences Section */}
-        <Text style={styles.sectionTitle}>Preferences</Text>
-        {/* <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuLabel}>Notification Settings</Text>
-        </TouchableOpacity> */}
-
-        {/* <-- Here is the key update: open UsersScreen on click */}
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/screens/user")}
-        >
-          <Text style={styles.menuLabel}>Search Labour & Contractors</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuLabel}>Language Settings</Text>
-        </TouchableOpacity>
-
-        {/* Support Section */}
-        <Text style={styles.sectionTitle}>Support</Text>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => openModal(setAboutVisible)}
-        >
-          <Text style={styles.menuLabel}>About App</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => openModal(setFaqVisible)}
-        >
-          <Text style={styles.menuLabel}>FAQs</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuLabel}>Contact Support</Text>
-        </TouchableOpacity>
-
-        <Modal transparent visible={faqVisible} animationType="fade">
-          <Animated.View
-            style={[
-              styles.faqOverlay,
-              { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-            ]}
+          {/* <-- Here is the key update: open UsersScreen on click */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/screens/user")}
           >
-            <View style={styles.faqContainer}>
-              <Text style={styles.faqTitle}>اکثر پوچھے جانے والے سوالات</Text>
+            <Text style={styles.menuLabel}>Search Labour & Contractors</Text>
+          </TouchableOpacity>
 
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {faqDataUrdu.map((item, index) => (
-                  <FAQItemUrdu key={index} item={item} />
-                ))}
-              </ScrollView>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={styles.menuLabel}>Language Settings</Text>
+          </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.faqCloseBtn}
-                onPress={() => closeModal(setFaqVisible)}
-              >
-                <Text style={styles.faqCloseText}>بند کریں</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        </Modal>
+          {/* Support Section */}
+          <Text style={styles.sectionTitle}>Support</Text>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => openModal(setAboutVisible)}
+          >
+            <Text style={styles.menuLabel}>About App</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => openModal(setFaqVisible)}
+          >
+            <Text style={styles.menuLabel}>FAQs</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={styles.menuLabel}>Contact Support</Text>
+          </TouchableOpacity>
 
-        {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <Modal transparent visible={faqVisible} animationType="fade">
+            <Animated.View
+              style={[
+                styles.faqOverlay,
+                { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+              ]}
+            >
+              <View style={styles.faqContainer}>
+                <Text style={styles.faqTitle}>اکثر پوچھے جانے والے سوالات</Text>
 
-      <View style={styles.tabWrapper}>
-        <BottomTab
-          tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
-          activeTab="Settings"
-          userRole={userRole}
-        />
-      </View>
-      {/* <ChatBot /> */}
-    </SafeAreaView>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {faqDataUrdu.map((item, index) => (
+                    <FAQItemUrdu key={index} item={item} />
+                  ))}
+                </ScrollView>
+
+                <TouchableOpacity
+                  style={styles.faqCloseBtn}
+                  onPress={() => closeModal(setFaqVisible)}
+                >
+                  <Text style={styles.faqCloseText}>بند کریں</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </Modal>
+
+          {/* Logout */}
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        <View style={styles.tabWrapper}>
+          <BottomTab
+            tabs={userRole === "Contractor" ? contractorTabs : labourTabs}
+            activeTab="Settings"
+            userRole={userRole}
+          />
+        </View>
+        {/* <ChatBot /> */}
+      </SafeAreaView>
+      <ChatBot />
+    </>
   );
 }
 

@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 
-const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat"; // replace with your backend
+const BACKEND_URL = "https://labourhubserver.vercel.app/api/chat";
 
 interface Message {
   sender: "me" | "other";
@@ -21,12 +21,12 @@ interface Message {
 }
 
 export default function ChatModal() {
-  const [messages, setMessages] = useState<Message[]>([]); // <--- Explicit type
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const flatListRef = useRef<FlatList>(null);
 
-  const [user1, setUser1] = useState(""); // current logged-in user
-  const user2 = "muzi@gmail.com"; // hardcoded
+  const [user1, setUser1] = useState("");
+  const user2 = "muzi@gmail.com";
 
   useEffect(() => {
     const fetchUserAndMessages = async () => {
@@ -34,7 +34,6 @@ export default function ChatModal() {
       if (!storedUser) return;
       setUser1(storedUser);
 
-      // Fetch chats
       const res = await axios.get(`${BACKEND_URL}/${storedUser}/${user2}`);
       setMessages(
         res.data.map((msg: any) => ({
@@ -48,10 +47,18 @@ export default function ChatModal() {
     fetchUserAndMessages();
   }, []);
 
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !user1) return;
 
-    // Send to backend
     const res = await axios.post(`${BACKEND_URL}/send`, {
       senderEmail: user1,
       receiverEmail: user2,
@@ -64,7 +71,6 @@ export default function ChatModal() {
     ]);
 
     setNewMessage("");
-    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
   };
 
   const renderItem = ({ item }: { item: Message }) => (
@@ -89,44 +95,101 @@ export default function ChatModal() {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 10 }}
-      />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Type a message"
-            style={styles.input}
-          />
-          <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
-            <Text style={{ color: "#fff" }}>Send</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+    // ✅ FIX 1: The outer wrapper must be flex:1 so the inner FlatList
+    // gets a bounded height and doesn't overflow into the parent screen scroll.
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      {/* ✅ FIX 2: FlatList wrapper must be flex:1 to constrain scroll area */}
+      <View style={styles.listWrapper}>
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          // ✅ FIX 3: nestedScrollEnabled prevents touch events from
+          // bubbling up to any parent ScrollView/FlatList on Android
+          nestedScrollEnabled={true}
+          // ✅ FIX 4: onScrollBeginDrag stops parent scroll when user
+          // starts scrolling inside this list (critical for iOS)
+          onScrollBeginDrag={(e) => e.stopPropagation?.()}
+          // Keep latest messages in view when keyboard opens
+          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+          showsVerticalScrollIndicator={true}
+          // ✅ FIX 5: scroll to bottom on initial load
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: false })
+          }
+          // ✅ FIX 6: also scroll when layout changes (e.g. keyboard appears)
+          onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder="Type a message"
+          style={styles.input}
+          // ✅ FIX 7: prevent input focus from triggering parent scroll
+          onFocus={() => {
+            setTimeout(() => {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }, 300);
+          }}
+          returnKeyType="send"
+          onSubmitEditing={sendMessage}
+          blurOnSubmit={false}
+        />
+        <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
+          <Text style={{ color: "#fff" }}>Send</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  messageContainer: { flexDirection: "row", marginBottom: 10 },
-  sender: { justifyContent: "flex-end", alignSelf: "flex-end" },
-  receiver: { justifyContent: "flex-start", alignSelf: "flex-start" },
+  // ✅ FIX: flex:1 is the key — gives the component a bounded height
+  // so FlatList knows where to stop and scrolls within itself
+  container: {
+    flex: 1,
+  },
+  // ✅ FIX: listWrapper takes all available space above the input bar
+  listWrapper: {
+    flex: 1,
+  },
+  listContent: {
+    padding: 10,
+    paddingBottom: 8,
+    // ✅ Ensures content grows from top — latest messages appear at bottom
+    flexGrow: 1,
+    justifyContent: "flex-end",
+  },
+  messageContainer: {
+    flexDirection: "row",
+    marginBottom: 10,
+  },
+  sender: {
+    justifyContent: "flex-end",
+    alignSelf: "flex-end",
+  },
+  receiver: {
+    justifyContent: "flex-start",
+    alignSelf: "flex-start",
+  },
   messageBubble: {
     maxWidth: "75%",
     backgroundColor: "#fb923c",
     padding: 10,
     borderRadius: 12,
   },
-  messageText: { color: "#fff" },
+  messageText: {
+    color: "#fff",
+  },
   timestamp: {
     color: "#fff",
     fontSize: 10,
@@ -138,6 +201,9 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#fff",
     alignItems: "center",
+    // ✅ Prevents input bar from scrolling away
+    borderTopWidth: 0.5,
+    borderTopColor: "#e5e7eb",
   },
   input: {
     flex: 1,
@@ -148,5 +214,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginRight: 10,
   },
-  sendBtn: { backgroundColor: "#fb923c", padding: 10, borderRadius: 20 },
+  sendBtn: {
+    backgroundColor: "#fb923c",
+    padding: 10,
+    borderRadius: 20,
+  },
 });

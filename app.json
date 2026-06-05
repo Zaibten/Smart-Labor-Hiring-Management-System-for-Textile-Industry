@@ -40,6 +40,17 @@
       "expo-notifications",
       "expo-router",
       [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow Labour Hub to use the microphone for voice input",
+          "speechRecognitionPermission": "Allow Labour Hub to recognize your speech for text input",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

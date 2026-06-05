@@ -3065,7 +3065,7 @@ const findMatchingQuestion = (text) => {
 };
 
 // ─── AI Chat ─────────────────────────────────────────────────────────────────
-app.post("/api/chat", async (req, res) => {
+app.post("/api/chatbot", async (req, res) => {
   try {
     const { message } = req.body;
     if (!message) return res.status(400).json({ error: "Message is required" });

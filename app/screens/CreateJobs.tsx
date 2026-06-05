@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker"; // make sure to install this
+import { Picker } from "@react-native-picker/picker";
 import { Animated, Modal } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
@@ -8,6 +8,7 @@ import { useRef } from "react";
 
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   SafeAreaView,
@@ -38,6 +39,9 @@ export default function CreateJob() {
   const [showGuide, setShowGuide] = useState(false);
   const guideOpacity = useRef(new Animated.Value(0)).current;
 
+  // ✅ NEW: posting state to show loader and block double submit
+  const [isPosting, setIsPosting] = useState(false);
+
   useEffect(() => {
     const checkGuide = async () => {
       const hasSeen = await AsyncStorage.getItem("hasSeenJobGuide");
@@ -52,6 +56,7 @@ export default function CreateJob() {
     };
     checkGuide();
   }, []);
+
   const closeGuide = async () => {
     Animated.timing(guideOpacity, {
       toValue: 0,
@@ -64,7 +69,7 @@ export default function CreateJob() {
   };
 
   const [region, setRegion] = useState({
-    latitude: 24.8607, // Default Karachi
+    latitude: 24.8607,
     longitude: 67.0011,
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
@@ -75,8 +80,7 @@ export default function CreateJob() {
     longitude: 67.0011,
   });
 
-  // inside your component state
-  const [shift, setShift] = useState("Shift A"); // default shift
+  const [shift, setShift] = useState("Shift A");
   const [jobTime, setJobTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -92,23 +96,17 @@ export default function CreateJob() {
   const [modalVisible, setModalVisible] = useState(false);
   const [myJobs, setMyJobs] = useState([]);
 
-  // Load logged-in contractor info
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await AsyncStorage.getItem("user");
       if (userData) {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-        // Save email to local storage if needed
         await AsyncStorage.setItem("userEmail", parsedUser.email);
       }
     };
     fetchUser();
   }, []);
-
-  // useEffect(() => {
-  // Geocoder.fallbackToGoogle("false"); // string instead of boolean
-  // }, []);
 
   const getLocationName = async (lat: number, lng: number): Promise<string> => {
     try {
@@ -121,9 +119,7 @@ export default function CreateJob() {
           },
         },
       );
-
       const data = await res.json();
-
       return data.display_name || "Unknown Location";
     } catch (err) {
       console.log("Reverse error:", err);
@@ -131,22 +127,18 @@ export default function CreateJob() {
     }
   };
 
-  // inside component
   const typingTimeoutRef = useRef<number | null>(null);
 
   const handleLocationChange = (text: string) => {
-    setLocation(text); // update input immediately
-
+    setLocation(text);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-
     typingTimeoutRef.current = setTimeout(() => {
       if (text.trim()) searchLocationToCoords(text.trim());
-    }, 800); // wait 800ms after user stops typing
+    }, 800);
   };
 
   const searchLocationToCoords = async (text: string) => {
     setLocation(text);
-
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
@@ -159,17 +151,12 @@ export default function CreateJob() {
           },
         },
       );
-
       const data = await res.json();
-
       if (data.length > 0) {
         const latitude = parseFloat(data[0].lat);
         const longitude = parseFloat(data[0].lon);
-
         setMarkerCoord({ latitude, longitude });
         setRegion({ ...region, latitude, longitude });
-
-        // Update location in English
         setLocation(data[0].display_name);
       }
     } catch (err) {
@@ -208,7 +195,6 @@ export default function CreateJob() {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     if (startDate < today) return "Start date cannot be in the past.";
     if (endDate < startDate) return "End date cannot be before start date.";
 
@@ -216,11 +202,17 @@ export default function CreateJob() {
   };
 
   const handleSubmit = async () => {
+    // ✅ Block if already posting
+    if (isPosting) return;
+
     const error = validateForm();
     if (error) {
       Alert.alert("Validation Error", error);
       return;
     }
+
+    // ✅ Start loading — disable button immediately
+    setIsPosting(true);
 
     try {
       const response = await fetch(
@@ -253,8 +245,10 @@ export default function CreateJob() {
       );
 
       const data = await response.json();
+
       if (response.ok) {
         Alert.alert("Success", "Job posted successfully!");
+        // Reset form
         setJobTitle("");
         setDescription("");
         setLocation("");
@@ -270,276 +264,287 @@ export default function CreateJob() {
     } catch (err) {
       console.error(err);
       Alert.alert("Error", "Server error. Try again later.");
+    } finally {
+      // ✅ Always re-enable button when API responds (success or error)
+      setIsPosting(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <AppBar title="Create Job" />
+    <>
+      <SafeAreaView style={styles.safeArea}>
+        <AppBar title="Create Job" />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {showGuide && (
-          <Modal transparent animationType="fade" visible={showGuide}>
-            <Animated.View
-              style={[styles.guideOverlay, { opacity: guideOpacity }]}
-            >
-              <View style={styles.guideContainer}>
-                <Text style={styles.guideTitle}>Welcome to Create Job</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {showGuide && (
+            <Modal transparent animationType="fade" visible={showGuide}>
+              <Animated.View
+                style={[styles.guideOverlay, { opacity: guideOpacity }]}
+              >
+                <View style={styles.guideContainer}>
+                  <Text style={styles.guideTitle}>Welcome to Create Job</Text>
+                  <Text style={styles.guideText}>
+                    1. Enter the job title and job description.{"\n"}
+                    2. Type location or select it from the map.{"\n"}
+                    3. Enter number of workers, required skill and budget.{"\n"}
+                    4. Select job time, shift, start date and end date.{"\n"}
+                    5. Press "Post Job" to publish your job.
+                  </Text>
+                  <View
+                    style={{
+                      height: 1,
+                      backgroundColor: "#e5e7eb",
+                      width: "100%",
+                      marginVertical: 15,
+                    }}
+                  />
+                  <Text style={[styles.guideText, { textAlign: "right" }]}>
+                    ۱۔ کام کا عنوان اور تفصیل درج کریں۔{"\n"}
+                    ۲۔ مقام لکھیں یا نقشے پر منتخب کریں۔{"\n"}
+                    ۳۔ مزدوروں کی تعداد، مہارت اور بجٹ درج کریں۔{"\n"}
+                    ۴۔ کام کا وقت، شفٹ اور تاریخ منتخب کریں۔{"\n"}
+                    ۵۔ آخر میں "Post Job" پر کلک کریں۔
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.guideButton}
+                    onPress={closeGuide}
+                  >
+                    <Text style={styles.guideButtonText}>
+                      Got it / سمجھ گیا
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            </Modal>
+          )}
 
-                {/* English Guide */}
-                <Text style={styles.guideText}>
-                  1. Enter the job title and job description.{"\n"}
-                  2. Type location or select it from the map.{"\n"}
-                  3. Enter number of workers, required skill and budget.{"\n"}
-                  4. Select job time, shift, start date and end date.{"\n"}
-                  5. Press "Post Job" to publish your job.
-                </Text>
-
-                {/* Divider */}
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: "#e5e7eb",
-                    width: "100%",
-                    marginVertical: 15,
-                  }}
-                />
-
-                {/* Urdu Guide */}
-                <Text style={[styles.guideText, { textAlign: "right" }]}>
-                  ۱۔ کام کا عنوان اور تفصیل درج کریں۔{"\n"}
-                  ۲۔ مقام لکھیں یا نقشے پر منتخب کریں۔{"\n"}
-                  ۳۔ مزدوروں کی تعداد، مہارت اور بجٹ درج کریں۔{"\n"}
-                  ۴۔ کام کا وقت، شفٹ اور تاریخ منتخب کریں۔{"\n"}
-                  ۵۔ آخر میں "Post Job" پر کلک کریں۔
-                </Text>
-
-                <TouchableOpacity
-                  style={styles.guideButton}
-                  onPress={closeGuide}
-                >
-                  <Text style={styles.guideButtonText}>Got it / سمجھ گیا</Text>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          </Modal>
-        )}
-
-        {/* Job Inputs */}
-        <TextInput
-          style={styles.input}
-          placeholder="Job Title"
-          value={jobTitle}
-          onChangeText={setJobTitle}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Job Description"
-          multiline
-          value={description}
-          onChangeText={setDescription}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Location"
-          value={location}
-          onChangeText={handleLocationChange}
-        />
-
-        <View
-          style={{
-            height: 200,
-            marginBottom: 15,
-            borderRadius: 8,
-            overflow: "hidden",
-          }}
-        >
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.mapStyle}
-              region={region}
-              onPress={async (e) => {
-                const { latitude, longitude } = e.nativeEvent.coordinate;
-                setMarkerCoord({ latitude, longitude });
-                setRegion({ ...region, latitude, longitude });
-                const name = await getLocationName(latitude, longitude);
-                setLocation(name);
-              }}
-              customMapStyle={mapStyle} // optional for light/modern look
-            >
-              <Marker
-                coordinate={markerCoord}
-                pinColor="#fb923c" // orange marker
-              />
-            </MapView>
-          </View>
-        </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Number of Workers"
-          keyboardType="numeric"
-          value={workers}
-          onChangeText={setWorkers}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Skill / Trade Required"
-          value={skill}
-          onChangeText={setSkill}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Budget"
-          keyboardType="numeric"
-          value={budget}
-          onChangeText={setBudget}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Contact Info"
-          keyboardType="phone-pad"
-          value={contact}
-          onChangeText={setContact}
-        />
-
-        {/* Job Time */}
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => setShowTimePicker(true)}
-        >
-          <Text style={styles.dateText}>
-            Job Time:{" "}
-            {jobTime.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })}
-          </Text>
-        </TouchableOpacity>
-        {showTimePicker && (
-          <DateTimePicker
-            value={jobTime}
-            mode="time"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            is24Hour={false} // ensure 12-hour format
-            onChange={(event, date) => {
-              setShowTimePicker(false);
-              if (date) setJobTime(date);
-            }}
+          <TextInput
+            style={styles.input}
+            placeholder="Job Title"
+            value={jobTitle}
+            onChangeText={setJobTitle}
           />
-        )}
+          <TextInput
+            style={styles.input}
+            placeholder="Job Description"
+            multiline
+            value={description}
+            onChangeText={setDescription}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Location"
+            value={location}
+            onChangeText={handleLocationChange}
+          />
 
-        {/* Shift Picker */}
-        <View style={styles.pickerWrapper}>
-          <Text style={styles.pickerLabel}>Select Shift:</Text>
-          <Picker
-            selectedValue={shift}
-            onValueChange={(itemValue) => setShift(itemValue)}
-            style={styles.picker}
-            dropdownIconColor="#fb923c"
+          <View
+            style={{
+              height: 200,
+              marginBottom: 15,
+              borderRadius: 8,
+              overflow: "hidden",
+            }}
           >
-            <Picker.Item label="Shift A" value="Shift A" />
-            <Picker.Item label="Shift B" value="Shift B" />
-            <Picker.Item label="Shift C" value="Shift C" />
-          </Picker>
+            <View style={styles.mapContainer}>
+              <MapView
+                style={styles.mapStyle}
+                region={region}
+                onPress={async (e) => {
+                  const { latitude, longitude } = e.nativeEvent.coordinate;
+                  setMarkerCoord({ latitude, longitude });
+                  setRegion({ ...region, latitude, longitude });
+                  const name = await getLocationName(latitude, longitude);
+                  setLocation(name);
+                }}
+                customMapStyle={mapStyle}
+              >
+                <Marker coordinate={markerCoord} pinColor="#fb923c" />
+              </MapView>
+            </View>
+          </View>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Number of Workers"
+            keyboardType="numeric"
+            value={workers}
+            onChangeText={setWorkers}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Skill / Trade Required"
+            value={skill}
+            onChangeText={setSkill}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Budget"
+            keyboardType="numeric"
+            value={budget}
+            onChangeText={setBudget}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Contact Info"
+            keyboardType="phone-pad"
+            value={contact}
+            onChangeText={setContact}
+          />
+
+          {/* Job Time */}
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => setShowTimePicker(true)}
+          >
+            <Text style={styles.dateText}>
+              Job Time:{" "}
+              {jobTime.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
+            </Text>
+          </TouchableOpacity>
+          {showTimePicker && (
+            <DateTimePicker
+              value={jobTime}
+              mode="time"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              is24Hour={false}
+              onChange={(event, date) => {
+                setShowTimePicker(false);
+                if (date) setJobTime(date);
+              }}
+            />
+          )}
+
+          {/* Shift Picker */}
+          <View style={styles.pickerWrapper}>
+            <Text style={styles.pickerLabel}>Select Shift:</Text>
+            <Picker
+              selectedValue={shift}
+              onValueChange={(itemValue) => setShift(itemValue)}
+              style={styles.picker}
+              dropdownIconColor="#fb923c"
+            >
+              <Picker.Item label="Shift A" value="Shift A" />
+              <Picker.Item label="Shift B" value="Shift B" />
+              <Picker.Item label="Shift C" value="Shift C" />
+            </Picker>
+          </View>
+
+          {/* Start Date */}
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => setShowStartPicker(true)}
+          >
+            <Text style={styles.dateText}>
+              Start Date: {startDate.toLocaleDateString()}
+            </Text>
+          </TouchableOpacity>
+          {showStartPicker && (
+            <DateTimePicker
+              value={startDate}
+              minimumDate={new Date()}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(event, date) => {
+                setShowStartPicker(false);
+                if (date) {
+                  setStartDate(date);
+                  if (date > endDate) setEndDate(date);
+                }
+              }}
+            />
+          )}
+
+          {/* End Date */}
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => setShowEndPicker(true)}
+          >
+            <Text style={styles.dateText}>
+              End Date: {endDate.toLocaleDateString()}
+            </Text>
+          </TouchableOpacity>
+          {showEndPicker && (
+            <DateTimePicker
+              value={endDate}
+              minimumDate={startDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(event, date) => {
+                setShowEndPicker(false);
+                if (date) setEndDate(date);
+              }}
+            />
+          )}
+
+          {/* ✅ Post Job Button — shows spinner while posting, disabled to prevent double tap */}
+          <TouchableOpacity
+            style={[styles.button, isPosting && styles.buttonDisabled]}
+            onPress={handleSubmit}
+            disabled={isPosting}
+            activeOpacity={isPosting ? 1 : 0.8}
+          >
+            {isPosting ? (
+              <View style={styles.buttonContent}>
+                <ActivityIndicator
+                  size="small"
+                  color="#fff"
+                  style={{ marginRight: 10 }}
+                />
+                <Text style={styles.buttonText}>Posting...</Text>
+              </View>
+            ) : (
+              <Text style={styles.buttonText}>Post Job</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+
+        <View style={styles.tabWrapper}>
+          <BottomTab
+            tabs={contractorTabs}
+            activeTab="Create Jobs"
+            userRole="Contractor"
+          />
         </View>
+      </SafeAreaView>
 
-        {/* Start Date */}
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => setShowStartPicker(true)}
-        >
-          <Text style={styles.dateText}>
-            Start Date: {startDate.toLocaleDateString()}
-          </Text>
-        </TouchableOpacity>
-        {showStartPicker && (
-          <DateTimePicker
-            value={startDate}
-            minimumDate={new Date()}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(event, date) => {
-              setShowStartPicker(false);
-              if (date) {
-                setStartDate(date);
-                if (date > endDate) setEndDate(date);
-              }
-            }}
-          />
-        )}
-
-        {/* End Date */}
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => setShowEndPicker(true)}
-        >
-          <Text style={styles.dateText}>
-            End Date: {endDate.toLocaleDateString()}
-          </Text>
-        </TouchableOpacity>
-        {showEndPicker && (
-          <DateTimePicker
-            value={endDate}
-            minimumDate={startDate}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(event, date) => {
-              setShowEndPicker(false);
-              if (date) setEndDate(date);
-            }}
-          />
-        )}
-
-        {/* Submit Button */}
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Post Job</Text>
-        </TouchableOpacity>
-      </ScrollView>
-      <View style={styles.chatbotWrapper}>
-        <ChatBot />
-      </View>
-
-      <View style={styles.tabWrapper}>
-        <BottomTab
-          tabs={contractorTabs}
-          activeTab="Create Jobs"
-          userRole="Contractor"
-        />
-      </View>
-      {/* <ChatBot /> */}
-    </SafeAreaView>
+      <ChatBot />
+    </>
   );
 }
-// Colorful map style
+
 const mapStyle = [
-  { elementType: "geometry", stylers: [{ color: "#e0f7fa" }] }, // light blue background
-  { elementType: "labels.text.fill", stylers: [{ color: "#006064" }] }, // dark teal text
+  { elementType: "geometry", stylers: [{ color: "#e0f7fa" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#006064" }] },
   { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
   {
     featureType: "poi.park",
     elementType: "geometry",
-    stylers: [{ color: "#a7f3d0" }], // green parks
+    stylers: [{ color: "#a7f3d0" }],
   },
   {
     featureType: "road",
     elementType: "geometry",
-    stylers: [{ color: "#ffe082" }], // yellow roads
+    stylers: [{ color: "#ffe082" }],
   },
   {
     featureType: "road",
     elementType: "labels.text.fill",
-    stylers: [{ color: "#5d4037" }], // brown road labels
+    stylers: [{ color: "#5d4037" }],
   },
   {
     featureType: "water",
     elementType: "geometry",
-    stylers: [{ color: "#4fc3f7" }], // bright blue water
+    stylers: [{ color: "#4fc3f7" }],
   },
   {
     featureType: "poi.business",
     elementType: "geometry",
-    stylers: [{ color: "#ffccbc" }], // light orange buildings
+    stylers: [{ color: "#ffccbc" }],
   },
 ];
 
@@ -564,32 +569,20 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 22.5,
-    overflow: "hidden", // this is correct
+    overflow: "hidden",
     marginRight: 12,
     borderWidth: 1,
     borderColor: "#fff",
   },
-  chatbotWrapper: {
-    position: "absolute",
-    bottom: 20,
-    right: 0,
-    zIndex: 999, // Ensure it stays above other content
-  },
-  userImage: {
-    width: "100%",
-    height: "100%",
-  },
-
-  userTextContainer: {
-    flexDirection: "column",
-  },
+  userImage: { width: "100%", height: "100%" },
+  userTextContainer: { flexDirection: "column" },
   mapContainer: {
     height: 200,
     marginBottom: 15,
     borderRadius: 8,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#ccc", // lighter border
+    borderColor: "#ccc",
     backgroundColor: "#e0f7fa",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -597,14 +590,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-
-  mapStyle: {
-    flex: 1,
-  },
-
+  mapStyle: { flex: 1 },
   userName: { fontSize: 17, fontWeight: "700", color: "#fff" },
   userRole: { fontSize: 13, color: "#fff", marginTop: 2 },
-
   userInfo: { flexDirection: "row", alignItems: "center" },
   scrollContent: { padding: 20, paddingBottom: 120 },
   input: {
@@ -639,11 +627,7 @@ const styles = StyleSheet.create({
     color: "#0f172a",
     marginBottom: 6,
   },
-  picker: {
-    width: "100%",
-    color: "#0f172a",
-  },
-
+  picker: { width: "100%", color: "#0f172a" },
   dateText: { color: "#0f172a" },
   button: {
     backgroundColor: "#fb923c",
@@ -651,6 +635,17 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     marginTop: 10,
+  },
+  // ✅ Dimmed style when posting is in progress
+  buttonDisabled: {
+    backgroundColor: "#fdba74",
+    opacity: 0.85,
+  },
+  // ✅ Row layout for spinner + text side by side
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   tabWrapper: { position: "absolute", bottom: 0, left: 0, right: 0 },
@@ -688,7 +683,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     writingDirection: "rtl",
   },
-
   guideButton: {
     backgroundColor: "#fb923c",
     paddingVertical: 12,
