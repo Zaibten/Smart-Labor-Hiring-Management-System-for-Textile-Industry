@@ -1,9 +1,10 @@
 import React, { useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
   Platform,
   ScrollView,
-  StyleSheet,
+  StyleSheet, // 👈 add this
   Text,
   TextInput,
   TouchableOpacity,
@@ -28,6 +29,9 @@ const Contractor: React.FC = () => {
   const [showContract, setShowContract] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [labourSignature, setLabourSignature] = useState<string | null>(null);
+  // Add these state variables near the top with the others
+  const [fromEmail, setFromEmail] = useState("");
+  const [toEmail, setToEmail] = useState("");
   const [contractorSignature, setContractorSignature] = useState<string | null>(
     null,
   );
@@ -103,32 +107,66 @@ const Contractor: React.FC = () => {
     overflow: hidden;
   }`;
 
-  const downloadPDF = () => {
+  const [isSending, setIsSending] = useState(false);
+
+  const downloadPDF = async () => {
+    if (!fromEmail || !toEmail) {
+      alert("Please enter both company emails before downloading.");
+      return;
+    }
+
     if (Platform.OS === "web") {
       const content = document.getElementById("contractContent")?.innerHTML;
       const myWindow = window.open("", "Print", "width=800,height=600");
       myWindow?.document.write(`
-        <html>
-          <head>
-            <title>Contract</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 20px; }
-              .section { font-weight: bold; margin-top: 15px; }
-              .bold { font-weight: bold; }
-              .signatureBox { border: 1px solid #000; padding: 10px; height: 200px; margin-top: 20px; }
-              .centerText { text-align: center; margin-bottom: 20px; }
-            </style>
-          </head>
-          <body>
-            ${content}
-          </body>
-        </html>
-      `);
+      <html>
+        <head>
+          <title>Contract</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .section { font-weight: bold; margin-top: 15px; }
+            .bold { font-weight: bold; }
+            .signatureBox { border: 1px solid #000; padding: 10px; height: 200px; margin-top: 20px; }
+            .centerText { text-align: center; margin-bottom: 20px; }
+          </style>
+        </head>
+        <body>${content}</body>
+      </html>
+    `);
       myWindow?.document.close();
       myWindow?.focus();
       myWindow?.print();
-    } else {
-      alert("PDF generation is only supported on web in this version.");
+    }
+
+    try {
+      setIsSending(true);
+      const response = await fetch(
+        "https://labourhubserver.vercel.app/api/send-agreement-email",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fromCompany,
+            toCompany,
+            partyType,
+            description,
+            fromEmail,
+            toEmail,
+          }),
+        },
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        alert("Agreement emailed to both parties successfully!");
+      } else {
+        alert("Download done, but email sending failed: " + data.message);
+      }
+    } catch (err) {
+      console.error("Email send error:", err);
+      alert("Download done, but failed to send emails.");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -180,6 +218,26 @@ const Contractor: React.FC = () => {
             onChangeText={setToCompany}
             style={styles.input}
             placeholder="Enter company name"
+          />
+
+          <Text style={styles.label}>From Company Email</Text>
+          <TextInput
+            value={fromEmail}
+            onChangeText={setFromEmail}
+            style={styles.input}
+            placeholder="Enter from company email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <Text style={styles.label}>To Company Email</Text>
+          <TextInput
+            value={toEmail}
+            onChangeText={setToEmail}
+            style={styles.input}
+            placeholder="Enter to company email"
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           <Text style={styles.label}>Agreement Category</Text>
@@ -388,10 +446,22 @@ const Contractor: React.FC = () => {
               </View>
 
               <TouchableOpacity onPress={downloadPDF} style={styles.button}>
-                <Text style={{ color: "#fff" }}>Download PDF</Text>
+                <Text style={{ color: "#fff" }}>Send Contract Email</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
+          {/* Sending Loader Overlay */}
+          {isSending && (
+            <View style={styles.loaderOverlay}>
+              <View style={styles.loaderBox}>
+                <ActivityIndicator size="large" color="#1e3a8a" />
+                <Text style={styles.loaderText}>Sending Agreement...</Text>
+                <Text style={styles.loaderSub}>
+                  Emailing both parties, please wait
+                </Text>
+              </View>
+            </View>
+          )}
         </Modal>
       </ScrollView>
     </View>
@@ -477,6 +547,40 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
+  },
+  loaderOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+  loaderBox: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingVertical: 36,
+    paddingHorizontal: 40,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 10,
+    gap: 12,
+  },
+  loaderText: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1e3a8a",
+    marginTop: 8,
+  },
+  loaderSub: {
+    fontSize: 13,
+    color: "#64748b",
+    textAlign: "center",
   },
   pdfHeader: {
     fontSize: 22,

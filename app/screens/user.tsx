@@ -100,10 +100,10 @@ export default function UsersScreen() {
     }
 
     try {
-      const res = await axios.post(
-        `https://labourhubserver.vercel.appapi/users/${reviewTargetEmail}/review`,
+      await axios.post(
+        `https://labourhubserver.vercel.app/api/users/${reviewTargetEmail}/review`,
         {
-          reviewerEmail: userEmail, // logged-in user
+          reviewerEmail: userEmail,
           rating: reviewRating,
           feedback: reviewFeedback,
         },
